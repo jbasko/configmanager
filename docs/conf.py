@@ -162,3 +162,4 @@ texinfo_documents = [
 
 
 autodoc_member_order = 'bysource'
+highlight_language = 'python'

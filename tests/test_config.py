@@ -139,3 +139,40 @@ def test_creates_config_from_dot_notation():
     c = Config('a.b')
     assert c.section == 'a'
     assert c.option == 'b'
+
+
+def test_bool_config_preserves_raw_str_value_used_to_set_it():
+    c = Config('a.b', type=bool, default=False)
+    assert c.value is False
+
+    assert not c
+    assert str(c) == 'False'
+    assert c.value is False
+
+    c.value = 'False'
+    assert not c
+    assert str(c) == 'False'
+    assert c.value is False
+
+    c.value = 'no'
+    assert not c
+    assert str(c) == 'no'
+    assert c.value is False
+
+    c.value = '0'
+    assert not c
+    assert str(c) == '0'
+    assert c.value is False
+
+    c.value = '1'
+    assert c
+    assert str(c) == '1'
+    assert c.value is True
+
+    c.reset()
+    assert not c
+    assert c.value is False
+
+    c.value = 'yes'
+    assert str(c) == 'yes'
+    assert c.value is True

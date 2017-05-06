@@ -27,6 +27,10 @@ def test_transition_interface():
     assert m.options('a') == ['x', 'y', 'z']
     assert m.options('b') == ['xx', 'yy']
 
+    assert m.has_option('a', 'x')
+    assert not m.has_option('x', 'a')
+    assert not m.has_option('b', 'x')
+
     assert m.get('a', 'x', vars={'x': None}) is None
 
     m.set('a', 'x', '23')

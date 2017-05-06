@@ -49,6 +49,10 @@ def resolve_config_name(*args):
     return section, option
 
 
+def parse_bool_str(bool_str):
+    return str(bool_str).lower().strip() in ('yes', 'y', 'yeah', 't', 'true', '1', 'yup')
+
+
 class Config(object):
     """
     Represents a single configurable thing which has a name (a concatenation of its section and option),
@@ -80,6 +84,10 @@ class Config(object):
     #: Set to ``True`` if the config is managed by :class:`ConfigManager`
     #: from which it was retrieved.
     exists = Descriptor('exists', default=None)
+
+    # Internally, hold on to the raw string value that was used to set value, so that
+    # when we persist the value, we use the same notation
+    raw_str_value = Descriptor('raw_str_value')
 
     prompt = Descriptor('prompt')
     labels = Descriptor('labels')
@@ -114,7 +122,9 @@ class Config(object):
     def value(self, value):
         if self.exists is False:
             raise RuntimeError('Cannot set non-existent config {}'.format(self.name))
-        self._value = self.type(value)
+        self._value = self._parse_str_value(value)
+        if self.type is not str:
+            self.raw_str_value = value
 
     @property
     def has_value(self):
@@ -131,6 +141,8 @@ class Config(object):
         return self.default is not not_set
 
     def __str__(self):
+        if self.raw_str_value is not not_set:
+            return self.raw_str_value
         return str(self.value)
 
     def __eq__(self, other):
@@ -158,6 +170,14 @@ class Config(object):
 
         return '<{} {}.{} {}>'.format(self.__class__.__name__, self.section, self.option, value)
 
+    def _parse_str_value(self, str_value):
+        if str_value is None or str_value is not_set:
+            return str_value
+        elif self.type is bool:
+            return parse_bool_str(str_value)
+        else:
+            return self.type(str_value)
+
 
 class ConfigSection(collections.OrderedDict):
     """
@@ -180,25 +200,31 @@ class ConfigSection(collections.OrderedDict):
 class ConfigManager(object):
     """
     
-    A collection and manager of :class:`.Config`.
+    A collection and manager of instances of :class:`.Config`.
     
-    Note that :class:`.ConfigManager` is not compatible with ``ConfigParser``.
-    Instead use :class:`TransitionConfigManager`.
+    .. note::
+        :class:`.ConfigManager` is not compatible with ``ConfigParser``.
+        If you want to use its features in your legacy code which uses ``ConfigParser`` without changing 
+        too much of your code, use :class:`TransitionConfigManager` instead.
     
     """
 
     def __init__(self, *configs):
+        """
+        
+        :param configs: 
+        """
         self._sections = collections.OrderedDict()
         self._configs = collections.OrderedDict()
         for config in configs:
-            self.add_config(config)
+            self.add(config)
 
     def __getattr__(self, item):
         if item in self._sections:
             return self._sections[item]
         raise AttributeError(item)
 
-    def add_config(self, config):
+    def add(self, config):
         """
         Add a new config to manage.
         
@@ -225,9 +251,13 @@ class ConfigManager(object):
             raise DuplicateSectionError(section)
         self._sections[section] = ConfigSection()
 
-    def get_config(self, *args):
+    def get(self, *args):
         """
         Returns an instance of :class:`.Config` identified by ``section.option``, or ``section`` and ``option``.
+        
+        .. note::
+            Note that this is by design very different from ``ConfigParser.get`` -- 
+            this does not accept ``raw``, ``vars``, or ``fallback`` kwargs.
         
         :param args:  ``("<section_name>.<option_name>")`` or ``("<section_name>", "<option_name>")``
         :return: :class:`.Config`
@@ -239,16 +269,16 @@ class ConfigManager(object):
             return Config(section, option, exists=False)
         return self._sections[section][option]
 
-    def set_config(self, *args):
+    def set(self, *args):
         """
         Sets value of previously added :class:`.Config` identified by ``section.option`` or ``section`` and ``option``.
         The last argument is the value or string value of the config.
         
         :param args:  ``("<section_name>.<option_name>"`, value)` or ``("<section_name>", "<option_name>", value)``
         """
-        self.get_config(*args[:-1]).value = args[-1]
+        self.get(*args[:-1]).value = args[-1]
 
-    def has_config(self, *args):
+    def has(self, *args):
         """
         Returns ``True`` if the specified config is managed by this :class:`.ConfigManager`. 
         
@@ -263,7 +293,7 @@ class ConfigManager(object):
             if section not in self._sections:
                 raise ValueError('Unknown config section {!r}'.format(section))
             for option in cp.options(section):
-                self.get_config(section, option).value = cp.get(section, option)
+                self.get(section, option).value = cp.get(section, option)
 
     def load_into_config_parser(self, cp):
         for section in self._sections.keys():
@@ -271,7 +301,7 @@ class ConfigManager(object):
                 cp.add_section(section)
             for config in self._sections[section].values():
                 if config.has_value:
-                    cp.set(section, config.option, config.value)
+                    cp.set(section, config.option, str(config))
 
     def read_file(self, fileobj):
         """

@@ -1,5 +1,3 @@
-.. _api:
-
 API
 ===
 
@@ -16,19 +14,19 @@ API
     :var .<section_name>.<option_name>: Access any :class:`.Config` of the configuration.
 
 
-``TransitionConfigManager(ConfigManager)``
-------------------------------------------
-
-.. autoclass:: TransitionConfigManager
-    :members:
-
-
 ``Config``
 ----------
 
 .. autoclass:: Config
     :members:
     :inherited-members:
+
+
+``TransitionConfigManager(ConfigManager)``
+------------------------------------------
+
+.. autoclass:: TransitionConfigManager
+    :members:
 
 
 ``not_set`` Object

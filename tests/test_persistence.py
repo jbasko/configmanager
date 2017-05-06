@@ -40,3 +40,25 @@ def test_writes_config_to_file(tmpdir):
 
     with open(config_path) as f:
         assert f.read() == '[random]\nname = Harry\n\n'
+
+
+def test_preserves_bool_notation(tmpdir):
+    m = ConfigManager(
+        Config('flags', 'enabled', type=bool, default=False)
+    )
+
+    config_path = tmpdir.join('flags.ini').strpath
+    with open(config_path, 'w') as f:
+        f.write('[flags]\nenabled = Yes\n\n')
+
+    with open(config_path) as f:
+        m.read_file(f)
+
+    assert m.flags.enabled
+    assert m.flags.enabled.value is True
+
+    with open(config_path, 'w') as f:
+        m.write(f)
+
+    with open(config_path) as f:
+        assert f.read() == '[flags]\nenabled = Yes\n\n'
