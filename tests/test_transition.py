@@ -1,7 +1,4 @@
-import pytest
-
 from configmanager import Config, TransitionConfigManager
-from configmanager.configparser_imports import DuplicateSectionError
 
 
 def test_transition_interface():
@@ -15,12 +12,12 @@ def test_transition_interface():
 
     assert m.sections() == ['a', 'b']
 
+    # add_section is a no-op
     m.add_section('c')
-    with pytest.raises(DuplicateSectionError):
-        m.add_section('c')
+    assert m.sections() == ['a', 'b']
 
     assert m.has_section('a')
-    assert m.has_section('c')
+    assert not m.has_section('c')
     assert not m.has_section('d')
     assert not m.has_section(m.default_section)
 
@@ -43,10 +40,6 @@ def test_transition_interface():
     assert m.get('a', 'zzz', fallback='ZZZ') == 'ZZZ'
 
     list_of_sections = m.items()
-    assert len(list_of_sections) == 3
+    assert len(list_of_sections) == 2
     assert list_of_sections[0][0] == 'a'
-    assert len(list_of_sections[0][1]) == 3
     assert list_of_sections[1][0] == 'b'
-    assert len(list_of_sections[1][1]) == 2
-    assert list_of_sections[2][0] == 'c'
-

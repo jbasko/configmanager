@@ -3,7 +3,7 @@ import copy
 
 import six
 
-from .configparser_imports import ConfigParser, DuplicateSectionError
+from .configparser_imports import ConfigParser
 
 
 class _NotSet(object):
@@ -35,6 +35,9 @@ def resolve_config_path(*args):
 
     path = []
     for arg in args:
+        if isinstance(arg, (list, tuple)):
+            path.extend(resolve_config_path(*arg))
+            continue
         if not isinstance(arg, six.string_types):
             raise TypeError('Config path segments should be strings, got a {}'.format(type(arg)))
         path.extend(arg.split('.'))
@@ -77,9 +80,9 @@ class Config(object):
     #: the expected type of the config value.
     type = Descriptor('type', default=str)
 
-    #: Set to ``True`` if the config is managed by :class:`ConfigManager`
-    #: from which it was retrieved.
-    exists = Descriptor('exists', default=None)
+    #: Set to ``False`` if the instance was created by :class:`ConfigManager` which
+    #: did not recognise it.
+    exists = Descriptor('exists', default=True)
 
     # Internally, hold on to the raw string value that was used to set value, so that
     # when we persist the value, we use the same notation
@@ -124,6 +127,8 @@ class Config(object):
         """
         Value or default value (if no value set) of the :class:`.Config` instance. 
         """
+        if self.exists is False:
+            raise RuntimeError('Cannot get value of non-existent config {}'.format(self.name))
         if self._value is not not_set:
             return self._value
         if self.default is not not_set:
@@ -195,6 +200,8 @@ class ConfigSection(collections.OrderedDict):
     """
     Represents a collection of :class:`.Config` instances that belong to the same section.
     """
+    # TODO Deprecated?
+
     def __getattr__(self, item):
         if item in self:
             return self[item]
@@ -221,58 +228,75 @@ class ConfigManager(object):
     
     """
 
+    class ConfigPathProxy(object):
+        def __init__(self, config_manager, path):
+            assert isinstance(path, tuple)
+            self._config_manager_ = config_manager
+            self._path_ = path
+
+        def __repr__(self):
+            return '<{} {}>'.format(self.__class__.__name__, '.'.join(self._path_))
+
+        @property
+        def exists(self):
+            return self._config_manager_.has(self._path_)
+
+        def __setattr__(self, key, value):
+            if key.startswith('_'):
+                return super(ConfigManager.ConfigPathProxy, self).__setattr__(key, value)
+
+            full_path = self._path_ + (key,)
+            if self._config_manager_.has(full_path):
+                self._config_manager_.set(full_path, value)
+            else:
+                raise AttributeError(key)
+
+        def __getattr__(self, path):
+            full_path = self._path_ + (path,)
+            if self._config_manager_.has(full_path):
+                return self._config_manager_.get(*full_path)
+            else:
+                return self.__class__(self._config_manager_, full_path)
+
     def __init__(self, *configs):
         """
-        
-        :param configs: 
+        :param configs:  a ``list`` of :class:`.Config` instances representing items of configuration
+                         that this manager accepts.
         """
-        self._sections = collections.OrderedDict()
         self._configs = collections.OrderedDict()
+        self._prefixes = collections.OrderedDict()  # Ordered set basically
+
         for config in configs:
             self.add(config)
 
-    def __getattr__(self, item):
-        if item in self._sections:
-            return self._sections[item]
-        raise AttributeError(item)
+    def __getattr__(self, path_segment):
+        if (path_segment,) in self._prefixes:
+            return self.ConfigPathProxy(self, (path_segment,))
+        else:
+            return self.get(path_segment)
 
     def add(self, config):
         """
-        Add a new config to manage.
+        Registers a new config to manage.
         
         :param config: instance of :class:`.Config`
+        
+        .. note::
+            :class:`.Config` instances are deep-copied when they are registered with the manager.
         """
-        if config.name in self._configs:
+        if config.path in self._configs:
             raise ValueError('Config {} already present'.format(config.name))
 
         config = copy.deepcopy(config)
         config.exists = True
-        self._configs[config.name] = config
+        self._configs[config.path] = config
 
-        if config.section not in self._sections:
-            self._add_section(config.section)
-
-        current = self._sections[config.section]
-        for i, p in enumerate(config.path[1:]):
-            is_section = i < len(config.path) - 2
-            if is_section:
-                if p in current:
-                    if not isinstance(current[p], ConfigSection):
-                        raise ValueError('Invalid config path {!r}'.format(config.path))
-                else:
-                    current[p] = ConfigSection()
-                current = current[p]
-            else:
-                current[p] = config
-
-    def _add_section(self, section):
-        """
-        This is not part of the public interface because in configmanager world
-        section is an internal implementation detail.
-        """
-        if section in self._sections:
-            raise DuplicateSectionError(section)
-        self._sections[section] = ConfigSection()
+        prefix = []
+        for p in config.path[:-1]:
+            prefix.append(p)
+            temp_prefix = tuple(prefix)
+            if temp_prefix not in self._prefixes:
+                self._prefixes[temp_prefix] = []
 
     def get(self, *path):
         """
@@ -281,71 +305,36 @@ class ConfigManager(object):
         :param path:
         :return: :class:`.Config`
         """
-
         path = resolve_config_path(*path)
-        section_path = path[:-1]
 
-        current = self
-        for p in section_path:
-            if isinstance(current, Config):
-                raise ValueError('Invalid path {!r}, {!r} is not a section'.format(path, p))
-            if p not in current:
-                return Config(*path, exists=False)
-            else:
-                current = current[p]
-
-        if isinstance(current, Config):
-            raise ValueError('Invalid path {!r}, {!r} is not a section'.format(path, section_path[-1]))
-        if path[-1] in current:
-            return current[path[-1]]
+        if path in self._configs:
+            return self._configs[path]
         else:
             return Config(*path, exists=False)
 
     def set(self, *path_and_value):
         """
-        Sets value of previously added :class:`.Config` identified by ``section.option`` or ``section`` and ``option``.
-        The last argument is the value or string value of the config.
+        Sets ``value`` of previously added :class:`.Config` identified by ``path``.
         
         :param path_and_value:
         """
         self.get(*path_and_value[:-1]).value = path_and_value[-1]
 
-    def __contains__(self, section):
-        return section in self._sections
-
-    def __getitem__(self, section):
-        return self._sections[section]
-
     def has(self, *path):
         """
         Returns ``True`` if the specified config is managed by this :class:`.ConfigManager`. 
-        
+
         :param path:  
         :return: ``bool``
         """
-        current = self
-        for p in resolve_config_path(*path):
-            if isinstance(current, Config):
-                return current.path == path
-            if p not in current:
-                return False
-            current = current[p]
-        return True
+        path = resolve_config_path(*path)
+        return path in self._configs
 
-    def load_from_config_parser(self, cp):
-        for section in cp.sections():
-            if section not in self._sections:
-                raise ValueError('Unknown config section {!r}'.format(section))
-            for option in cp.options(section):
-                self.get(section, option).value = cp.get(section, option)
-
-    def load_into_config_parser(self, cp):
-        for section in self._sections.keys():
-            if not cp.has_section(section):
-                cp.add_section(section)
-            for config in self._sections[section].values():
-                if config.has_value:
-                    cp.set(section, config.option, str(config))
+    def items(self):
+        """
+        Returns a ``list`` of :class:`.Config` instances managed by this manager.
+        """
+        return list(self._configs.values())
 
     def read_file(self, fileobj):
         """
@@ -363,3 +352,35 @@ class ConfigManager(object):
         cp = ConfigParser()
         self.load_into_config_parser(cp)
         cp.write(fileobj)
+
+    def sections(self):
+        """
+        Returns a list of all sections.
+        """
+        return list(prefix[0] for prefix in self._prefixes.keys() if len(prefix) == 1)
+
+    def has_section(self, section):
+        """
+        Returns ``True`` if section called ``section`` exists.
+        """
+        return tuple([section]) in self._prefixes
+
+    def reset(self):
+        """
+        Resets all configs.
+        """
+        for config in self._configs.values():
+            config.reset()
+
+    def load_from_config_parser(self, cp):
+        for section in cp.sections():
+            for option in cp.options(section):
+                self.get(section, option).value = cp.get(section, option)
+
+    def load_into_config_parser(self, cp):
+        for config in self._configs.values():
+            if not config.has_value:
+                continue
+            if not cp.has_section(config.section):
+                cp.add_section(config.section)
+            cp.set(config.section, '.'.join(config.path[1:]), str(config))

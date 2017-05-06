@@ -41,31 +41,21 @@ class TransitionConfigManager(ConfigManager):
     def defaults(self):
         raise NotImplementedError()
 
-    def sections(self):
-        """
-        Implementation of ``ConfigParser.sections()``.
-        """
-        return [k for k in self._sections.keys() if k != self.default_section]
-
     def add_section(self, section):
         """
-        Implementation of ``ConfigParser.add_section()``.
+        A no-op because :class:`ConfigManager` has no real sections.
         """
-        return self._add_section(section)
-
-    def has_section(self, section):
-        """
-        Implementation of ``ConfigParser.has_section()``.
-        """
-        return section != self.default_section and section in self._sections
+        pass
 
     def options(self, section):
         """
         Implementation of ``ConfigParser.options()``.
         """
-        if section not in self._sections:
-            raise NoSectionError(section)
-        return list(self._sections[section].keys())
+        matches = []
+        for path, config in self._configs.items():
+            if section == path[0]:
+                matches.append(config.path[1])
+        return matches
 
     def has_option(self, section, option):
         return self.has(section, option)
@@ -141,8 +131,8 @@ class TransitionConfigManager(ConfigManager):
             warn('vars keyword argument is not supported by {}'.format(self.__class__.__name__))
 
         if section is not_set:
-            return [(s, self._sections[s]) for s in self._sections.keys()]
+            return [(s, self.ConfigPathProxy(self, (s,))) for s in self.sections()]
         elif not self.has_section(section):
             raise NoSectionError(section)
         else:
-            return [(option, self._sections[section][option].value) for option in self._sections.keys()]
+            return [(config.option, config.value) for config in super(TransitionConfigManager, self).items()]

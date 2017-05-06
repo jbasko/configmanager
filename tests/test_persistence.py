@@ -31,7 +31,7 @@ def test_writes_config_to_file(tmpdir):
 
     # default value shouldn't be written
     with open(config_path) as f:
-        assert f.read() == '[random]\n\n'
+        assert f.read() == ''
 
     m.random.name = 'Harry'
 
@@ -62,3 +62,34 @@ def test_preserves_bool_notation(tmpdir):
 
     with open(config_path) as f:
         assert f.read() == '[flags]\nenabled = Yes\n\n'
+
+
+def test_handles_deep_paths(tmpdir):
+    config_path = tmpdir.join('conf.ini').strpath
+
+    m = ConfigManager(
+        Config('some', 'deep', 'config', 'a'),
+        Config('some', 'deep', 'config', 'b'),
+    )
+
+    with open(config_path, 'w') as f:
+        m.write(f)
+
+    with open(config_path, 'r') as f:
+        assert f.read() == ''
+
+    m.some.deep.config.a = 'AAA'
+
+    with open(config_path, 'w') as f:
+        m.write(f)
+
+    with open(config_path, 'r') as f:
+        assert f.read() == '[some]\ndeep.config.a = AAA\n\n'
+
+    m.reset()
+    assert not m.some.deep.config.a.has_value
+
+    with open(config_path, 'r') as f:
+        m.read_file(f)
+
+    assert m.some.deep.config.a == 'AAA'

@@ -10,8 +10,8 @@ API
     :members:
     :inherited-members:
 
-    :var .<section_name>: Access any :class:`.ConfigSection` of the configuration.
-    :var .<section_name>.<option_name>: Access any :class:`.Config` of the configuration.
+..    :var .<section_name>: Access any :class:`.ConfigSection` of the configuration.
+..    :var .<section_name>.<option_name>: Access any :class:`.Config` of the configuration.
 
 
 ``Config``
@@ -26,6 +26,7 @@ API
 ------------------------------------------
 
 .. autoclass:: TransitionConfigManager
+    :inherited-members:
     :members:
 
 

@@ -75,7 +75,7 @@ def test_config_section():
 
     assert m.a
     assert m.x
-    with pytest.raises(AttributeError):
+    with pytest.raises(RuntimeError):
         assert not m.b
 
     assert not m.a.b.has_value
@@ -117,11 +117,19 @@ def test_can_retrieve_non_existent_config():
     assert not b.exists
 
 
-def test_cannot_set_nonexistent_config():
-    c = Config('not', 'managed')
-    c.value = '23'
-    assert c.value == '23'
+def test_reset():
+    m = ConfigManager(
+        Config('forgettable', 'x', type=int),
+        Config('forgettable', 'y', default='YES')
+    )
 
-    d = Config('actually', 'managed', exists=False)
-    with pytest.raises(RuntimeError):
-        d.value = '23'
+    m.forgettable.x = 23
+    m.forgettable.y = 'NO'
+
+    assert m.forgettable.x == 23
+    assert m.forgettable.y == 'NO'
+
+    m.reset()
+
+    assert not m.forgettable.x.has_value
+    assert m.forgettable.y == 'YES'

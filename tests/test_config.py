@@ -22,10 +22,10 @@ def test_initialisation_with_default_section():
 @pytest.mark.parametrize('args', [
     (True, True),
     ('section', True),
-    (['section'], ['option']),
     (True, 'section'),
+    (123, 456),
 ])
-def test_section_and_option_must_be_strings(args):
+def test_paths_with_non_string_segments_raise_type_error(args):
     with pytest.raises(TypeError):
         Config(*args)
 
@@ -176,3 +176,13 @@ def test_bool_config_preserves_raw_str_value_used_to_set_it():
     c.value = 'yes'
     assert str(c) == 'yes'
     assert c.value is True
+
+
+def test_cannot_set_nonexistent_config():
+    c = Config('not', 'managed')
+    c.value = '23'
+    assert c.value == '23'
+
+    d = Config('actually', 'managed', exists=False)
+    with pytest.raises(RuntimeError):
+        d.value = '23'
