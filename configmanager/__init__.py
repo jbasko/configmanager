@@ -1,2 +1,2 @@
-from .base import not_set, Config, ConfigManager, ConfigSection
+from .base import not_set, ConfigItem, ConfigManager
 from .transition import TransitionConfigManager

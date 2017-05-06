@@ -1,4 +1,4 @@
-from configmanager import ConfigManager, Config
+from configmanager import ConfigManager, ConfigItem
 
 
 def test_reads_empty_config_from_file_obj(simple_config_manager, empty_config_file):
@@ -23,7 +23,7 @@ def test_reads_simple_config_from_file_obj(simple_config_manager, simple_config_
 
 def test_writes_config_to_file(tmpdir):
     m = ConfigManager(
-        Config('random', 'name', default='Bob')
+        ConfigItem('random', 'name', default='Bob')
     )
     config_path = tmpdir.join('config1.ini').strpath
     with open(config_path, 'w') as f:
@@ -44,7 +44,7 @@ def test_writes_config_to_file(tmpdir):
 
 def test_preserves_bool_notation(tmpdir):
     m = ConfigManager(
-        Config('flags', 'enabled', type=bool, default=False)
+        ConfigItem('flags', 'enabled', type=bool, default=False)
     )
 
     config_path = tmpdir.join('flags.ini').strpath
@@ -68,8 +68,8 @@ def test_handles_deep_paths(tmpdir):
     config_path = tmpdir.join('conf.ini').strpath
 
     m = ConfigManager(
-        Config('some', 'deep', 'config', 'a'),
-        Config('some', 'deep', 'config', 'b'),
+        ConfigItem('some', 'deep', 'config', 'a'),
+        ConfigItem('some', 'deep', 'config', 'b'),
     )
 
     with open(config_path, 'w') as f:

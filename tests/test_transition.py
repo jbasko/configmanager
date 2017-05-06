@@ -1,13 +1,13 @@
-from configmanager import Config, TransitionConfigManager
+from configmanager import ConfigItem, TransitionConfigManager
 
 
 def test_transition_interface():
     m = TransitionConfigManager(
-        Config('a', 'x'),
-        Config('a', 'y'),
-        Config('a', 'z'),
-        Config('b', 'xx'),
-        Config('b', 'yy'),
+        ConfigItem('a', 'x'),
+        ConfigItem('a', 'y'),
+        ConfigItem('a', 'z'),
+        ConfigItem('b', 'xx'),
+        ConfigItem('b', 'yy'),
     )
 
     assert m.sections() == ['a', 'b']

@@ -1,18 +1,18 @@
 import pytest
 
-from configmanager import Config, ConfigManager
+from configmanager import ConfigItem, ConfigManager
 
 
 def test_get():
     m = ConfigManager(
-        Config('a', '1', value='a1'),
-        Config('a', '2', value='a2'),
-        Config('b', '1', value='b1'),
-        Config('b', '2', value='b2'),
+        ConfigItem('a', '1', value='a1'),
+        ConfigItem('a', '2', value='a2'),
+        ConfigItem('b', '1', value='b1'),
+        ConfigItem('b', '2', value='b2'),
     )
 
     a1 = m.get('a', '1')
-    assert isinstance(a1, Config)
+    assert isinstance(a1, ConfigItem)
     assert a1 == 'a1'
 
     assert m.get('a.1') == 'a1'
@@ -23,18 +23,18 @@ def test_get():
 
 def test_duplicate_config_raises_value_error():
     m = ConfigManager()
-    m.add(Config('a', 'b'))
+    m.add(ConfigItem('a', 'b'))
 
     with pytest.raises(ValueError):
-        m.add(Config('a', 'b'))
+        m.add(ConfigItem('a', 'b'))
 
-    m.add(Config('a', 'c'))
+    m.add(ConfigItem('a', 'c'))
 
 
 def test_sets_config():
     m = ConfigManager(
-        Config('c', '1', type=int),
-        Config('c', '2'),
+        ConfigItem('c', '1', type=int),
+        ConfigItem('c', '2'),
     )
 
     m.set('c.1', '55')
@@ -45,8 +45,8 @@ def test_sets_config():
 
 
 def test_config_manager_configs_are_safe_copies():
-    c1 = Config('c', '1', type=int)
-    c2 = Config('c', '2', type=list)
+    c1 = ConfigItem('c', '1', type=int)
+    c2 = ConfigItem('c', '2', type=list)
 
     m = ConfigManager(c1)
 
@@ -66,11 +66,11 @@ def test_config_manager_configs_are_safe_copies():
 
 def test_config_section():
     m = ConfigManager(
-        Config('a', 'b'),
-        Config('a', 'c'),
-        Config('a', 'd'),
-        Config('x', 'y'),
-        Config('x', 'z'),
+        ConfigItem('a', 'b'),
+        ConfigItem('a', 'c'),
+        ConfigItem('a', 'd'),
+        ConfigItem('x', 'y'),
+        ConfigItem('x', 'z'),
     )
 
     assert m.a
@@ -93,7 +93,7 @@ def test_has():
     assert not m.has('a', 'b')
     assert not m.has('a.b')
 
-    m.add(Config('a', 'b'))
+    m.add(ConfigItem('a', 'b'))
 
     assert m.has('a', 'b')
     assert m.has('a.b')
@@ -107,7 +107,7 @@ def test_has():
 
 def test_can_retrieve_non_existent_config():
     m = ConfigManager(
-        Config('very', 'real')
+        ConfigItem('very', 'real')
     )
 
     a = m.get('very', 'real')
@@ -119,8 +119,8 @@ def test_can_retrieve_non_existent_config():
 
 def test_reset():
     m = ConfigManager(
-        Config('forgettable', 'x', type=int),
-        Config('forgettable', 'y', default='YES')
+        ConfigItem('forgettable', 'x', type=int),
+        ConfigItem('forgettable', 'y', default='YES')
     )
 
     m.forgettable.x = 23

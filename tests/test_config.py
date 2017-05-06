@@ -1,6 +1,6 @@
 import pytest
 
-from configmanager import Config
+from configmanager import ConfigItem
 
 
 @pytest.mark.parametrize('args', [
@@ -8,13 +8,13 @@ from configmanager import Config
     ('section1.option1',),
 ])
 def test_initialisation_of_section_and_option(args):
-    c = Config(*args)
+    c = ConfigItem(*args)
     assert c.section == 'section1'
     assert c.option == 'option1'
 
 
 def test_initialisation_with_default_section():
-    c = Config('option1')
+    c = ConfigItem('option1')
     assert c.section == 'DEFAULT'
     assert c.option == 'option1'
 
@@ -27,11 +27,11 @@ def test_initialisation_with_default_section():
 ])
 def test_paths_with_non_string_segments_raise_type_error(args):
     with pytest.raises(TypeError):
-        Config(*args)
+        ConfigItem(*args)
 
 
 def test_value_with_no_default_value():
-    c = Config('a', 'b')
+    c = ConfigItem('a', 'b')
 
     with pytest.raises(RuntimeError):
         assert c == ''
@@ -57,7 +57,7 @@ def test_value_with_no_default_value():
 
 
 def test_value_with_default_value():
-    c = Config('a', 'b', default='c')
+    c = ConfigItem('a', 'b', default='c')
 
     assert not c.has_value
     assert c.has_default
@@ -74,7 +74,7 @@ def test_value_with_default_value():
     assert c.has_default
     assert c.value == 'c'
 
-    d = Config('a', 'b', default='c', value='d')
+    d = ConfigItem('a', 'b', default='c', value='d')
     assert d.value == 'd'
 
     d.value = 'e'
@@ -85,7 +85,7 @@ def test_value_with_default_value():
 
 
 def test_value_gets_stringified():
-    c = Config('a', value='23')
+    c = ConfigItem('a', value='23')
     assert c == '23'
     assert c != 23
 
@@ -95,7 +95,7 @@ def test_value_gets_stringified():
 
 
 def test_int_value():
-    c = Config('a', type=int, default=25)
+    c = ConfigItem('a', type=int, default=25)
     assert c == 25
 
     c.value = '23'
@@ -107,7 +107,7 @@ def test_int_value():
 
 
 def test_bool_of_value():
-    c = Config('a')
+    c = ConfigItem('a')
 
     with pytest.raises(RuntimeError):
         # Cannot evaluate if there is no value and no default value
@@ -119,7 +119,7 @@ def test_bool_of_value():
     c.value = ''
     assert not c
 
-    d = Config('a', default='b')
+    d = ConfigItem('a', default='b')
     assert d
 
     d.value = ''
@@ -127,22 +127,22 @@ def test_bool_of_value():
 
 
 def test_str_and_repr_of_not_set_value():
-    c = Config('a')
+    c = ConfigItem('a')
 
     with pytest.raises(RuntimeError):
         assert not str(c)
 
-    assert repr(c) == '<Config DEFAULT.a <NotSet>>'
+    assert repr(c) == '<ConfigItem DEFAULT.a <NotSet>>'
 
 
 def test_creates_config_from_dot_notation():
-    c = Config('a.b')
+    c = ConfigItem('a.b')
     assert c.section == 'a'
     assert c.option == 'b'
 
 
 def test_bool_config_preserves_raw_str_value_used_to_set_it():
-    c = Config('a.b', type=bool, default=False)
+    c = ConfigItem('a.b', type=bool, default=False)
     assert c.value is False
 
     assert not c
@@ -179,10 +179,10 @@ def test_bool_config_preserves_raw_str_value_used_to_set_it():
 
 
 def test_cannot_set_nonexistent_config():
-    c = Config('not', 'managed')
+    c = ConfigItem('not', 'managed')
     c.value = '23'
     assert c.value == '23'
 
-    d = Config('actually', 'managed', exists=False)
+    d = ConfigItem('actually', 'managed', exists=False)
     with pytest.raises(RuntimeError):
         d.value = '23'

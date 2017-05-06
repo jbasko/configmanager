@@ -39,11 +39,11 @@ def resolve_config_path(*args):
             path.extend(resolve_config_path(*arg))
             continue
         if not isinstance(arg, six.string_types):
-            raise TypeError('Config path segments should be strings, got a {}'.format(type(arg)))
+            raise TypeError('ConfigItem path segments should be strings, got a {}'.format(type(arg)))
         path.extend(arg.split('.'))
 
     if len(path) == 1:
-        path = [Config.DEFAULT_SECTION, path[0]]
+        path = [ConfigItem.DEFAULT_SECTION, path[0]]
 
     return tuple(path)
 
@@ -52,10 +52,10 @@ def parse_bool_str(bool_str):
     return str(bool_str).lower().strip() in ('yes', 'y', 'yeah', 't', 'true', '1', 'yup')
 
 
-class Config(object):
+class ConfigItem(object):
     """
-    Represents a single configurable thing which has a name (a concatenation of its section and option),
-    a type, a default value, a value, etc.
+    Represents a single configurable thing which has a name (a path), a type, a default value, a value,
+    knows whether it exists or just pretends to, and other things.
     """
 
     DEFAULT_SECTION = 'DEFAULT'
@@ -125,7 +125,7 @@ class Config(object):
     @property
     def value(self):
         """
-        Value or default value (if no value set) of the :class:`.Config` instance. 
+        Value or default value (if no value set) of the :class:`.ConfigItem` instance. 
         """
         if self.exists is False:
             raise RuntimeError('Cannot get value of non-existent config {}'.format(self.name))
@@ -146,14 +146,14 @@ class Config(object):
     @property
     def has_value(self):
         """
-        Is ``True`` if the :class:`.Config` has a value set.
+        Is ``True`` if the :class:`.ConfigItem` has a value set.
         """
         return self._value is not not_set
 
     @property
     def has_default(self):
         """
-        Is ``True`` if the :class:`.Config` has the default value set.
+        Is ``True`` if the :class:`.ConfigItem` has the default value set.
         """
         return self.default is not not_set
 
@@ -196,30 +196,10 @@ class Config(object):
             return self.type(str_value)
 
 
-class ConfigSection(collections.OrderedDict):
-    """
-    Represents a collection of :class:`.Config` instances that belong to the same section.
-    """
-    # TODO Deprecated?
-
-    def __getattr__(self, item):
-        if item in self:
-            return self[item]
-        raise AttributeError(item)
-
-    def __setattr__(self, key, value):
-        if key.startswith('_'):
-            return super(ConfigSection, self).__setattr__(key, value)
-        elif key in self:
-            self[key].value = value
-        else:
-            raise AttributeError(key)
-
-
 class ConfigManager(object):
     """
     
-    A collection and manager of instances of :class:`.Config`.
+    A collection and manager of instances of :class:`.ConfigItem`.
     
     .. note::
         :class:`.ConfigManager` is not compatible with ``ConfigParser``.
@@ -260,7 +240,7 @@ class ConfigManager(object):
 
     def __init__(self, *configs):
         """
-        :param configs:  a ``list`` of :class:`.Config` instances representing items of configuration
+        :param configs:  a ``list`` of :class:`.ConfigItem` instances representing items of configuration
                          that this manager accepts.
         """
         self._configs = collections.OrderedDict()
@@ -279,13 +259,13 @@ class ConfigManager(object):
         """
         Registers a new config to manage.
         
-        :param config: instance of :class:`.Config`
+        :param config: instance of :class:`.ConfigItem`
         
         .. note::
-            :class:`.Config` instances are deep-copied when they are registered with the manager.
+            :class:`.ConfigItem` instances are deep-copied when they are registered with the manager.
         """
         if config.path in self._configs:
-            raise ValueError('Config {} already present'.format(config.name))
+            raise ValueError('ConfigItem {} already present'.format(config.name))
 
         config = copy.deepcopy(config)
         config.exists = True
@@ -300,21 +280,21 @@ class ConfigManager(object):
 
     def get(self, *path):
         """
-        Returns an instance of :class:`.Config` identified by the ``path``.
+        Returns an instance of :class:`.ConfigItem` identified by the ``path``.
         
         :param path:
-        :return: :class:`.Config`
+        :return: :class:`.ConfigItem`
         """
         path = resolve_config_path(*path)
 
         if path in self._configs:
             return self._configs[path]
         else:
-            return Config(*path, exists=False)
+            return ConfigItem(*path, exists=False)
 
     def set(self, *path_and_value):
         """
-        Sets ``value`` of previously added :class:`.Config` identified by ``path``.
+        Sets ``value`` of previously added :class:`.ConfigItem` identified by ``path``.
         
         :param path_and_value:
         """
@@ -332,7 +312,7 @@ class ConfigManager(object):
 
     def items(self):
         """
-        Returns a ``list`` of :class:`.Config` instances managed by this manager.
+        Returns a ``list`` of :class:`.ConfigItem` instances managed by this manager.
         """
         return list(self._configs.values())
 
@@ -367,12 +347,21 @@ class ConfigManager(object):
 
     def reset(self):
         """
-        Resets all configs.
+        Resets values of config items.
         """
         for config in self._configs.values():
             config.reset()
 
     def load_from_config_parser(self, cp):
+        """
+        Updates config items from data in `ConfigParser`
+        
+        Args:
+            cp (ConfigParser):
+
+        Returns:
+
+        """
         for section in cp.sections():
             for option in cp.options(section):
                 self.get(section, option).value = cp.get(section, option)

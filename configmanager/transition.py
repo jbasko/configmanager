@@ -2,7 +2,7 @@ from warnings import warn
 
 from .configparser_imports import NoSectionError
 
-from .base import Config, ConfigManager, not_set, parse_bool_str
+from .base import ConfigItem, ConfigManager, not_set, parse_bool_str
 
 
 class TransitionConfigManager(ConfigManager):
@@ -36,7 +36,7 @@ class TransitionConfigManager(ConfigManager):
 
     @property
     def default_section(self):
-        return Config.DEFAULT_SECTION
+        return ConfigItem.DEFAULT_SECTION
 
     def defaults(self):
         raise NotImplementedError()
@@ -66,7 +66,7 @@ class TransitionConfigManager(ConfigManager):
     def get(self, section, option, raw=True, vars=None, fallback=not_set):
         """
         A far from perfect implementation of ``ConfigParser.get()``.
-        It does not return a raw value, instead returns an instance of :class:`.Config`.
+        It does not return a raw value, instead returns an instance of :class:`.ConfigItem`.
         """
         if not raw:
             warn('{}.get does not support raw=False'.format(self.__class__.__name__))
@@ -87,7 +87,7 @@ class TransitionConfigManager(ConfigManager):
     def getint(self, section, option, raw=True, vars=None, fallback=not_set):
         """
         .. deprecated:: 0
-           Instead, in :class:`.Config` use ``type=int``.
+           Instead, in :class:`.ConfigItem` use ``type=int``.
         
         Implementation of ``ConfigParser.getint()``. 
         """
@@ -96,7 +96,7 @@ class TransitionConfigManager(ConfigManager):
     def getfloat(self, section, option, raw=True, vars=None, fallback=not_set):
         """
         .. deprecated:: 0
-           Instead, in :class:`.Config` use ``type=float``.
+           Instead, in :class:`.ConfigItem` use ``type=float``.
 
         Implementation of ``ConfigParser.getfloat()``. 
         """
@@ -105,7 +105,7 @@ class TransitionConfigManager(ConfigManager):
     def getboolean(self, section, option, raw=True, vars=None, fallback=not_set):
         """
         .. deprecated:: 0
-           Instead, in :class:`.Config` use ``type=bool``.
+           Instead, in :class:`.ConfigItem` use ``type=bool``.
 
         Implementation of ``ConfigParser.getboolean()``. 
         """
