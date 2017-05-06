@@ -23,7 +23,7 @@ setup(
     description='Self-conscious items of configuration in Python',
     long_description=read('README.rst'),
     packages=find_packages(),
-    install_requires=[],
+    install_requires=['six'],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',

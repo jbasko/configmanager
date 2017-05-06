@@ -1,6 +1,7 @@
 import collections
-
 import copy
+
+import six
 
 from .configparser_imports import ConfigParser, DuplicateSectionError
 
@@ -28,25 +29,20 @@ class _NotSet(object):
 not_set = _NotSet()
 
 
-def resolve_config_name(*args):
-    if len(args) == 2:
-        section, option = args
-    elif len(args) == 1:
-        if '.' in args[0]:
-            section, option = args[0].split('.', 1)
-        else:
-            section = Config.DEFAULT_SECTION
-            option = args[0]
-    else:
-        raise ValueError('Expected 1 or 2 args, got {}'.format(len(args)))
+def resolve_config_path(*args):
+    if len(args) == 0:
+        raise ValueError('Expected at least 1 config path segment, got none')
 
-    if not isinstance(section, str):
-        raise TypeError('{}.section must be a string'.format(Config.__name__))
+    path = []
+    for arg in args:
+        if not isinstance(arg, six.string_types):
+            raise TypeError('Config path segments should be strings, got a {}'.format(type(arg)))
+        path.extend(arg.split('.'))
 
-    if not isinstance(option, str):
-        raise TypeError('{}.option must be a string'.format(Config.__name__))
+    if len(path) == 1:
+        path = [Config.DEFAULT_SECTION, path[0]]
 
-    return section, option
+    return path
 
 
 def parse_bool_str(bool_str):
@@ -93,19 +89,35 @@ class Config(object):
     labels = Descriptor('labels')
     choices = Descriptor('choices')
 
-    def __init__(self, *args, **kwargs):
-        self.section, self.option = resolve_config_name(*args)
+    def __init__(self, *path, **kwargs):
+
+        #: a ``list`` of config's path segments.
+        self.path = resolve_config_path(*path)
 
         self._value = not_set
         for k, v in kwargs.items():
             setattr(self, k, v)
 
     @property
+    def section(self):
+        """
+        The first segment of :attr:`.path`.
+        """
+        return self.path[0]
+
+    @property
+    def option(self):
+        """
+        The second segment of :attr:`.path`.
+        """
+        return self.path[1]
+
+    @property
     def name(self):
         """
-        Dot-joined concatenation of section and option, i.e. `section.option`
+        A string, :attr:`.path` joined by dots.
         """
-        return '{}.{}'.format(self.section, self.option)
+        return '.'.join(self.path)
 
     @property
     def value(self):
@@ -240,7 +252,20 @@ class ConfigManager(object):
         if config.section not in self._sections:
             self._add_section(config.section)
 
-        self._sections[config.section][config.option] = self._configs[config.name]
+        current = self._sections[config.section]
+        for i, p in enumerate(config.path[1:]):
+            is_section = i < len(config.path) - 2
+            if is_section:
+                if p in current:
+                    if not isinstance(current[p], ConfigSection):
+                        raise ValueError('Invalid config path {!r}'.format(config.path))
+                else:
+                    current[p] = ConfigSection()
+                current = current[p]
+            else:
+                current[p] = config
+
+        # self._sections[config.section][config.option] = self._configs[config.name]
 
     def _add_section(self, section):
         """
@@ -251,42 +276,63 @@ class ConfigManager(object):
             raise DuplicateSectionError(section)
         self._sections[section] = ConfigSection()
 
-    def get(self, *args):
+    def get(self, *path):
         """
-        Returns an instance of :class:`.Config` identified by ``section.option``, or ``section`` and ``option``.
+        Returns an instance of :class:`.Config` identified by the ``path``.
         
-        .. note::
-            Note that this is by design very different from ``ConfigParser.get`` -- 
-            this does not accept ``raw``, ``vars``, or ``fallback`` kwargs.
-        
-        :param args:  ``("<section_name>.<option_name>")`` or ``("<section_name>", "<option_name>")``
+        :param path:
         :return: :class:`.Config`
         """
-        section, option = resolve_config_name(*args)
-        if section not in self._sections:
-            return Config(section, option, exists=False)
-        if option not in self._sections[section]:
-            return Config(section, option, exists=False)
-        return self._sections[section][option]
 
-    def set(self, *args):
+        path = resolve_config_path(*path)
+        section_path = path[:-1]
+
+        current = self
+        for p in section_path:
+            if isinstance(current, Config):
+                raise ValueError('Invalid path {!r}, {!r} is not a section'.format(path, p))
+            if p not in current:
+                return Config(*path, exists=False)
+            else:
+                current = current[p]
+
+        if isinstance(current, Config):
+            raise ValueError('Invalid path {!r}, {!r} is not a section'.format(path, section_path[-1]))
+        if path[-1] in current:
+            return current[path[-1]]
+        else:
+            return Config(*path, exists=False)
+
+    def set(self, *path_and_value):
         """
         Sets value of previously added :class:`.Config` identified by ``section.option`` or ``section`` and ``option``.
         The last argument is the value or string value of the config.
         
-        :param args:  ``("<section_name>.<option_name>"`, value)` or ``("<section_name>", "<option_name>", value)``
+        :param path_and_value:
         """
-        self.get(*args[:-1]).value = args[-1]
+        self.get(*path_and_value[:-1]).value = path_and_value[-1]
 
-    def has(self, *args):
+    def __contains__(self, section):
+        return section in self._sections
+
+    def __getitem__(self, section):
+        return self._sections[section]
+
+    def has(self, *path):
         """
         Returns ``True`` if the specified config is managed by this :class:`.ConfigManager`. 
         
-        :param args:  ``("<section_name>.<option_name>")`` or ``("<section_name>", "<option_name>")``  
+        :param path:  
         :return: ``bool``
         """
-        section, option = resolve_config_name(*args)
-        return section in self._sections and option in self._sections[section]
+        current = self
+        for p in resolve_config_path(*path):
+            if isinstance(current, Config):
+                return current.path == path
+            if p not in current:
+                return False
+            current = current[p]
+        return True
 
     def load_from_config_parser(self, cp):
         for section in cp.sections():
