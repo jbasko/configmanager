@@ -40,21 +40,21 @@ def resolve_config_name(*args):
         if '.' in args[0]:
             section, option = args[0].split('.', 1)
         else:
-            section = Configurable.DEFAULT_SECTION
+            section = Config.DEFAULT_SECTION
             option = args[0]
     else:
         raise ValueError('Expected 1 or 2 args, got {}'.format(len(args)))
 
     if not isinstance(section, str):
-        raise TypeError('{}.section must be a string'.format(Configurable.__name__))
+        raise TypeError('{}.section must be a string'.format(Config.__name__))
 
     if not isinstance(option, str):
-        raise TypeError('{}.option must be a string'.format(Configurable.__name__))
+        raise TypeError('{}.option must be a string'.format(Config.__name__))
 
     return section, option
 
 
-class Configurable(object):
+class Config(object):
     DEFAULT_SECTION = 'DEFAULT'
 
     class Descriptor(object):

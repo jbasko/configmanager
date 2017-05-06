@@ -1,6 +1,6 @@
 import pytest
 
-from configmanager import Configurable
+from configmanager import Config
 
 
 @pytest.mark.parametrize('args', [
@@ -8,13 +8,13 @@ from configmanager import Configurable
     ('section1.option1',),
 ])
 def test_initialisation_of_section_and_option(args):
-    c = Configurable(*args)
+    c = Config(*args)
     assert c.section == 'section1'
     assert c.option == 'option1'
 
 
 def test_initialisation_with_default_section():
-    c = Configurable('option1')
+    c = Config('option1')
     assert c.section == 'DEFAULT'
     assert c.option == 'option1'
 
@@ -27,11 +27,11 @@ def test_initialisation_with_default_section():
 ])
 def test_section_and_option_must_be_strings(args):
     with pytest.raises(TypeError):
-        Configurable(*args)
+        Config(*args)
 
 
 def test_value_with_no_default_value():
-    c = Configurable('a', 'b')
+    c = Config('a', 'b')
 
     with pytest.raises(RuntimeError):
         assert c == ''
@@ -57,7 +57,7 @@ def test_value_with_no_default_value():
 
 
 def test_value_with_default_value():
-    c = Configurable('a', 'b', default='c')
+    c = Config('a', 'b', default='c')
 
     assert not c.has_value
     assert c.has_default
@@ -74,7 +74,7 @@ def test_value_with_default_value():
     assert c.has_default
     assert c.value == 'c'
 
-    d = Configurable('a', 'b', default='c', value='d')
+    d = Config('a', 'b', default='c', value='d')
     assert d.value == 'd'
 
     d.value = 'e'
@@ -85,7 +85,7 @@ def test_value_with_default_value():
 
 
 def test_value_gets_stringified():
-    c = Configurable('a', value='23')
+    c = Config('a', value='23')
     assert c == '23'
     assert c != 23
 
@@ -95,7 +95,7 @@ def test_value_gets_stringified():
 
 
 def test_int_value():
-    c = Configurable('a', type=int, default=25)
+    c = Config('a', type=int, default=25)
     assert c == 25
 
     c.value = '23'
@@ -107,7 +107,7 @@ def test_int_value():
 
 
 def test_bool_of_value():
-    c = Configurable('a')
+    c = Config('a')
 
     with pytest.raises(RuntimeError):
         # Cannot evaluate if there is no value and no default value
@@ -119,7 +119,7 @@ def test_bool_of_value():
     c.value = ''
     assert not c
 
-    d = Configurable('a', default='b')
+    d = Config('a', default='b')
     assert d
 
     d.value = ''
@@ -127,9 +127,9 @@ def test_bool_of_value():
 
 
 def test_str_and_repr_of_not_set_value():
-    c = Configurable('a')
+    c = Config('a')
 
     with pytest.raises(RuntimeError):
         assert not str(c)
 
-    assert repr(c) == '<Configurable DEFAULT.a <NotSet>>'
+    assert repr(c) == '<Config DEFAULT.a <NotSet>>'

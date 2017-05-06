@@ -1,18 +1,18 @@
 import pytest
 
-from configmanager import Configurable, ConfigManager
+from configmanager import Config, ConfigManager
 
 
 def test_get_config():
     m = ConfigManager(
-        Configurable('a', '1', value='a1'),
-        Configurable('a', '2', value='a2'),
-        Configurable('b', '1', value='b1'),
-        Configurable('b', '2', value='b2'),
+        Config('a', '1', value='a1'),
+        Config('a', '2', value='a2'),
+        Config('b', '1', value='b1'),
+        Config('b', '2', value='b2'),
     )
 
     a1 = m.get_config('a', '1')
-    assert isinstance(a1, Configurable)
+    assert isinstance(a1, Config)
     assert a1 == 'a1'
 
     assert m.get_config('a.1') == 'a1'
@@ -23,18 +23,18 @@ def test_get_config():
 
 def test_duplicate_config_raises_value_error():
     m = ConfigManager()
-    m.add_config(Configurable('a', 'b'))
+    m.add_config(Config('a', 'b'))
 
     with pytest.raises(ValueError):
-        m.add_config(Configurable('a', 'b'))
+        m.add_config(Config('a', 'b'))
 
-    m.add_config(Configurable('a', 'c'))
+    m.add_config(Config('a', 'c'))
 
 
 def test_set_config():
     m = ConfigManager(
-        Configurable('c', '1', type=int),
-        Configurable('c', '2'),
+        Config('c', '1', type=int),
+        Config('c', '2'),
     )
 
     m.set_config('c.1', '55')
@@ -45,8 +45,8 @@ def test_set_config():
 
 
 def test_config_manager_configs_are_safe_copies():
-    c1 = Configurable('c', '1', type=int)
-    c2 = Configurable('c', '2', type=list)
+    c1 = Config('c', '1', type=int)
+    c2 = Config('c', '2', type=list)
 
     m = ConfigManager(c1)
 
@@ -66,11 +66,11 @@ def test_config_manager_configs_are_safe_copies():
 
 def test_config_section():
     m = ConfigManager(
-        Configurable('a', 'b'),
-        Configurable('a', 'c'),
-        Configurable('a', 'd'),
-        Configurable('x', 'y'),
-        Configurable('x', 'z'),
+        Config('a', 'b'),
+        Config('a', 'c'),
+        Config('a', 'd'),
+        Config('x', 'y'),
+        Config('x', 'z'),
     )
 
     assert m.a

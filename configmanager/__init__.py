@@ -1,1 +1,1 @@
-from .base import not_set, Configurable, ConfigManager, ConfigSection
+from .base import not_set, Config, ConfigManager, ConfigSection

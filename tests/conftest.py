@@ -1,15 +1,15 @@
 import pytest
 
-from configmanager import ConfigManager, Configurable
+from configmanager import ConfigManager, Config
 
 
 @pytest.fixture
 def simple_config_manager():
     return ConfigManager(
-        Configurable('simple', 'str', default='', type=str),
-        Configurable('simple', 'int', default=0, type=int),
-        Configurable('simple', 'float', default=0.0, type=float),
-        Configurable('random', 'name', default='Bob')
+        Config('simple', 'str', default='', type=str),
+        Config('simple', 'int', default=0, type=int),
+        Config('simple', 'float', default=0.0, type=float),
+        Config('random', 'name', default='Bob')
     )
 
 
