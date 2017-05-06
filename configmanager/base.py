@@ -42,7 +42,7 @@ def resolve_config_path(*args):
     if len(path) == 1:
         path = [Config.DEFAULT_SECTION, path[0]]
 
-    return path
+    return tuple(path)
 
 
 def parse_bool_str(bool_str):
@@ -91,7 +91,7 @@ class Config(object):
 
     def __init__(self, *path, **kwargs):
 
-        #: a ``list`` of config's path segments.
+        #: a ``tuple`` of config's path segments.
         self.path = resolve_config_path(*path)
 
         self._value = not_set
@@ -264,8 +264,6 @@ class ConfigManager(object):
                 current = current[p]
             else:
                 current[p] = config
-
-        # self._sections[config.section][config.option] = self._configs[config.name]
 
     def _add_section(self, section):
         """

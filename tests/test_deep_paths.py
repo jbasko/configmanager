@@ -6,19 +6,19 @@ from configmanager import Config, ConfigManager
 def test_config_with_three_segment_path():
     c = Config('x', 'y', 'z')
     assert c.name == 'x.y.z'
-    assert c.path == ['x', 'y', 'z']
+    assert c.path == ('x', 'y', 'z')
 
     d = Config('xx', 'yy.zz')
     assert d.name == 'xx.yy.zz'
-    assert d.path == ['xx', 'yy', 'zz']
+    assert d.path == ('xx', 'yy', 'zz')
 
     e = Config('xx.yy', 'zz')
     assert e.name == 'xx.yy.zz'
-    assert e.path == ['xx', 'yy', 'zz']
+    assert e.path == ('xx', 'yy', 'zz')
 
     f = Config('xx.yy.zz')
     assert f.name == 'xx.yy.zz'
-    assert f.path == ['xx', 'yy', 'zz']
+    assert f.path == ('xx', 'yy', 'zz')
 
 
 def test_config_manager_handles_config_of_three_segment_path():
