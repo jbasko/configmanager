@@ -7,4 +7,3 @@ Welcome to **configmanager**'s documentation!
    :maxdepth: 2
 
    api
-

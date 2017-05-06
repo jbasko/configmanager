@@ -2,12 +2,7 @@ import collections
 
 import copy
 
-try:
-    # Python 2
-    from ConfigParser import ConfigParser
-    ConfigParser.read_file = ConfigParser.readfp
-except ImportError:
-    from configparser import ConfigParser
+from .configparser_imports import ConfigParser, DuplicateSectionError
 
 
 class _NotSet(object):
@@ -82,6 +77,10 @@ class Config(object):
     #: the expected type of the config value.
     type = Descriptor('type', default=str)
 
+    #: Set to ``True`` if the config is managed by :class:`ConfigManager`
+    #: from which it was retrieved.
+    exists = Descriptor('exists', default=None)
+
     prompt = Descriptor('prompt')
     labels = Descriptor('labels')
     choices = Descriptor('choices')
@@ -113,6 +112,8 @@ class Config(object):
 
     @value.setter
     def value(self, value):
+        if self.exists is False:
+            raise RuntimeError('Cannot set non-existent config {}'.format(self.name))
         self._value = self.type(value)
 
     @property
@@ -178,7 +179,12 @@ class ConfigSection(collections.OrderedDict):
 
 class ConfigManager(object):
     """
-    A collection of :class:`.Config` instances and methods to manage it.
+    
+    A collection and manager of :class:`.Config`.
+    
+    Note that :class:`.ConfigManager` is not compatible with ``ConfigParser``.
+    Instead use :class:`TransitionConfigManager`.
+    
     """
 
     def __init__(self, *configs):
@@ -202,12 +208,22 @@ class ConfigManager(object):
             raise ValueError('Config {} already present'.format(config.name))
 
         config = copy.deepcopy(config)
+        config.exists = True
         self._configs[config.name] = config
 
         if config.section not in self._sections:
-            self._sections[config.section] = ConfigSection()
+            self._add_section(config.section)
 
         self._sections[config.section][config.option] = self._configs[config.name]
+
+    def _add_section(self, section):
+        """
+        This is not part of the public interface because in configmanager world
+        section is an internal implementation detail.
+        """
+        if section in self._sections:
+            raise DuplicateSectionError(section)
+        self._sections[section] = ConfigSection()
 
     def get_config(self, *args):
         """
@@ -218,9 +234,9 @@ class ConfigManager(object):
         """
         section, option = resolve_config_name(*args)
         if section not in self._sections:
-            raise ValueError('Section {!r} not found'.format(section))
+            return Config(section, option, exists=False)
         if option not in self._sections[section]:
-            raise ValueError('Option {!r} not found in section {!r}'.format(option, section))
+            return Config(section, option, exists=False)
         return self._sections[section][option]
 
     def set_config(self, *args):

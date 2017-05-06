@@ -16,6 +16,13 @@ API
     :var .<section_name>.<option_name>: Access any :class:`.Config` of the configuration.
 
 
+``TransitionConfigManager(ConfigManager)``
+------------------------------------------
+
+.. autoclass:: TransitionConfigManager
+    :members:
+
+
 ``Config``
 ----------
 
@@ -29,11 +36,3 @@ API
 
 ``not_set`` is a special object which is used to represent uninitialised values and
 default values.
-
-
-``ConfigSection`` Object
-------------------------
-
-.. autoclass:: ConfigSection
-
-    :var .<option_name>: Access any :class:`.Config` of the configuration section.

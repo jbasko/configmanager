@@ -103,3 +103,25 @@ def test_has_config():
 
     assert not m.has_config('b', 'a')
     assert not m.has_config('b', 'b')
+
+
+def test_can_retrieve_non_existent_config():
+    m = ConfigManager(
+        Config('very', 'real')
+    )
+
+    a = m.get_config('very', 'real')
+    assert a.exists
+
+    b = m.get_config('something', 'nonexistent')
+    assert not b.exists
+
+
+def test_cannot_set_nonexistent_config():
+    c = Config('not', 'managed')
+    c.value = '23'
+    assert c.value == '23'
+
+    d = Config('actually', 'managed', exists=False)
+    with pytest.raises(RuntimeError):
+        d.value = '23'
