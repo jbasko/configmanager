@@ -1,7 +1,7 @@
 configmanager
 =============
 
-[`ConfigParser`](https://docs.python.org/3/library/configparser.html) in Python standard library
+```ConfigParser`` https://docs.python.org/3/library/configparser.html`_ in Python standard library
 is for parsing configuration files, but it doesn't mean it  should drive your configuration access design.
 
 A single item of configuration (a config) doesn't have to be a clueless string value.
