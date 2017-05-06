@@ -20,7 +20,7 @@ setup(
     maintainer_email='jazeps.basko@gmail.com',
     license='MIT',
     url='https://github.com/jbasko/configmanager',
-    description='Library to help working with individual config values (names, defaults, types, etc.)',
+    description='Self-conscious items of configuration in Python',
     long_description=read('README.rst'),
     packages=find_packages(),
     install_requires=[],
