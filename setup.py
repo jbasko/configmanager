@@ -21,6 +21,7 @@ setup(
     license='MIT',
     url='https://github.com/jbasko/configmanager',
     description='Library to help working with individual config values (names, defaults, types, etc.)',
+    long_description=read('README.rst'),
     packages=find_packages(),
     install_requires=[],
     classifiers=[
