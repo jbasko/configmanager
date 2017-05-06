@@ -188,14 +188,16 @@ class ConfigItem(object):
         self._value = not_set
 
     def __repr__(self):
-        if self.has_value:
+        if not self.exists:
+            value = '<NonExistent>'
+        elif self.has_value:
             value = str(self.value)
         elif self.default is not not_set:
             value = str(self.default)
         else:
             value = repr(self.default)
 
-        return '<{} {}.{} {}>'.format(self.__class__.__name__, self.section, self.option, value)
+        return '<{} {} {}>'.format(self.__class__.__name__, self.name, value)
 
     def _parse_str_value(self, str_value):
         if str_value is None or str_value is not_set:
@@ -266,10 +268,16 @@ class ConfigManager(object):
             return self.get(path_segment)
 
     def add(self, config):
-        """
-        Registers a new config to manage.
+        """Register a new config to manage.
         
-        :param config: instance of :class:`.ConfigItem`
+        Args:
+            config (ConfigItem): item to add
+        
+        Examples:
+            >>> cm = ConfigManager()
+            >>> cm.add(ConfigItem('some.path', default='/tmp/something.txt'))
+            >>> cm.some.path
+            '/tmp/something.txt'
         
         .. note::
             :class:`.ConfigItem` instances are deep-copied when they are registered with the manager.
@@ -289,11 +297,44 @@ class ConfigManager(object):
                 self._prefixes[temp_prefix] = []
 
     def get(self, *path):
-        """
-        Returns an instance of :class:`.ConfigItem` identified by the ``path``.
+        """Get a config item by path.
         
-        :param path:
-        :return: :class:`.ConfigItem`
+        By design, there is no way to supply a fallback value. The idea is that a fallback
+        value can be set as :attr:`ConfigItem.default`.
+            
+        :attr:`ConfigItem.value` returns the default value (fallback value) if actual value
+        is not set.
+        
+        Args:
+            *path:
+        
+        Returns:
+            ConfigItem: an existing or newly created :class:`.ConfigItem` matching the ``path``.
+            
+            If this manager does not contain an item with ``path``, the returned item's ``exists``
+            attribute will be set to ``False`` and accessing its value will raise ``RuntimeError``.
+        
+        Examples:
+            >>> cm = ConfigManager(ConfigItem('something', 'real', default=0.0, type=float))
+            >>> cm.get('something.real')
+            <ConfigItem something.real 0.0>
+            >>> cm.get('something', 'real')
+            <ConfigItem something.real 0.0>
+            
+            >>> cm.get('something.very.surreal')
+            <ConfigItem something.very.surreal <NonExistent>>
+            >>> cm.get('something.very.surreal').exists
+            False
+        
+        You should only use this method if the path is a variable. For fixed paths, you can use
+        attribute access:
+        
+        .. code-block:: python
+        
+            >>> cm = ConfigManager(ConfigItem('a.x', type=int, value=23))
+            >>> cm.a.x
+            <ConfigItem a.x 23>
+        
         """
         path = resolve_config_path(*path)
 

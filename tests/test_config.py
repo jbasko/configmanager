@@ -186,3 +186,13 @@ def test_cannot_set_nonexistent_config():
     d = ConfigItem('actually', 'managed', exists=False)
     with pytest.raises(RuntimeError):
         d.value = '23'
+
+
+def test_repr():
+    assert repr(ConfigItem('this.is', 'me', default='yes')) == '<ConfigItem this.is.me yes>'
+    assert repr(ConfigItem('this.is', 'me')) == '<ConfigItem this.is.me <NotSet>>'
+
+
+def test_nonexistent_item_visible_in_repr():
+    c = ConfigItem('non', 'ex.is', 'tent', exists=False)
+    assert repr(c) == '<ConfigItem non.ex.is.tent <NonExistent>>'
