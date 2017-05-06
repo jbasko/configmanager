@@ -133,3 +133,43 @@ def test_reset():
 
     assert not m.forgettable.x.has_value
     assert m.forgettable.y == 'YES'
+
+
+def test_items_returns_all_config_items():
+    m = ConfigManager(
+        ConfigItem('a', 'aa', 'aaa'),
+        ConfigItem('b', 'bb'),
+        ConfigItem('a', 'aa', 'AAA'),
+        ConfigItem('b', 'BB'),
+    )
+
+    assert len(m.items()) == 4
+    assert m.items()[0].path == ('a', 'aa', 'aaa')
+    assert m.items()[-1].path == ('b', 'BB')
+
+
+def test_items_with_prefix_returns_matching_config_items():
+    m = ConfigManager(
+        ConfigItem('a', 'aa', 'aaa'),
+        ConfigItem('b', 'bb'),
+        ConfigItem('a', 'aa', 'AAA'),
+        ConfigItem('b', 'BB'),
+    )
+
+    a_items = m.items('a')
+    assert len(a_items) == 2
+    assert a_items[0].path == ('a', 'aa', 'aaa')
+    assert a_items[1].path == ('a', 'aa', 'AAA')
+
+    a_aa_items1 = m.items('a.aa')
+    a_aa_items2 = m.items('a', 'aa')
+    assert a_aa_items1 == a_aa_items2
+    assert len(a_aa_items1) == 2
+    assert a_aa_items1[0].path == ('a', 'aa', 'aaa')
+    assert a_aa_items1[1].path == ('a', 'aa', 'AAA')
+
+    b_bb_items = m.items('b.bb')
+    assert len(b_bb_items) == 1
+
+    no_items = m.items('haha.haha')
+    assert len(no_items) == 0

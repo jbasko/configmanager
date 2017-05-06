@@ -29,23 +29,33 @@ class _NotSet(object):
 not_set = _NotSet()
 
 
-def resolve_config_path(*args):
-    if len(args) == 0:
+def resolve_config_path(*path):
+    if len(path) == 0:
         raise ValueError('Expected at least 1 config path segment, got none')
 
-    path = []
-    for arg in args:
+    resolution = []
+    for arg in path:
         if isinstance(arg, (list, tuple)):
-            path.extend(resolve_config_path(*arg))
+            resolution.extend(resolve_config_path(*arg))
             continue
         if not isinstance(arg, six.string_types):
             raise TypeError('ConfigItem path segments should be strings, got a {}'.format(type(arg)))
-        path.extend(arg.split('.'))
+        resolution.extend(arg.split('.'))
 
-    if len(path) == 1:
-        path = [ConfigItem.DEFAULT_SECTION, path[0]]
+    if len(resolution) == 1:
+        resolution = [ConfigItem.DEFAULT_SECTION, resolution[0]]
 
-    return tuple(path)
+    return tuple(resolution)
+
+
+def resolve_config_prefix(*prefix):
+    if len(prefix) == 0:
+        return tuple()
+
+    if len(prefix) == 1 and '.' not in prefix[0]:
+        return tuple(prefix)
+
+    return resolve_config_path(*prefix)
 
 
 def parse_bool_str(bool_str):
@@ -310,11 +320,16 @@ class ConfigManager(object):
         path = resolve_config_path(*path)
         return path in self._configs
 
-    def items(self):
+    def items(self, *prefix):
         """
         Returns a ``list`` of :class:`.ConfigItem` instances managed by this manager.
+        If ``prefix`` is specified, only items with matching path prefix are included.
         """
-        return list(self._configs.values())
+        prefix = resolve_config_prefix(*prefix)
+        if not prefix:
+            return list(self._configs.values())
+        else:
+            return [c for c in self._configs.values() if c.path[:len(prefix)] == prefix[:]]
 
     def read_file(self, fileobj):
         """
