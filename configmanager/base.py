@@ -194,7 +194,7 @@ class ConfigManager(object):
 
     def add_config(self, config):
         """
-        Add a new config to the config manager.
+        Add a new config to manage.
         
         :param config: instance of :class:`.Config`
         """
@@ -212,6 +212,8 @@ class ConfigManager(object):
     def get_config(self, *args):
         """
         Returns an instance of :class:`.Config` identified by ``section.option``, or ``section`` and ``option``.
+        
+        :param args:  ``("<section_name>.<option_name>")`` or ``("<section_name>", "<option_name>")``
         :return: :class:`.Config`
         """
         section, option = resolve_config_name(*args)
@@ -225,8 +227,20 @@ class ConfigManager(object):
         """
         Sets value of previously added :class:`.Config` identified by ``section.option`` or ``section`` and ``option``.
         The last argument is the value or string value of the config.
+        
+        :param args:  ``("<section_name>.<option_name>"`, value)` or ``("<section_name>", "<option_name>", value)``
         """
         self.get_config(*args[:-1]).value = args[-1]
+
+    def has_config(self, *args):
+        """
+        Returns ``True`` if the specified config is managed by this :class:`.ConfigManager`. 
+        
+        :param args:  ``("<section_name>.<option_name>")`` or ``("<section_name>", "<option_name>")``  
+        :return: ``bool``
+        """
+        section, option = resolve_config_name(*args)
+        return section in self._sections and option in self._sections[section]
 
     def load_from_config_parser(self, cp):
         for section in cp.sections():

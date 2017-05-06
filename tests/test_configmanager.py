@@ -85,3 +85,21 @@ def test_config_section():
 
     with pytest.raises(AttributeError):
         m.a.xx = 23
+
+
+def test_has_config():
+    m = ConfigManager()
+
+    assert not m.has_config('a', 'b')
+    assert not m.has_config('a.b')
+
+    m.add_config(Config('a', 'b'))
+
+    assert m.has_config('a', 'b')
+    assert m.has_config('a.b')
+
+    assert not m.has_config('a', 'c')
+    assert not m.has_config('a.c')
+
+    assert not m.has_config('b', 'a')
+    assert not m.has_config('b', 'b')

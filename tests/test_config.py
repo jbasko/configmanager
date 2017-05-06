@@ -133,3 +133,9 @@ def test_str_and_repr_of_not_set_value():
         assert not str(c)
 
     assert repr(c) == '<Config DEFAULT.a <NotSet>>'
+
+
+def test_creates_config_from_dot_notation():
+    c = Config('a.b')
+    assert c.section == 'a'
+    assert c.option == 'b'
