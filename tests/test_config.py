@@ -1,4 +1,5 @@
 import pytest
+import six
 
 from configmanager import ConfigItem
 
@@ -106,6 +107,32 @@ def test_int_value():
     assert c == 25
 
 
+def test_raw_str_value_is_reset_on_reset():
+    c = ConfigItem('a', type=int, default=25)
+    assert str(c) == '25'
+
+    c.value = '23'
+    assert str(c) == '23'
+
+    c.reset()
+    assert str(c) == '25'
+
+
+def test_raw_str_value_is_reset_on_non_str_value_set():
+    c = ConfigItem('a', type=int, default=25)
+    c.value = '23'
+    assert str(c) == '23'
+
+    c.value = 25
+    assert str(c) == '25'
+
+    c.value = 24
+    assert str(c) == '24'
+
+    c.value = '22'
+    assert str(c) == '22'
+
+
 def test_bool_of_value():
     c = ConfigItem('a')
 
@@ -126,12 +153,9 @@ def test_bool_of_value():
     assert not d
 
 
-def test_str_and_repr_of_not_set_value():
+def test_str_and_repr_of_not_set_value_should_not_fail():
     c = ConfigItem('a')
-
-    with pytest.raises(RuntimeError):
-        assert not str(c)
-
+    assert str(c) == '<ConfigItem DEFAULT.a <NotSet>>'
     assert repr(c) == '<ConfigItem DEFAULT.a <NotSet>>'
 
 
@@ -139,6 +163,14 @@ def test_creates_config_from_dot_notation():
     c = ConfigItem('a.b')
     assert c.section == 'a'
     assert c.option == 'b'
+
+
+def test_bool_str_is_a_str():
+    c = ConfigItem('a.b', type=bool)
+    assert isinstance(str(c), six.string_types)
+
+    c.value = True
+    assert isinstance(str(c), six.string_types)
 
 
 def test_bool_config_preserves_raw_str_value_used_to_set_it():

@@ -151,7 +151,10 @@ class ConfigItem(object):
             raise RuntimeError('Cannot set non-existent config {}'.format(self.name))
         self._value = self._parse_str_value(value)
         if self.type is not str:
-            self.raw_str_value = value
+            if isinstance(value, six.string_types):
+                self.raw_str_value = value
+            else:
+                self.raw_str_value = not_set
 
     @property
     def has_value(self):
@@ -170,7 +173,10 @@ class ConfigItem(object):
     def __str__(self):
         if self.raw_str_value is not not_set:
             return self.raw_str_value
-        return str(self.value)
+        if self.has_value or self.has_default:
+            return str(self.value)
+        else:
+            return repr(self)
 
     def __eq__(self, other):
         return self.value == other
@@ -186,6 +192,7 @@ class ConfigItem(object):
         Unsets :attr:`value`. 
         """
         self._value = not_set
+        self.raw_str_value = not_set
 
     def __repr__(self):
         if not self.exists:
@@ -315,25 +322,26 @@ class ConfigManager(object):
             attribute will be set to ``False`` and accessing its value will raise ``RuntimeError``.
         
         Examples:
-            >>> cm = ConfigManager(ConfigItem('something', 'real', default=0.0, type=float))
-            >>> cm.get('something.real')
-            <ConfigItem something.real 0.0>
-            >>> cm.get('something', 'real')
-            <ConfigItem something.real 0.0>
+            >>> cm = ConfigManager(ConfigItem('very', 'real', default=0.0, type=float))
+            >>> cm.get('very.real')
+            <ConfigItem very.real 0.0>
+            >>> cm.get('very', 'real')
+            <ConfigItem very.real 0.0>
             
-            >>> cm.get('something.very.surreal')
-            <ConfigItem something.very.surreal <NonExistent>>
-            >>> cm.get('something.very.surreal').exists
+            >>> cm.get('quite.surreal')
+            <ConfigItem quite.surreal <NonExistent>>
+            >>> cm.get('quite.surreal').exists
             False
         
-        You should only use this method if the path is a variable. For fixed paths, you can use
-        attribute access:
+        Note:
+            You should only use this method if the path is a variable. For constant paths, you can use
+            attribute access:
         
-        .. code-block:: python
-        
-            >>> cm = ConfigManager(ConfigItem('a.x', type=int, value=23))
-            >>> cm.a.x
-            <ConfigItem a.x 23>
+            >>> cm.very.real
+            <ConfigItem very.real 0.0>
+            
+            >>> cm.quite.surreal
+            <ConfigItem quite.surreal <NonExistent>>
         
         """
         path = resolve_config_path(*path)
