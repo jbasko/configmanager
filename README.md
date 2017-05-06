@@ -63,5 +63,5 @@ Parse a configuration file:
     assert config.uploader.threads.has_value
     assert config.uploader.threads == 4
     
-    assert not config.uploader.has_value
+    assert not config.uploader.output_file.has_value
     assert config.uploader.output_file == '/tmp/uploader.log'

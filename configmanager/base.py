@@ -55,6 +55,11 @@ def resolve_config_name(*args):
 
 
 class Config(object):
+    """
+    Represents a single configurable thing which has a name (a concatenation of its section and option),
+    a type, a default value, a value, etc.
+    """
+
     DEFAULT_SECTION = 'DEFAULT'
 
     class Descriptor(object):
@@ -70,8 +75,13 @@ class Config(object):
         def __get__(self, instance, owner):
             return getattr(instance, self.attr_name, self.default)
 
+    #: Default value.
     default = Descriptor('default')
+
+    #: Type, defaults to ``str``. Type can be any callable that converts a string to an instance of
+    #: the expected type of the config value.
     type = Descriptor('type', default=str)
+
     prompt = Descriptor('prompt')
     labels = Descriptor('labels')
     choices = Descriptor('choices')
@@ -85,10 +95,16 @@ class Config(object):
 
     @property
     def name(self):
+        """
+        Dot-joined concatenation of section and option, i.e. `section.option`
+        """
         return '{}.{}'.format(self.section, self.option)
 
     @property
     def value(self):
+        """
+        Value or default value (if no value set) of the :class:`.Config` instance. 
+        """
         if self._value is not not_set:
             return self._value
         if self.default is not not_set:
@@ -101,10 +117,16 @@ class Config(object):
 
     @property
     def has_value(self):
+        """
+        Is ``True`` if the :class:`.Config` has a value set.
+        """
         return self._value is not not_set
 
     @property
     def has_default(self):
+        """
+        Is ``True`` if the :class:`.Config` has the default value set.
+        """
         return self.default is not not_set
 
     def __str__(self):
@@ -120,6 +142,9 @@ class Config(object):
         return bool(self.value)
 
     def reset(self):
+        """
+        Unsets :attr:`value`. 
+        """
         self._value = not_set
 
     def __repr__(self):
@@ -134,6 +159,9 @@ class Config(object):
 
 
 class ConfigSection(collections.OrderedDict):
+    """
+    Represents a collection of :class:`.Config` instances that belong to the same section.
+    """
     def __getattr__(self, item):
         if item in self:
             return self[item]
@@ -149,6 +177,10 @@ class ConfigSection(collections.OrderedDict):
 
 
 class ConfigManager(object):
+    """
+    A collection of :class:`.Config` instances and methods to manage it.
+    """
+
     def __init__(self, *configs):
         self._sections = collections.OrderedDict()
         self._configs = collections.OrderedDict()
@@ -161,6 +193,11 @@ class ConfigManager(object):
         raise AttributeError(item)
 
     def add_config(self, config):
+        """
+        Add a new config to the config manager.
+        
+        :param config: instance of :class:`.Config`
+        """
         if config.name in self._configs:
             raise ValueError('Config {} already present'.format(config.name))
 
@@ -173,6 +210,10 @@ class ConfigManager(object):
         self._sections[config.section][config.option] = self._configs[config.name]
 
     def get_config(self, *args):
+        """
+        Returns an instance of :class:`.Config` identified by ``section.option``, or ``section`` and ``option``.
+        :return: :class:`.Config`
+        """
         section, option = resolve_config_name(*args)
         if section not in self._sections:
             raise ValueError('Section {!r} not found'.format(section))
@@ -181,6 +222,10 @@ class ConfigManager(object):
         return self._sections[section][option]
 
     def set_config(self, *args):
+        """
+        Sets value of previously added :class:`.Config` identified by ``section.option`` or ``section`` and ``option``.
+        The last argument is the value or string value of the config.
+        """
         self.get_config(*args[:-1]).value = args[-1]
 
     def load_from_config_parser(self, cp):
@@ -199,11 +244,18 @@ class ConfigManager(object):
                     cp.set(section, config.option, config.value)
 
     def read_file(self, fileobj):
+        """
+        Read configuration from a file descriptor like in standard library's ``ConfigParser.read_file``
+        (``ConfigParser.readfp`` in Python 2).
+        """
         cp = ConfigParser()
         cp.read_file(fileobj)
         self.load_from_config_parser(cp)
 
     def write(self, fileobj):
+        """
+        Write configuration to a file descriptor like in standard library's ``ConfigParser.write``.
+        """
         cp = ConfigParser()
         self.load_into_config_parser(cp)
         cp.write(fileobj)
