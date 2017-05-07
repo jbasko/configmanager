@@ -31,10 +31,6 @@ class TransitionConfigManager(ConfigManager):
     
     """
 
-    @property
-    def default_section(self):
-        return ConfigItem.DEFAULT_SECTION
-
     def defaults(self):
         raise NotImplementedError()
 

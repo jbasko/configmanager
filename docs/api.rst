@@ -23,7 +23,6 @@ API Reference
 ------------------------------------------
 
 .. autoclass:: TransitionConfigManager
-    :inherited-members:
     :members:
 
 

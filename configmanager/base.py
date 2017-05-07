@@ -41,7 +41,7 @@ def resolve_config_path(*path):
             raise ValueError('Config path segments should be non-empty strings, got an empty one')
 
     if len(path) == 0:
-        raise ValueError('Config empty must not be empty')
+        raise ValueError('Config path must not be empty')
 
     return tuple(path)
 
@@ -293,6 +293,16 @@ class ConfigManager(object):
         else:
             return self.get_item(path_segment)
 
+    @property
+    def default_section(self):
+        return ConfigItem.DEFAULT_SECTION
+
+    def _resolve_config_path(self, *path):
+        path = resolve_config_path(*path)
+        if len(path) == 1:
+            return (self.default_section,) + path
+        return path
+
     def add(self, config):
         """Register a new config to manage.
         
@@ -346,7 +356,7 @@ class ConfigManager(object):
         if isinstance(path_and_fallback[-1], six.string_types) and self.has(*path_and_fallback):
             return self.get_item(*path_and_fallback).value
 
-        elif self.has(*path_and_fallback[:-1]):
+        if self.has(*path_and_fallback[:-1]):
             config = self.get_item(*path_and_fallback[:-1])
             fallback = path_and_fallback[-1]
             if config.has_value or config.has_default:
@@ -390,7 +400,7 @@ class ConfigManager(object):
             <ConfigItem quite.surreal <NonExistent>>
 
         """
-        path = resolve_config_path(*path)
+        path = self._resolve_config_path(*path)
 
         if path in self._configs:
             return self._configs[path]
@@ -407,25 +417,48 @@ class ConfigManager(object):
 
     def has(self, *path):
         """
-        Returns ``True`` if the specified config is managed by this :class:`.ConfigManager`. 
+        Args:
+            *path:
 
-        :param path:  
-        :return: ``bool``
+        Returns:
+            bool: ``True`` if the specified config is managed by this :class:`.ConfigManager`, ``False`` otherwise. 
         """
-        path = resolve_config_path(*path)
-        return path in self._configs
+        return self._resolve_config_path(*path) in self._configs
 
     def items(self, *prefix):
         """
         Returns:
-            list(ConfigItem): a ``list`` of :class:`.ConfigItem` instances managed by this manager.
+            list: list of :class:`.ConfigItem` instances managed by this manager.
+            
             If ``prefix`` is specified, only items with matching path prefix are included.
+        
+        Note:
+            This is different from ``ConfigParser.items()`` which returns what we would call
+            here resolved values of items.
+        
+        See Also:
+            :meth:`.ConfigManager.export()`
         """
         prefix = resolve_config_prefix(*prefix)
         if not prefix:
             return list(self._configs.values())
         else:
             return [c for c in self._configs.values() if c.path[:len(prefix)] == prefix[:]]
+
+    def export(self, *prefix):
+        """
+        Returns:
+            list: list of ``(name_without_prefix, value)`` pairs for each config item under the specified
+            prefix.
+        """
+        pairs = []
+
+        for item in self.items(*prefix):
+            if item.has_value or item.has_default:
+                item_name_without_prefix = '.'.join(item.path[len(prefix):])
+                pairs.append((item_name_without_prefix, item.value))
+
+        return pairs
 
     def read(self, *args, **kwargs):
         """

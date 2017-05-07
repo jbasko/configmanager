@@ -105,7 +105,7 @@ To parse the file, use :meth:`.ConfigManager.read` or :meth:`.ConfigManager.read
 
 .. code-block:: python
 
-    >>> config.read(['./config.ini'])
+    >>> config.read('./config.ini')
 
     >>> config.upload.threads.value
     5
@@ -113,3 +113,29 @@ To parse the file, use :meth:`.ConfigManager.read` or :meth:`.ConfigManager.read
     1
     >>> config.get('download', 'greeting')  # ConfigParser-like syntax is supported too
     'Bye!'
+
+
+Copying Config Items Between Managers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The easiest way to copy all config items from one :ref:`config-manager` to another is
+to use :meth:`.ConfigManager.items()`::
+
+    config1 = ConfigManager(
+         ConfigItem('upload', 'threads', default=1, value=3)
+    )
+
+    config2 = ConfigManager(*config1.items())
+
+If you don't want to keep the values (just the defaults), you can call :meth:`.ConfigManager.reset`:
+
+    >>> config2.upload.threads.value
+    3
+    >>> config2.reset()
+    >>> config2.upload.threads.value
+    1
+
+If the second config manager already exists, you can add config items to it with
+:meth:`.ConfigManager.add`::
+
+    map(config2.add, config1.items())

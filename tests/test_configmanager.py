@@ -219,3 +219,107 @@ def test_items_with_prefix_returns_matching_config_items():
 
     no_items = m.items('haha.haha')
     assert len(no_items) == 0
+
+
+def test_can_add_items_to_default_section_and_set_their_value_without_naming_section():
+    m = ConfigManager()
+
+    m.add(ConfigItem('a', default=0, type=int))
+    assert m.has('a')
+    assert m.has(m.default_section, 'a')
+
+    assert m.get_item('a').exists
+    assert m.get('a') == 0
+
+    m.set('a', 5)
+    assert m.get('a') == 5
+
+
+def test_export_empty_config_manager():
+    m = ConfigManager()
+    assert m.export() == []
+
+
+def test_export_config_manager_with_no_values():
+    m = ConfigManager(ConfigItem('a', 'x'))
+    assert m.export() == []
+
+
+def test_export_config_manager_with_default_section_item():
+    m = ConfigManager(
+        ConfigItem('a')
+    )
+    m.set('a', '5')
+    assert m.get('a') == '5'
+    assert m.export() == [('DEFAULT.a', '5')]
+
+    m.reset()
+    assert m.export() == []
+
+
+def test_export_config_manager_with_multiple_sections_and_defaults():
+    m = ConfigManager(
+        ConfigItem('a', 'x', default='xoxo'),
+        ConfigItem('a', 'y', default='yaya'),
+        ConfigItem('b', 'm'),
+        ConfigItem('b', 'n', default='nono'),
+    )
+    assert len(m.export()) == 3
+    assert m.export() == [('a.x', 'xoxo'), ('a.y', 'yaya'), ('b.n', 'nono')]
+
+    m.set('a', 'y', 'YEYE')
+    assert m.export() == [('a.x', 'xoxo'), ('a.y', 'YEYE'), ('b.n', 'nono')]
+
+
+def test_exports_configs_with_prefix():
+    m = ConfigManager(
+        ConfigItem('a', 'x', default='xoxo'),
+        ConfigItem('a', 'y', default='yaya'),
+        ConfigItem('b', 'm'),
+        ConfigItem('b', 'n', default='nono'),
+    )
+    m.set('a', 'x', 'XIXI')
+    assert m.export('a') == [('x', 'XIXI'), ('y', 'yaya')]
+    assert m.export('b') == [('n', 'nono')]
+
+
+def test_exports_configs_with_deep_paths():
+    m = ConfigManager(
+        ConfigItem('a', 'x', 'i', default='axi'),
+        ConfigItem('a', 'x', 'ii', default='axii'),
+        ConfigItem('a', 'y', 'i', default='ayi'),
+        ConfigItem('a', 'y', 'ii', default='ayii')
+    )
+
+    assert len(m.export()) == 4
+    assert m.export()[0] == ('a.x.i', 'axi')
+
+    assert m.export('a')[0] == ('x.i', 'axi')
+
+    assert m.export('a', 'y')[1] == ('ii', 'ayii')
+
+
+def test_copying_items_between_managers():
+    m = ConfigManager(
+        ConfigItem('a', 'x'),
+        ConfigItem('a', 'y'),
+        ConfigItem('b', 'bb', 'm'),
+        ConfigItem('b', 'bb', 'n'),
+        ConfigItem('b', 'bbbb', 'p'),
+        ConfigItem('b', 'bbbb', 'q'),
+    )
+
+    n = ConfigManager(*m.items())
+    assert m.export() == n.export()
+
+    m.set('a', 'x', 'xaxa')
+    assert m.get('a', 'x') == 'xaxa'
+    assert not n.get_item('a', 'x').has_value
+
+    n.set('a', 'x', 'XAXA')
+    assert m.get('a', 'x') == 'xaxa'
+    assert n.get('a', 'x') == 'XAXA'
+
+    n.reset()
+    assert m.get('a', 'x') == 'xaxa'
+    assert not n.get_item('a', 'x').has_value
