@@ -4,7 +4,6 @@
 import os
 import codecs
 from setuptools import setup, find_packages
-from configmanager import __version__
 
 
 def read(fname):
@@ -12,9 +11,12 @@ def read(fname):
     return codecs.open(file_path, encoding='utf-8').read()
 
 
+version = read('configmanager/__init__.py').split('\n')[0].split('=', 1)[1].strip().strip("'")
+
+
 setup(
     name='configmanager',
-    version=__version__,
+    version=version,
     author='Jazeps Basko',
     author_email='jazeps.basko@gmail.com',
     maintainer='Jazeps Basko',
