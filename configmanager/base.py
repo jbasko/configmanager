@@ -6,7 +6,17 @@ import six
 
 
 class UnknownConfigItem(Exception):
-    pass
+    """
+    Exception which is raised when requesting an unknown config item or
+    when accessing value of ConfigItem marked as non-existent.
+    """
+
+
+class ConfigValueNotSet(Exception):
+    """
+    Exception which is raised when requesting a value of config item that
+    has no value, or default value, or any other fallback.
+    """
 
 
 class _NotSet(object):
@@ -92,9 +102,10 @@ class ConfigItem(object):
     # when we persist the value, we use the same notation
     raw_str_value = Descriptor('raw_str_value')
 
-    prompt = Descriptor('prompt')
-    labels = Descriptor('labels')
-    choices = Descriptor('choices')
+    # envvar = Descriptor('envvar')
+    # prompt = Descriptor('prompt')
+    # labels = Descriptor('labels')
+    # choices = Descriptor('choices')
 
     def __init__(self, *path, **kwargs):
         #: a ``tuple`` of config's path segments.
@@ -137,17 +148,17 @@ class ConfigItem(object):
         Value or default value (if no value set) of the :class:`.ConfigItem` instance. 
         """
         if self.exists is False:
-            raise RuntimeError('Cannot get value of non-existent config {}'.format(self.name))
+            raise UnknownConfigItem('Cannot get value of non-existent config {}'.format(self.name))
         if self._value is not not_set:
             return self._value
         if self.default is not not_set:
             return self.default
-        raise RuntimeError('{} has no value or default value set'.format(self.name))
+        raise ConfigValueNotSet('{} has no value or default value set'.format(self.name))
 
     @value.setter
     def value(self, value):
         if self.exists is False:
-            raise RuntimeError('Cannot set non-existent config {}'.format(self.name))
+            raise UnknownConfigItem('Cannot set non-existent config {}'.format(self.name))
         self._value = self._parse_str_value(value)
         if self.type is not str:
             if isinstance(value, six.string_types):
@@ -392,7 +403,7 @@ class ConfigManager(object):
             ConfigItem: an existing or newly created :class:`.ConfigItem` matching the ``path``.
 
             If this manager does not contain an item with ``path``, the returned item's ``exists``
-            attribute will be set to ``False`` and accessing its value will raise ``RuntimeError``.
+            attribute will be set to ``False`` and accessing its value will raise :class:`.UnknownConfigItem`.
 
         Examples:
             >>> cm = ConfigManager(ConfigItem('very', 'real', default=0.0, type=float))

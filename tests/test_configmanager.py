@@ -1,7 +1,7 @@
 import pytest
 import six
 
-from configmanager import ConfigItem, ConfigManager, UnknownConfigItem
+from configmanager import ConfigItem, ConfigManager, UnknownConfigItem, ConfigValueNotSet
 
 
 def test_get_item_returns_config_item():
@@ -48,7 +48,7 @@ def test_get_returns_value_not_item():
         m.get('c', '1', 'fallback does not matter -- the item does not exist')
 
     # Good item, no value set though
-    with pytest.raises(RuntimeError):
+    with pytest.raises(ConfigValueNotSet):
         m.get('b', '1')
 
     # Provide fallback
@@ -113,7 +113,7 @@ def test_config_section():
     assert isinstance(m.a, ConfigManager.ConfigPathProxy)
     assert isinstance(m.x, ConfigManager.ConfigPathProxy)
 
-    with pytest.raises(RuntimeError):
+    with pytest.raises(UnknownConfigItem):
         assert m.b.value
 
     assert isinstance(m.a.b, ConfigItem)

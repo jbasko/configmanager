@@ -1,6 +1,6 @@
 import pytest
 
-from configmanager import ConfigItem, ConfigManager
+from configmanager import ConfigItem, ConfigManager, UnknownConfigItem
 
 
 def test_dots_in_path_segments_dont_create_new_segments():
@@ -40,7 +40,7 @@ def test_config_manager_handles_config_of_three_segment_path():
     m.set('x', 'y', 'z', 0.44)
     assert m.get('x', 'y', 'z') == 0.44
 
-    with pytest.raises(RuntimeError):
+    with pytest.raises(UnknownConfigItem):
         m.set('a.a.a', 'HAHA')
 
     assert m.get('a', 'a', 'a') == 'haha'
@@ -59,4 +59,3 @@ def test_cannot_treat_config_as_section():
 
     zz = m.get_item('x.yy.zz')
     assert not zz.exists
-

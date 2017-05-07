@@ -1,7 +1,7 @@
 import pytest
 import six
 
-from configmanager import ConfigItem
+from configmanager import ConfigItem, ConfigValueNotSet, UnknownConfigItem
 
 
 def test_initialisation_of_section_and_option():
@@ -39,13 +39,13 @@ def test_paths_with_non_string_segments_raise_type_error(args):
 def test_value_with_no_default_value():
     c = ConfigItem('a', 'b')
 
-    with pytest.raises(RuntimeError):
+    with pytest.raises(ConfigValueNotSet):
         assert c.value == ''
 
     assert not c.has_value
     assert not c.has_default
 
-    with pytest.raises(RuntimeError):
+    with pytest.raises(ConfigValueNotSet):
         assert not c.value
 
     c.value = 'c'
@@ -140,7 +140,7 @@ def test_raw_str_value_is_reset_on_non_str_value_set():
 def test_bool_of_value():
     c = ConfigItem('a')
 
-    with pytest.raises(RuntimeError):
+    with pytest.raises(ConfigValueNotSet):
         # Cannot evaluate if there is no value and no default value
         assert not c.value
 
@@ -214,7 +214,7 @@ def test_cannot_set_nonexistent_config():
     assert c.value == '23'
 
     d = ConfigItem('actually', 'managed', exists=False)
-    with pytest.raises(RuntimeError):
+    with pytest.raises(UnknownConfigItem):
         d.value = '23'
 
 
