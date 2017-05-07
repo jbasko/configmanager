@@ -180,6 +180,31 @@ def test_read_string_in_python3():
 
 @pytest.mark.skipif(six.PY3, reason='Python2 does not support ConfigParser.read_string')
 def test_read_string_in_python2_raises_not_implemented_error():
-    m = ConfigManager()
     with pytest.raises(NotImplementedError):
-        m.read_string('whatever really')
+        ConfigManager().read_string('whatever really')
+
+
+@pytest.mark.skipif(six.PY2, reason='Python2 does not support ConfigParser.read_dict')
+def test_read_dict_in_python3():
+    m = ConfigManager(
+        ConfigItem('a', 'x'),
+        ConfigItem('a', 'y'),
+        ConfigItem('b', 'm'),
+        ConfigItem('b', 'n'),
+    )
+
+    m.read_dict({
+        'a': {'x': 'xoxo', 'y': 'yaya'},
+        'b': {'m': 'mama', 'n': 'nono'},
+    })
+
+    assert m.get('a', 'x') == 'xoxo'
+    assert m.get('a', 'y') == 'yaya'
+    assert m.get('b', 'm') == 'mama'
+    assert m.get('b', 'n') == 'nono'
+
+
+@pytest.mark.skipif(six.PY3, reason='Python2 does not support ConfigParser.read_dict')
+def test_read_dict_in_python2_raises_not_implemented_error():
+    with pytest.raises(NotImplementedError):
+        ConfigManager().read_dict({})

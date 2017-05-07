@@ -405,13 +405,35 @@ class ConfigManager(object):
         self.load_from_config_parser(cp)
 
     def read_string(self, string, source=not_set):
+        """
+        Read configuration from a string like in ``ConfigParser.read_string``.
+        
+        Only supported in Python 3.
+        """
         if six.PY2:
             raise NotImplementedError()
         cp = ConfigParser()
-        args = (string,)
         if source is not not_set:
             args = (string, source)
+        else:
+            args = (string,)
         cp.read_string(*args)
+        self.load_from_config_parser(cp)
+
+    def read_dict(self, dictionary, source=not_set):
+        """
+        Read configuration from a dictionary like in ``ConfigParser.read_dict``.
+        
+        Only supported in Python 3.
+        """
+        if six.PY2:
+            raise NotImplementedError()
+        cp = ConfigParser()
+        if source is not not_set:
+            args = (dictionary, source)
+        else:
+            args = (dictionary,)
+        cp.read_dict(*args)
         self.load_from_config_parser(cp)
 
     def write(self, fileobj_or_path):

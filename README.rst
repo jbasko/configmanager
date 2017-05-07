@@ -27,7 +27,7 @@ See Documentation_.
         ConfigItem('uploads', 'enabled', default=False, type=bool),
     )
 
-    if not config.uploads.enabled:
+    if not config.uploads.enabled.value:
         config.uploads.enabled = True
 
 
