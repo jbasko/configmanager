@@ -9,6 +9,16 @@ backported to Python 2.7-3.2 thanks to `configparser package`_) and make each co
 a first class object which knows its type, default value, whether it has a value or not,
 knows an environment variable which can override it, and other attributes.
 
+Whereas ``ConfigParser`` is designed to edit config files and work with two-dimensional
+config items identified by `section` and `option`, ``ConfigManager`` (the main class provided
+by this package) aims at managing access to config values with any `path` and their meta information
+regardless of how they are persisted.
+
+I have caught myself using ``ConfigParser`` as a generic config manager even when config
+values are not persisted to files. For example, in a command line script setting,
+a config value may exist just for the duration of script execution as a merge of default
+value and an override supplied via an optional command line argument.
+
 
 See Documentation_.
 
