@@ -417,8 +417,9 @@ class ConfigManager(object):
 
     def items(self, *prefix):
         """
-        Returns a ``list`` of :class:`.ConfigItem` instances managed by this manager.
-        If ``prefix`` is specified, only items with matching path prefix are included.
+        Returns:
+            list(ConfigItem): a ``list`` of :class:`.ConfigItem` instances managed by this manager.
+            If ``prefix`` is specified, only items with matching path prefix are included.
         """
         prefix = resolve_config_prefix(*prefix)
         if not prefix:
@@ -426,25 +427,47 @@ class ConfigManager(object):
         else:
             return [c for c in self._configs.values() if c.path[:len(prefix)] == prefix[:]]
 
-    def read(self, filenames, encoding=None):
+    def read(self, *args, **kwargs):
         """
-        Read and parse configuration in the list of filenames, returning a list of filenames which
-        were successfully parsed just like ``ConfigParser``.
+        Read and parse configuration from one or more files identified by individual filenames or lists
+        of filenames.
         
-        ``encoding`` is only supported in Python 3 as this relies on ``ConfigParser.read``.
+        Unlike ``ConfigParser.read(filenames, encoding=None)``, this accepts single filename too.
+        
+        The only supported *kwarg* is ``encoding`` and it is supported only in Python 3.
+        
+        Returns:
+            list of filenames from which config was successfully loaded.
+        
+        Examples:
+            
+            >>> config = ConfigManager()
+            >>> config.read('defaults.ini')
+            >>> config.read('country_config.ini', 'user_config.ini')
+            >>> config.read(['country_config.ini', 'user_config.ini'])  # ConfigParse-like access
+
         """
-        cp = ConfigParser()
         used_filenames = []
+        cp = ConfigParser()
+
+        def get_filenames():
+            for arg in args:
+                if isinstance(arg, six.string_types):
+                    yield arg
+                else:
+                    for filename in arg:
+                        yield filename
 
         # Do it one file after another so that we can tell which file contains invalid configuration
-        for filename in filenames:
+        for filename in get_filenames():
             if six.PY2:
                 result = cp.read([filename])
             else:
-                result = cp.read([filename], encoding=encoding)
+                result = cp.read([filename], **kwargs)
             if result:
                 self.load_from_config_parser(cp)
                 used_filenames.append(filename)
+
         return used_filenames
 
     def read_file(self, fileobj):

@@ -20,7 +20,7 @@ And you are ready to go:
    >>> config = ConfigManager(
    ...    ConfigItem('standard', 'greeting', 'Hello, world!')
    ... )
-   >>> config.read(['./config.ini'])
+   >>> config.read('./config.ini')
 
    >>> config.standard.greeting.has_value
    False

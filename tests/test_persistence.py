@@ -134,9 +134,20 @@ def test_read_reads_multiple_files_in_order(tmpdir):
     # Empty file
     m.write(path1)
 
+    # Can read from one empty file
+    m.read(path1)
+    assert not m.has_values
+
     m.set('a', 'x', 0.33)
     m.set('b', 'n', 42)
     m.write(path2)
+
+    # Can read from one non-empty file
+    m.reset()
+    assert not m.has_values
+    m.read(path2)
+    assert m.has_values
+    assert m.get('a', 'x') == 0.33
 
     m.reset()
     m.set('a', 'x', 0.66)
@@ -162,6 +173,13 @@ def test_read_reads_multiple_files_in_order(tmpdir):
     assert m.get_item('b', 'm').value is True
     assert m.get_item('b', 'm').raw_str_value == 'YES'
     assert m.get_item('b', 'n').value == 42
+
+    # Make sure multiple paths supported in non-list syntax.
+    m.reset()
+    m.read(path3, path2, path1)
+
+    assert m.get('a', 'x') == 0.33
+    assert m.get('b', 'm') is True
 
 
 @pytest.mark.skipif(six.PY2, reason='Python2 does not support ConfigParser.read_string')
