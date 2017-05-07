@@ -10,9 +10,6 @@ API
     :members:
     :inherited-members:
 
-..    :var .<section_name>: Access any :class:`.ConfigSection` of the configuration.
-..    :var .<section_name>.<option_name>: Access any :class:`.ConfigItem` of the configuration.
-
 
 ``ConfigItem``
 --------------

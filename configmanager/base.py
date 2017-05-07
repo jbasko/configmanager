@@ -221,6 +221,25 @@ class ConfigManager(object):
         If you want to use its features in your legacy code which uses ``ConfigParser`` without changing 
         too much of your code, use :class:`TransitionConfigManager` instead.
     
+    .. attribute:: <section>.<option>
+
+        Get a configuration item via dot notation.
+        Returns :class:`.ConfigItem` (which is not a config value).
+        
+        Clearly, this cannot be used when there are dots in section or other segments of item path,
+        in which case you can use :meth:`.get_item` which behaves identically:
+        
+        .. code-block:: python
+ 
+            config.uploads.threads == config.get_item('uploads', 'threads')
+          
+        You can then get the config value via the :attr:`.ConfigItem.value` attribute of the returned 
+        item: 
+        
+        .. code-block:: python
+        
+            config.uploads.threads.value == config.get('uploads', 'threads')
+    
     """
 
     class ConfigPathProxy(object):
