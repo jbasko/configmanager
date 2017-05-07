@@ -66,23 +66,22 @@ class TransitionConfigManager(ConfigManager):
     def get(self, section, option, raw=True, vars=None, fallback=not_set):
         """
         A far from perfect implementation of ``ConfigParser.get()``.
-        It does not return a raw value, instead returns an instance of :class:`.ConfigItem`.
         """
         if not raw:
             warn('{}.get does not support raw=False'.format(self.__class__.__name__))
 
-        config = super(TransitionConfigManager, self).get(section, option)
+        config = self.get_item(section, option)
 
         if vars and option in vars:
             return vars[option]
 
         if not config.exists and self.has(self.default_section, option):
-            config = self.get(self.default_section, option)
+            config = self.get_item(self.default_section, option)
 
         if not config.exists and fallback is not not_set:
             return fallback
 
-        return config
+        return config.value
 
     def getint(self, section, option, raw=True, vars=None, fallback=not_set):
         """
@@ -91,7 +90,7 @@ class TransitionConfigManager(ConfigManager):
         
         Implementation of ``ConfigParser.getint()``. 
         """
-        return int(self.get(section, option, raw=raw, vars=vars, fallback=fallback).value)
+        return int(self.get_item(section, option, raw=raw, vars=vars, fallback=fallback).value)
 
     def getfloat(self, section, option, raw=True, vars=None, fallback=not_set):
         """
@@ -100,7 +99,7 @@ class TransitionConfigManager(ConfigManager):
 
         Implementation of ``ConfigParser.getfloat()``. 
         """
-        return float(self.get(section, option, raw=raw, vars=vars, fallback=fallback).value)
+        return float(self.get_item(section, option, raw=raw, vars=vars, fallback=fallback).value)
 
     def getboolean(self, section, option, raw=True, vars=None, fallback=not_set):
         """
@@ -109,7 +108,7 @@ class TransitionConfigManager(ConfigManager):
 
         Implementation of ``ConfigParser.getboolean()``. 
         """
-        return parse_bool_str(self.get(section, option, raw=raw, vars=vars, fallback=fallback).value)
+        return parse_bool_str(self.get_item(section, option, raw=raw, vars=vars, fallback=fallback).value)
 
     def set(self, section, option, value):
         """
@@ -117,7 +116,7 @@ class TransitionConfigManager(ConfigManager):
         """
         if not self.has_section(section):
             raise NoSectionError(section)
-        self.get(section, option).value = value
+        self.get_item(section, option).value = value
 
     def items(self, section=not_set, raw=True, vars=None):
         """

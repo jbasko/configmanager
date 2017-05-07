@@ -11,14 +11,14 @@ def test_get():
         ConfigItem('b', '2', value='b2'),
     )
 
-    a1 = m.get('a', '1')
+    a1 = m.get_item('a', '1')
     assert isinstance(a1, ConfigItem)
     assert a1 == 'a1'
 
-    assert m.get('a', '1') == 'a1'
-    assert m.get('a', '2') == 'a2'
-    assert m.get('b', '1') == 'b1'
-    assert m.get('b', '2') == 'b2'
+    assert m.get_item('a', '1') == 'a1'
+    assert m.get_item('a', '2') == 'a2'
+    assert m.get_item('b', '1') == 'b1'
+    assert m.get_item('b', '2') == 'b2'
 
 
 def test_duplicate_config_raises_value_error():
@@ -40,8 +40,8 @@ def test_sets_config():
     m.set('c', '1', '55')
     m.set('c', '2', '55')
 
-    assert m.get('c', '1') == 55
-    assert m.get('c', '2') == '55'
+    assert m.get_item('c', '1') == 55
+    assert m.get_item('c', '2') == '55'
 
 
 def test_config_manager_configs_are_safe_copies():
@@ -51,16 +51,16 @@ def test_config_manager_configs_are_safe_copies():
     m = ConfigManager(c1)
 
     c1.value = 5
-    assert not m.get('c', '1').has_value
+    assert not m.get_item('c', '1').has_value
 
-    m.get('c', '1').value = 66
+    m.get_item('c', '1').value = 66
     assert c1.value == 5
 
     m.add(c2)
     c2.value = [1, 2, 3]
-    assert not m.get('c', '2').has_value
+    assert not m.get_item('c', '2').has_value
 
-    m.get('c', '2').value = [4, 5, 6]
+    m.get_item('c', '2').value = [4, 5, 6]
     assert c2.value == [1, 2, 3]
 
 
@@ -113,10 +113,10 @@ def test_can_retrieve_non_existent_config():
         ConfigItem('very', 'real')
     )
 
-    a = m.get('very', 'real')
+    a = m.get_item('very', 'real')
     assert a.exists
 
-    b = m.get('something', 'nonexistent')
+    b = m.get_item('something', 'nonexistent')
     assert not b.exists
 
 

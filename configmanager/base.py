@@ -269,7 +269,7 @@ class ConfigManager(object):
         def __getattr__(self, path):
             full_path = self._path_ + (path,)
             if self._config_manager_.has(*full_path):
-                return self._config_manager_.get(*full_path)
+                return self._config_manager_.get_item(*full_path)
             else:
                 return self.__class__(self._config_manager_, full_path)
 
@@ -288,7 +288,7 @@ class ConfigManager(object):
         if (path_segment,) in self._prefixes:
             return self.ConfigPathProxy(self, (path_segment,))
         else:
-            return self.get(path_segment)
+            return self.get_item(path_segment)
 
     def add(self, config):
         """Register a new config to manage.
@@ -319,7 +319,7 @@ class ConfigManager(object):
             if temp_prefix not in self._prefixes:
                 self._prefixes[temp_prefix] = []
 
-    def get(self, *path):
+    def get_item(self, *path):
         """Get a config item by path.
         
         By design, there is no way to supply a fallback value. The idea is that a fallback
@@ -339,12 +339,12 @@ class ConfigManager(object):
         
         Examples:
             >>> cm = ConfigManager(ConfigItem('very', 'real', default=0.0, type=float))
-            >>> cm.get('very', 'real')
+            >>> cm.get_item('very', 'real')
             <ConfigItem very.real 0.0>
             
-            >>> cm.get('quite', 'surreal')
+            >>> cm.get_item('quite', 'surreal')
             <ConfigItem quite.surreal <NonExistent>>
-            >>> cm.get('quite', 'surreal').exists
+            >>> cm.get_item('quite', 'surreal').exists
             False
         
         Note:
@@ -370,7 +370,7 @@ class ConfigManager(object):
         
         :param path_and_value:
         """
-        self.get(*path_and_value[:-1]).value = path_and_value[-1]
+        self.get_item(*path_and_value[:-1]).value = path_and_value[-1]
 
     def has(self, *path):
         """
@@ -498,7 +498,7 @@ class ConfigManager(object):
         """
         for section in cp.sections():
             for option in cp.options(section):
-                self.get(section, option).value = cp.get(section, option)
+                self.get_item(section, option).value = cp.get(section, option)
 
     def load_into_config_parser(self, cp):
         """

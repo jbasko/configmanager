@@ -109,14 +109,14 @@ def test_handles_dotted_sections_and_dotted_options(tmpdir):
 
     m.reset()
 
-    assert not m.get('some.deep', 'config.a').has_value
-    assert not m.get('some.deep.config', 'a').has_value
+    assert not m.get_item('some.deep', 'config.a').has_value
+    assert not m.get_item('some.deep.config', 'a').has_value
 
     with open(config_path, 'r') as f:
         m.read_file(f)
 
-    assert m.get('some.deep', 'config.a') == '2_2'
-    assert m.get('some.deep.config', 'a') == '3_1'
+    assert m.get_item('some.deep', 'config.a') == '2_2'
+    assert m.get_item('some.deep.config', 'a') == '3_1'
 
 
 def test_read_reads_multiple_files_in_order(tmpdir):
@@ -148,20 +148,20 @@ def test_read_reads_multiple_files_in_order(tmpdir):
 
     m.read([path1, path2, path3])
 
-    assert m.get('a', 'x').value == 0.66
-    assert not m.get('a', 'y').has_value
-    assert m.get('b', 'm').value is True
-    assert m.get('b', 'm').raw_str_value == 'YES'
-    assert m.get('b', 'n').value == 42
+    assert m.get_item('a', 'x').value == 0.66
+    assert not m.get_item('a', 'y').has_value
+    assert m.get_item('b', 'm').value is True
+    assert m.get_item('b', 'm').raw_str_value == 'YES'
+    assert m.get_item('b', 'n').value == 42
 
     m.reset()
     m.read([path3, path2, path1])
 
-    assert m.get('a', 'x').value == 0.33  # this is the only difference with the above order
-    assert not m.get('a', 'y').has_value
-    assert m.get('b', 'm').value is True
-    assert m.get('b', 'm').raw_str_value == 'YES'
-    assert m.get('b', 'n').value == 42
+    assert m.get_item('a', 'x').value == 0.33  # this is the only difference with the above order
+    assert not m.get_item('a', 'y').has_value
+    assert m.get_item('b', 'm').value is True
+    assert m.get_item('b', 'm').raw_str_value == 'YES'
+    assert m.get_item('b', 'n').value == 42
 
 
 @pytest.mark.skipif(six.PY2, reason='Python2 does not support ConfigParser.read_string')
@@ -174,8 +174,8 @@ def test_read_string_in_python3():
     )
 
     m.read_string('[a]\nx = haha\ny = yaya\n')
-    assert m.get('a', 'x') == 'haha'
-    assert m.get('a', 'y') == 'yaya'
+    assert m.get_item('a', 'x') == 'haha'
+    assert m.get_item('a', 'y') == 'yaya'
 
 
 @pytest.mark.skipif(six.PY3, reason='Python2 does not support ConfigParser.read_string')
@@ -198,10 +198,10 @@ def test_read_dict_in_python3():
         'b': {'m': 'mama', 'n': 'nono'},
     })
 
-    assert m.get('a', 'x') == 'xoxo'
-    assert m.get('a', 'y') == 'yaya'
-    assert m.get('b', 'm') == 'mama'
-    assert m.get('b', 'n') == 'nono'
+    assert m.get_item('a', 'x') == 'xoxo'
+    assert m.get_item('a', 'y') == 'yaya'
+    assert m.get_item('b', 'm') == 'mama'
+    assert m.get_item('b', 'n') == 'nono'
 
 
 @pytest.mark.skipif(six.PY3, reason='Python2 does not support ConfigParser.read_dict')
