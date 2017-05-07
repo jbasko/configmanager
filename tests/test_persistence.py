@@ -1,3 +1,5 @@
+import pytest
+
 from configmanager import ConfigManager, ConfigItem
 
 
@@ -64,32 +66,53 @@ def test_preserves_bool_notation(tmpdir):
         assert f.read() == '[flags]\nenabled = Yes\n\n'
 
 
-def test_handles_deep_paths(tmpdir):
+def test_configparser_writer_does_not_accept_three_deep_paths(tmpdir):
     config_path = tmpdir.join('conf.ini').strpath
 
     m = ConfigManager(
-        ConfigItem('some', 'deep', 'config', 'a'),
-        ConfigItem('some', 'deep', 'config', 'b'),
+        ConfigItem('some', 'deep', 'config'),
     )
 
+    m.some.deep.config = 'this is fine'
+    assert m.some.deep.config == 'this is fine'
+
+    with pytest.raises(NotImplementedError):
+        with open(config_path, 'w') as f:
+            m.write(f)
+
+
+def test_handles_dotted_sections_and_dotted_options(tmpdir):
+    config_path = tmpdir.join('conf.ini').strpath
+
+    m = ConfigManager(
+        ConfigItem('some.deep', 'config.a'),
+        ConfigItem('some', 'deep.config.a'),
+        ConfigItem('some.deep.config', 'a'),
+    )
+
+    m.set('some.deep', 'config.a', '2_2')
+
     with open(config_path, 'w') as f:
         m.write(f)
 
     with open(config_path, 'r') as f:
-        assert f.read() == ''
+        assert f.read() == '[some.deep]\nconfig.a = 2_2\n\n'
 
-    m.some.deep.config.a = 'AAA'
+    m.set('some.deep.config', 'a', '3_1')
 
     with open(config_path, 'w') as f:
         m.write(f)
 
     with open(config_path, 'r') as f:
-        assert f.read() == '[some]\ndeep.config.a = AAA\n\n'
+        assert f.read() == '[some.deep]\nconfig.a = 2_2\n\n[some.deep.config]\na = 3_1\n\n'
 
     m.reset()
-    assert not m.some.deep.config.a.has_value
+
+    assert not m.get('some.deep', 'config.a').has_value
+    assert not m.get('some.deep.config', 'a').has_value
 
     with open(config_path, 'r') as f:
         m.read_file(f)
 
-    assert m.some.deep.config.a == 'AAA'
+    assert m.get('some.deep', 'config.a') == '2_2'
+    assert m.get('some.deep.config', 'a') == '3_1'
