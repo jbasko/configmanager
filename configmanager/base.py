@@ -46,9 +46,6 @@ def resolve_config_prefix(*prefix):
     if len(prefix) == 0:
         return tuple()
 
-    if len(prefix) == 1 and '.' not in prefix[0]:
-        return tuple(prefix)
-
     return resolve_config_path(*prefix)
 
 
