@@ -42,25 +42,6 @@ def resolve_config_path(*path):
     return tuple(path)
 
 
-def old_resolve_config_path(*path):
-    if len(path) == 0:
-        raise ValueError('Expected at least 1 config path segment, got none')
-
-    resolution = []
-    for arg in path:
-        if isinstance(arg, (list, tuple)):
-            resolution.extend(resolve_config_path(*arg))
-            continue
-        if not isinstance(arg, six.string_types):
-            raise TypeError('ConfigItem path segments should be strings, got a {}'.format(type(arg)))
-        resolution.extend(arg.split('.'))
-
-    if len(resolution) == 1:
-        resolution = [ConfigItem.DEFAULT_SECTION, resolution[0]]
-
-    return tuple(resolution)
-
-
 def resolve_config_prefix(*prefix):
     if len(prefix) == 0:
         return tuple()
