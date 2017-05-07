@@ -30,22 +30,16 @@ not_set = _NotSet()
 
 
 def resolve_config_path(*path):
+    for p in path:
+        if not isinstance(p, six.string_types):
+            raise TypeError('Config path segments should be strings, got a {}: {}'.format(type(p), p))
+        if not p:
+            raise ValueError('Config path segments should be non-empty strings, got an empty one')
+
     if len(path) == 0:
-        raise ValueError('Expected at least 1 config path segment, got none')
+        raise ValueError('Config empty must not be empty')
 
-    resolution = []
-    for arg in path:
-        if isinstance(arg, (list, tuple)):
-            resolution.extend(resolve_config_path(*arg))
-            continue
-        if not isinstance(arg, six.string_types):
-            raise TypeError('ConfigItem path segments should be strings, got a {}'.format(type(arg)))
-        resolution.extend(arg.split('.'))
-
-    if len(resolution) == 1:
-        resolution = [ConfigItem.DEFAULT_SECTION, resolution[0]]
-
-    return tuple(resolution)
+    return tuple(path)
 
 
 def resolve_config_prefix(*prefix):
@@ -103,9 +97,14 @@ class ConfigItem(object):
     choices = Descriptor('choices')
 
     def __init__(self, *path, **kwargs):
-
         #: a ``tuple`` of config's path segments.
-        self.path = resolve_config_path(*path)
+        self.path = None
+
+        resolved = resolve_config_path(*path)
+        if len(resolved) == 1:
+            self.path = tuple([self.DEFAULT_SECTION]) + resolved
+        else:
+            self.path = resolved
 
         self._value = not_set
         for k, v in kwargs.items():
@@ -123,7 +122,7 @@ class ConfigItem(object):
         """
         The second segment of :attr:`.path`.
         """
-        return self.path[1]
+        return self.path[-1]
 
     @property
     def name(self):
@@ -245,14 +244,15 @@ class ConfigManager(object):
                 return super(ConfigManager.ConfigPathProxy, self).__setattr__(key, value)
 
             full_path = self._path_ + (key,)
-            if self._config_manager_.has(full_path):
-                self._config_manager_.set(full_path, value)
+            if self._config_manager_.has(*full_path):
+                args = full_path + (value,)
+                self._config_manager_.set(*args)
             else:
                 raise AttributeError(key)
 
         def __getattr__(self, path):
             full_path = self._path_ + (path,)
-            if self._config_manager_.has(full_path):
+            if self._config_manager_.has(*full_path):
                 return self._config_manager_.get(*full_path)
             else:
                 return self.__class__(self._config_manager_, full_path)
@@ -323,19 +323,16 @@ class ConfigManager(object):
         
         Examples:
             >>> cm = ConfigManager(ConfigItem('very', 'real', default=0.0, type=float))
-            >>> cm.get('very.real')
-            <ConfigItem very.real 0.0>
             >>> cm.get('very', 'real')
             <ConfigItem very.real 0.0>
             
-            >>> cm.get('quite.surreal')
+            >>> cm.get('quite', 'surreal')
             <ConfigItem quite.surreal <NonExistent>>
-            >>> cm.get('quite.surreal').exists
+            >>> cm.get('quite', 'surreal').exists
             False
         
         Note:
-            You should only use this method if the path is a variable. For constant paths, you can use
-            attribute access:
+            For constant paths, you can use attribute access:
         
             >>> cm.very.real
             <ConfigItem very.real 0.0>
@@ -432,8 +429,12 @@ class ConfigManager(object):
 
     def load_into_config_parser(self, cp):
         for config in self._configs.values():
+            if len(config.path) > 2:
+                raise NotImplementedError('{} with more than 2 path segments cannot be loaded into {}'.format(
+                    config.__class__.__name__, self.__class__.__name__
+                ))
             if not config.has_value:
                 continue
             if not cp.has_section(config.section):
                 cp.add_section(config.section)
-            cp.set(config.section, '.'.join(config.path[1:]), str(config))
+            cp.set(config.section, config.option, str(config))

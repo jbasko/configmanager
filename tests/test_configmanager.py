@@ -15,10 +15,10 @@ def test_get():
     assert isinstance(a1, ConfigItem)
     assert a1 == 'a1'
 
-    assert m.get('a.1') == 'a1'
-    assert m.get('a.2') == 'a2'
-    assert m.get('b.1') == 'b1'
-    assert m.get('b.2') == 'b2'
+    assert m.get('a', '1') == 'a1'
+    assert m.get('a', '2') == 'a2'
+    assert m.get('b', '1') == 'b1'
+    assert m.get('b', '2') == 'b2'
 
 
 def test_duplicate_config_raises_value_error():
@@ -37,11 +37,11 @@ def test_sets_config():
         ConfigItem('c', '2'),
     )
 
-    m.set('c.1', '55')
+    m.set('c', '1', '55')
     m.set('c', '2', '55')
 
     assert m.get('c', '1') == 55
-    assert m.get('c.2') == '55'
+    assert m.get('c', '2') == '55'
 
 
 def test_config_manager_configs_are_safe_copies():
@@ -73,11 +73,14 @@ def test_config_section():
         ConfigItem('x', 'z'),
     )
 
-    assert m.a
-    assert m.x
+    assert isinstance(m.a, ConfigManager.ConfigPathProxy)
+    assert isinstance(m.x, ConfigManager.ConfigPathProxy)
+
     with pytest.raises(RuntimeError):
         assert not m.b
 
+    assert isinstance(m.a.b, ConfigItem)
+    assert m.a.b.exists
     assert not m.a.b.has_value
 
     m.a.b = 1
@@ -96,7 +99,7 @@ def test_has():
     m.add(ConfigItem('a', 'b'))
 
     assert m.has('a', 'b')
-    assert m.has('a.b')
+    assert not m.has('a.b')
 
     assert not m.has('a', 'c')
     assert not m.has('a.c')
@@ -151,6 +154,7 @@ def test_items_returns_all_config_items():
 def test_items_with_prefix_returns_matching_config_items():
     m = ConfigManager(
         ConfigItem('a', 'aa', 'aaa'),
+        ConfigItem('a.aa', 'haha'),
         ConfigItem('b', 'bb'),
         ConfigItem('a', 'aa', 'AAA'),
         ConfigItem('b', 'BB'),
@@ -161,15 +165,20 @@ def test_items_with_prefix_returns_matching_config_items():
     assert a_items[0].path == ('a', 'aa', 'aaa')
     assert a_items[1].path == ('a', 'aa', 'AAA')
 
-    a_aa_items1 = m.items('a.aa')
-    a_aa_items2 = m.items('a', 'aa')
-    assert a_aa_items1 == a_aa_items2
+    a_aa_items1 = m.items('a', 'aa')
+    a_aa_items2 = m.items('a.aa')
+    assert a_aa_items1 != a_aa_items2
+
     assert len(a_aa_items1) == 2
     assert a_aa_items1[0].path == ('a', 'aa', 'aaa')
     assert a_aa_items1[1].path == ('a', 'aa', 'AAA')
 
-    b_bb_items = m.items('b.bb')
-    assert len(b_bb_items) == 1
+    assert len(a_aa_items2) == 1
+    assert a_aa_items2[0].path == ('a.aa', 'haha')
+
+    assert len(m.items('b')) == 2
+    assert len(m.items('b', 'bb')) == 1
+    assert len(m.items('b.bb')) == 0
 
     no_items = m.items('haha.haha')
     assert len(no_items) == 0

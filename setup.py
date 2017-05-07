@@ -13,7 +13,7 @@ def read(fname):
 
 setup(
     name='configmanager',
-    version='0.0.4',
+    version='0.0.5',
     author='Jazeps Basko',
     author_email='jazeps.basko@gmail.com',
     maintainer='Jazeps Basko',

@@ -4,14 +4,19 @@ import six
 from configmanager import ConfigItem
 
 
-@pytest.mark.parametrize('args', [
-    ('section1', 'option1'),
-    ('section1.option1',),
-])
-def test_initialisation_of_section_and_option(args):
-    c = ConfigItem(*args)
+def test_initialisation_of_section_and_option():
+    c = ConfigItem('section1', 'option1')
     assert c.section == 'section1'
     assert c.option == 'option1'
+
+    c = ConfigItem('subsection1.option1')
+    assert c.section == 'DEFAULT'
+    assert c.option == 'subsection1.option1'
+
+    c = ConfigItem('section1', 'subsection1', 'option1')
+    assert c.section == 'section1'
+    assert c.option == 'option1'
+    assert c.path == ('section1', 'subsection1', 'option1')
 
 
 def test_initialisation_with_default_section():
@@ -157,12 +162,6 @@ def test_str_and_repr_of_not_set_value_should_not_fail():
     c = ConfigItem('a')
     assert str(c) == '<ConfigItem DEFAULT.a <NotSet>>'
     assert repr(c) == '<ConfigItem DEFAULT.a <NotSet>>'
-
-
-def test_creates_config_from_dot_notation():
-    c = ConfigItem('a.b')
-    assert c.section == 'a'
-    assert c.option == 'b'
 
 
 def test_bool_str_is_a_str():
