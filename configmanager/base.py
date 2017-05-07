@@ -378,6 +378,8 @@ class ConfigManager(object):
         """
         Read and parse configuration in the list of filenames, returning a list of filenames which
         were successfully parsed just like ``ConfigParser``.
+        
+        ``encoding`` is only supported in Python 3 as this relies on ``ConfigParser.read``.
         """
         cp = ConfigParser()
         used_filenames = []
@@ -400,6 +402,16 @@ class ConfigManager(object):
         """
         cp = ConfigParser()
         cp.read_file(fileobj)
+        self.load_from_config_parser(cp)
+
+    def read_string(self, string, source=not_set):
+        if six.PY2:
+            raise NotImplementedError()
+        cp = ConfigParser()
+        args = (string,)
+        if source is not not_set:
+            args = (string, source)
+        cp.read_string(*args)
         self.load_from_config_parser(cp)
 
     def write(self, fileobj_or_path):

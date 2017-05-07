@@ -1,6 +1,7 @@
-try:
-    # Python 2
+import six
+
+if six.PY2:
     from ConfigParser import ConfigParser, NoSectionError, DuplicateSectionError
     ConfigParser.read_file = ConfigParser.readfp
-except ImportError:
+else:
     from configparser import ConfigParser, NoSectionError, DuplicateSectionError

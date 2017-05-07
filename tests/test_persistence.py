@@ -1,3 +1,4 @@
+import six
 import pytest
 
 from configmanager import ConfigManager, ConfigItem
@@ -161,3 +162,24 @@ def test_read_reads_multiple_files_in_order(tmpdir):
     assert m.get('b', 'm').value is True
     assert m.get('b', 'm').raw_str_value == 'YES'
     assert m.get('b', 'n').value == 42
+
+
+@pytest.mark.skipif(six.PY2, reason='Python2 does not support ConfigParser.read_string')
+def test_read_string_in_python3():
+    m = ConfigManager(
+        ConfigItem('a', 'x'),
+        ConfigItem('a', 'y'),
+        ConfigItem('b', 'm'),
+        ConfigItem('b', 'n'),
+    )
+
+    m.read_string('[a]\nx = haha\ny = yaya\n')
+    assert m.get('a', 'x') == 'haha'
+    assert m.get('a', 'y') == 'yaya'
+
+
+@pytest.mark.skipif(six.PY3, reason='Python2 does not support ConfigParser.read_string')
+def test_read_string_in_python2_raises_not_implemented_error():
+    m = ConfigManager()
+    with pytest.raises(NotImplementedError):
+        m.read_string('whatever really')
