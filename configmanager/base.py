@@ -213,13 +213,25 @@ class ConfigItem(object):
 
 class ConfigManager(object):
     """
-    
     A collection and manager of instances of :class:`.ConfigItem`.
     
-    .. note::
-        :class:`.ConfigManager` is not compatible with ``ConfigParser``.
-        If you want to use its features in your legacy code which uses ``ConfigParser`` without changing 
-        too much of your code, use :class:`TransitionConfigManager` instead.
+    Args:
+        *configs:
+            config items describing what configs this manager handles.
+    
+    Unlike ``ConfigParser``, config manager normally works only with 
+    registered config items. A good time to register items is when creating a manager::
+    
+        config = ConfigManager(
+            ConfigItem('uploads', 'threads'),
+            ConfigItem('uploads', 'enabled', type=bool, default=False),
+        )
+    
+    Alternatively, you can register items with :meth:`.add` or 
+    by passing ``as_defaults=True`` to :meth:`.read`, :meth:`.read_file`, and other
+    read methods::
+    
+        config.read('defaults.ini', as_defaults=True)
     
     .. attribute:: <section>.<option>
 
@@ -241,6 +253,9 @@ class ConfigManager(object):
             config.uploads.threads.value == config.get('uploads', 'threads')
     
     """
+
+    #: Class of implicitly created config item instances, defaults to :class:`.ConfigItem`
+    config_item_cls = None
 
     class ConfigPathProxy(object):
         def __init__(self, config_manager, path):
@@ -277,10 +292,7 @@ class ConfigManager(object):
                 return self.__class__(self._config_manager_, full_path)
 
     def __init__(self, *configs):
-        """
-        :param configs:  a ``list`` of :class:`.ConfigItem` instances representing items of configuration
-                         that this manager accepts.
-        """
+        self.config_item_cls = self.config_item_cls or ConfigItem
         self._configs = collections.OrderedDict()
         self._prefixes = collections.OrderedDict()  # Ordered set basically
 
@@ -295,7 +307,7 @@ class ConfigManager(object):
 
     @property
     def default_section(self):
-        return ConfigItem.DEFAULT_SECTION
+        return self.config_item_cls.DEFAULT_SECTION
 
     def _resolve_config_path(self, *path):
         path = resolve_config_path(*path)
@@ -303,11 +315,11 @@ class ConfigManager(object):
             return (self.default_section,) + path
         return path
 
-    def add(self, config):
-        """Register a new config to manage.
+    def add(self, item):
+        """Register a new config item to manage.
         
         Args:
-            config (ConfigItem): item to add
+            config_item:
         
         Examples:
             >>> cm = ConfigManager()
@@ -316,17 +328,20 @@ class ConfigManager(object):
             '/tmp/something.txt'
         
         .. note::
-            :class:`.ConfigItem` instances are deep-copied when they are registered with the manager.
+            config items are deep-copied when they are registered with the manager
+            which means that it is safe to use the same instance of :class:`.ConfigItem` to register
+            a config item with multiple managers. It also means that changing the item that you
+            passed to config manager will have no effect on the item used by the manager.
         """
-        if config.path in self._configs:
-            raise ValueError('ConfigItem {} already present'.format(config.name))
+        if item.path in self._configs:
+            raise ValueError('Config item {} already present'.format(item.name))
 
-        config = copy.deepcopy(config)
-        config.exists = True
-        self._configs[config.path] = config
+        item = copy.deepcopy(item)
+        item.exists = True
+        self._configs[item.path] = item
 
         prefix = []
-        for p in config.path[:-1]:
+        for p in item.path[:-1]:
             prefix.append(p)
             temp_prefix = tuple(prefix)
             if temp_prefix not in self._prefixes:
@@ -345,7 +360,7 @@ class ConfigManager(object):
         
         Raises:
             UnknownConfigItem:
-                if :class:`.ConfigItem` with the specified ``path`` is not
+                if a config item with the specified ``path`` is not
                 managed by this manager.
 
         """
@@ -405,7 +420,7 @@ class ConfigManager(object):
         if path in self._configs:
             return self._configs[path]
         else:
-            return ConfigItem(*path, exists=False)
+            return self.config_item_cls(*path, exists=False)
 
     def set(self, *path_and_value):
         """
@@ -465,9 +480,12 @@ class ConfigManager(object):
         Read and parse configuration from one or more files identified by individual filenames or lists
         of filenames.
         
-        Unlike ``ConfigParser.read(filenames, encoding=None)``, this accepts single filename too.
-        
-        The only supported *kwarg* is ``encoding`` and it is supported only in Python 3.
+        Keyword Args:
+            as_defaults=False:
+                If set to ``True`` all parsed config items will be added to the config 
+                manager and their values set as defaults.
+            
+            encoding=None: as in ``ConfigParser.read``
         
         Returns:
             list of filenames from which config was successfully loaded.
@@ -477,9 +495,11 @@ class ConfigManager(object):
             >>> config = ConfigManager()
             >>> config.read('defaults.ini')
             >>> config.read('country_config.ini', 'user_config.ini')
-            >>> config.read(['country_config.ini', 'user_config.ini'])  # ConfigParse-like access
-
+            >>> config.read(['country_config.ini', 'user_config.ini'])  # ConfigParser-like access
+        
         """
+        as_defaults = kwargs.pop('as_defaults', False)
+
         used_filenames = []
         cp = ConfigParser()
 
@@ -498,25 +518,35 @@ class ConfigManager(object):
             else:
                 result = cp.read([filename], **kwargs)
             if result:
-                self.load_from_config_parser(cp)
+                self.load_from_config_parser(cp, as_defaults=as_defaults)
                 used_filenames.append(filename)
 
         return used_filenames
 
-    def read_file(self, fileobj):
+    def read_file(self, fileobj, as_defaults=False):
         """
         Read configuration from a file descriptor like in standard library's ``ConfigParser.read_file``
         (``ConfigParser.readfp`` in Python 2).
+        
+        Keyword Args:
+            as_defaults=False:
+                If set to ``True`` all parsed config items will be added to the config 
+                manager and their values set as defaults.
         """
         cp = ConfigParser()
         cp.read_file(fileobj)
-        self.load_from_config_parser(cp)
+        self.load_from_config_parser(cp, as_defaults=as_defaults)
 
-    def read_string(self, string, source=not_set):
+    def read_string(self, string, source=not_set, as_defaults=False):
         """
         Read configuration from a string like in ``ConfigParser.read_string``.
         
         Only supported in Python 3.
+        
+        Keyword Args:
+            as_defaults=False:
+                If set to ``True`` all parsed config items will be added to the config 
+                manager and their values set as defaults.
         """
         if six.PY2:
             raise NotImplementedError()
@@ -526,13 +556,18 @@ class ConfigManager(object):
         else:
             args = (string,)
         cp.read_string(*args)
-        self.load_from_config_parser(cp)
+        self.load_from_config_parser(cp, as_defaults=as_defaults)
 
-    def read_dict(self, dictionary, source=not_set):
+    def read_dict(self, dictionary, source=not_set, as_defaults=False):
         """
         Read configuration from a dictionary like in ``ConfigParser.read_dict``.
         
         Only supported in Python 3.
+        
+        Keyword Args:
+            as_defaults=False:
+                If set to ``True`` all parsed config items will be added to the config 
+                manager and their values set as defaults.
         """
         if six.PY2:
             raise NotImplementedError()
@@ -542,7 +577,7 @@ class ConfigManager(object):
         else:
             args = (dictionary,)
         cp.read_dict(*args)
-        self.load_from_config_parser(cp)
+        self.load_from_config_parser(cp, as_defaults=as_defaults)
 
     def write(self, fileobj_or_path):
         """
@@ -578,16 +613,26 @@ class ConfigManager(object):
         for config in self._configs.values():
             config.reset()
 
-    def load_from_config_parser(self, cp):
+    def load_from_config_parser(self, cp, as_defaults=False):
         """
         Updates config items from data in `ConfigParser`
         
         Args:
             cp (ConfigParser):
+        
+        Keyword Args:
+            as_defaults=False:
         """
         for section in cp.sections():
             for option in cp.options(section):
-                self.get_item(section, option).value = cp.get(section, option)
+                value = cp.get(section, option)
+                if as_defaults:
+                    if not self.has(section, option):
+                        self.add(self.config_item_cls(section, option, default=value))
+                    else:
+                        self.get_item(section, option).default = value
+                else:
+                    self.get_item(section, option).value = value
 
     def load_into_config_parser(self, cp):
         """

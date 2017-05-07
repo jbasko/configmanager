@@ -323,3 +323,33 @@ def test_copying_items_between_managers():
     n.reset()
     assert m.get('a', 'x') == 'xaxa'
     assert not n.get_item('a', 'x').has_value
+
+
+def test_read_as_defaults_treats_all_values_as_declarations(tmpdir):
+    path = tmpdir.join('conf.ini').strpath
+    with open(path, 'w') as f:
+        f.write('[uploads]\nthreads = 5\nenabled = no\n')
+        f.write('[messages]\ngreeting = Hello, home!\n')
+
+    m = ConfigManager()
+    m.read(path, as_defaults=True)
+
+    assert m.has('uploads', 'threads')
+    assert m.has('uploads', 'enabled')
+    assert not m.has('uploads', 'something_else')
+    assert m.has('messages', 'greeting')
+
+    assert m.get('uploads', 'threads') == '5'
+    assert m.get('uploads', 'enabled') == 'no'
+    assert m.get('messages', 'greeting') == 'Hello, home!'
+
+    # Reading again with as_defaults=True should not change the values, only the defaults
+    m.set('uploads', 'threads', '55')
+    m.read(path, as_defaults=True)
+    assert m.get('uploads', 'threads') == '55'
+    assert m.get_item('uploads', 'threads').default == '5'
+
+    # But reading with as_defaults=False should change the value
+    m.read(path)
+    assert m.get('uploads', 'threads') == '5'
+    assert m.get_item('uploads', 'threads').default == '5'
