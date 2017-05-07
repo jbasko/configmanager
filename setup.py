@@ -26,7 +26,7 @@ setup(
     description='Self-conscious items of configuration in Python',
     long_description=read('README.rst'),
     packages=find_packages(),
-    install_requires=['six'],
+    install_requires=['six', 'configparser'],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',

@@ -1,4 +1,3 @@
-import six
 import pytest
 
 from configmanager import ConfigManager, ConfigItem
@@ -182,8 +181,7 @@ def test_read_reads_multiple_files_in_order(tmpdir):
     assert m.get('b', 'm') is True
 
 
-@pytest.mark.skipif(six.PY2, reason='Python2 does not support ConfigParser.read_string')
-def test_read_string_in_python3():
+def test_read_string():
     m = ConfigManager(
         ConfigItem('a', 'x'),
         ConfigItem('a', 'y'),
@@ -191,18 +189,11 @@ def test_read_string_in_python3():
         ConfigItem('b', 'n'),
     )
 
-    m.read_string('[a]\nx = haha\ny = yaya\n')
+    m.read_string(u'[a]\nx = haha\ny = yaya\n')
     assert m.get('a', 'x') == 'haha'
     assert m.get('a', 'y') == 'yaya'
 
 
-@pytest.mark.skipif(six.PY3, reason='Python2 does not support ConfigParser.read_string')
-def test_read_string_in_python2_raises_not_implemented_error():
-    with pytest.raises(NotImplementedError):
-        ConfigManager().read_string('whatever really')
-
-
-@pytest.mark.skipif(six.PY2, reason='Python2 does not support ConfigParser.read_dict')
 def test_read_dict_in_python3():
     m = ConfigManager(
         ConfigItem('a', 'x'),
@@ -221,8 +212,3 @@ def test_read_dict_in_python3():
     assert m.get('b', 'm') == 'mama'
     assert m.get('b', 'n') == 'nono'
 
-
-@pytest.mark.skipif(six.PY3, reason='Python2 does not support ConfigParser.read_dict')
-def test_read_dict_in_python2_raises_not_implemented_error():
-    with pytest.raises(NotImplementedError):
-        ConfigManager().read_dict({})

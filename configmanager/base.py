@@ -1,9 +1,8 @@
 import collections
 import copy
 
+from configparser import ConfigParser
 import six
-
-from .configparser_imports import ConfigParser
 
 
 class UnknownConfigItem(Exception):
@@ -513,10 +512,7 @@ class ConfigManager(object):
 
         # Do it one file after another so that we can tell which file contains invalid configuration
         for filename in get_filenames():
-            if six.PY2:
-                result = cp.read([filename])
-            else:
-                result = cp.read([filename], **kwargs)
+            result = cp.read([filename], **kwargs)
             if result:
                 self.load_from_config_parser(cp, as_defaults=as_defaults)
                 used_filenames.append(filename)
@@ -525,8 +521,7 @@ class ConfigManager(object):
 
     def read_file(self, fileobj, as_defaults=False):
         """
-        Read configuration from a file descriptor like in standard library's ``ConfigParser.read_file``
-        (``ConfigParser.readfp`` in Python 2).
+        Read configuration from a file descriptor like in ``ConfigParser.read_file``.
         
         Keyword Args:
             as_defaults=False:
@@ -548,8 +543,6 @@ class ConfigManager(object):
                 If set to ``True`` all parsed config items will be added to the config 
                 manager and their values set as defaults.
         """
-        if six.PY2:
-            raise NotImplementedError()
         cp = ConfigParser()
         if source is not not_set:
             args = (string, source)
@@ -562,15 +555,11 @@ class ConfigManager(object):
         """
         Read configuration from a dictionary like in ``ConfigParser.read_dict``.
         
-        Only supported in Python 3.
-        
         Keyword Args:
             as_defaults=False:
                 If set to ``True`` all parsed config items will be added to the config 
                 manager and their values set as defaults.
         """
-        if six.PY2:
-            raise NotImplementedError()
         cp = ConfigParser()
         if source is not not_set:
             args = (dictionary, source)

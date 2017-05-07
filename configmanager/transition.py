@@ -1,8 +1,8 @@
 from warnings import warn
 
-from .configparser_imports import NoSectionError
+from configparser import NoSectionError
 
-from .base import ConfigItem, ConfigManager, not_set, parse_bool_str
+from .base import ConfigManager, not_set, parse_bool_str
 
 
 class TransitionConfigManager(ConfigManager):
@@ -53,9 +53,6 @@ class TransitionConfigManager(ConfigManager):
     def has_option(self, section, option):
         return self.has(section, option)
 
-    def read(self, filenames):
-        raise NotImplementedError()
-
     def get(self, section, option, raw=True, vars=None, fallback=not_set):
         """
         A far from perfect implementation of ``ConfigParser.get()``.
@@ -83,7 +80,7 @@ class TransitionConfigManager(ConfigManager):
         
         Implementation of ``ConfigParser.getint()``. 
         """
-        return int(self.get_item(section, option, raw=raw, vars=vars, fallback=fallback).value)
+        return int(self.get(section, option, raw=raw, vars=vars, fallback=fallback))
 
     def getfloat(self, section, option, raw=True, vars=None, fallback=not_set):
         """
@@ -92,7 +89,7 @@ class TransitionConfigManager(ConfigManager):
 
         Implementation of ``ConfigParser.getfloat()``. 
         """
-        return float(self.get_item(section, option, raw=raw, vars=vars, fallback=fallback).value)
+        return float(self.get(section, option, raw=raw, vars=vars, fallback=fallback))
 
     def getboolean(self, section, option, raw=True, vars=None, fallback=not_set):
         """
@@ -101,7 +98,7 @@ class TransitionConfigManager(ConfigManager):
 
         Implementation of ``ConfigParser.getboolean()``. 
         """
-        return parse_bool_str(self.get_item(section, option, raw=raw, vars=vars, fallback=fallback).value)
+        return parse_bool_str(self.get(section, option, raw=raw, vars=vars, fallback=fallback))
 
     def items(self, section=not_set, raw=True, vars=None):
         """
