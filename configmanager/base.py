@@ -6,6 +6,10 @@ import six
 from .configparser_imports import ConfigParser
 
 
+class UnknownConfigItem(Exception):
+    pass
+
+
 class _NotSet(object):
     def __nonzero__(self):
         return False
@@ -175,13 +179,9 @@ class ConfigItem(object):
             return repr(self)
 
     def __eq__(self, other):
-        return self.value == other
-
-    def __nonzero__(self):
-        return bool(self.value)
-
-    def __bool__(self):
-        return bool(self.value)
+        if isinstance(other, ConfigItem):
+            return self.has_value and other.has_value and self.value == other.value
+        return False
 
     def reset(self):
         """
@@ -261,8 +261,11 @@ class ConfigManager(object):
 
             full_path = self._path_ + (key,)
             if self._config_manager_.has(*full_path):
-                args = full_path + (value,)
-                self._config_manager_.set(*args)
+                raise RuntimeError(
+                    'This syntax is dubious and should not be used to set config values. '
+                    'Instead use ConfigManager(...).set(*path, new_value) '
+                    'or ConfigItem(...).value = new_value'
+                )
             else:
                 raise AttributeError(key)
 
@@ -319,43 +322,73 @@ class ConfigManager(object):
             if temp_prefix not in self._prefixes:
                 self._prefixes[temp_prefix] = []
 
-    def get_item(self, *path):
-        """Get a config item by path.
-        
-        By design, there is no way to supply a fallback value. The idea is that a fallback
-        value can be set as :attr:`ConfigItem.default`.
-            
-        :attr:`ConfigItem.value` returns the default value (fallback value) if actual value
-        is not set.
+    def get(self, *path_and_fallback):
+        """
+        Returns :attr:`.ConfigItem.value` of item matching the path. If the item does
+        not have a value or a default value set, the ``fallback`` value is returned.
         
         Args:
-            *path:
+            *path_and_fallback: 
+
+        Returns:
+            config value
         
+        Raises:
+            UnknownConfigItem:
+                if :class:`.ConfigItem` with the specified ``path`` is not
+                managed by this manager.
+
+        """
+        if not path_and_fallback:
+            raise ValueError('Path is required')
+
+        # The last element of path_and_fallback cannot be part of path if it's not a string
+        if isinstance(path_and_fallback[-1], six.string_types) and self.has(*path_and_fallback):
+            return self.get_item(*path_and_fallback).value
+
+        elif self.has(*path_and_fallback[:-1]):
+            config = self.get_item(*path_and_fallback[:-1])
+            fallback = path_and_fallback[-1]
+            if config.has_value or config.has_default:
+                return config.value
+            else:
+                return fallback
+        else:
+            raise UnknownConfigItem('Config not found: {}'.format(path_and_fallback))
+
+    def get_item(self, *path):
+        """Get a config item by path.
+
+        If you need to get a config value, use :meth:`ConfigManager.get` instead.
+
+        Args:
+            *path:
+
         Returns:
             ConfigItem: an existing or newly created :class:`.ConfigItem` matching the ``path``.
-            
+
             If this manager does not contain an item with ``path``, the returned item's ``exists``
             attribute will be set to ``False`` and accessing its value will raise ``RuntimeError``.
-        
+
         Examples:
             >>> cm = ConfigManager(ConfigItem('very', 'real', default=0.0, type=float))
             >>> cm.get_item('very', 'real')
             <ConfigItem very.real 0.0>
-            
+
             >>> cm.get_item('quite', 'surreal')
             <ConfigItem quite.surreal <NonExistent>>
             >>> cm.get_item('quite', 'surreal').exists
             False
-        
+
         Note:
             For constant paths, you can use attribute access:
-        
+
             >>> cm.very.real
             <ConfigItem very.real 0.0>
-            
+
             >>> cm.quite.surreal
             <ConfigItem quite.surreal <NonExistent>>
-        
+
         """
         path = resolve_config_path(*path)
 

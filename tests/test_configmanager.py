@@ -1,24 +1,61 @@
 import pytest
+import six
 
-from configmanager import ConfigItem, ConfigManager
+from configmanager import ConfigItem, ConfigManager, UnknownConfigItem
 
 
-def test_get():
+def test_get_item_returns_config_item():
     m = ConfigManager(
-        ConfigItem('a', '1', value='a1'),
-        ConfigItem('a', '2', value='a2'),
-        ConfigItem('b', '1', value='b1'),
-        ConfigItem('b', '2', value='b2'),
+        ConfigItem('a', '1', default='a1'),
+        ConfigItem('a', '2', default='a2'),
+        ConfigItem('b', '1', default='b1'),
+        ConfigItem('b', '2', default='b2'),
     )
 
     a1 = m.get_item('a', '1')
     assert isinstance(a1, ConfigItem)
-    assert a1 == 'a1'
+    assert a1.value == 'a1'
 
-    assert m.get_item('a', '1') == 'a1'
-    assert m.get_item('a', '2') == 'a2'
-    assert m.get_item('b', '1') == 'b1'
-    assert m.get_item('b', '2') == 'b2'
+    assert m.get_item('a', '2').value == 'a2'
+    assert m.get_item('b', '1').value == 'b1'
+    assert m.get_item('b', '2').value == 'b2'
+
+
+def test_get_returns_value_not_item():
+    m = ConfigManager(
+        ConfigItem('a', '1', default='a1'),
+        ConfigItem('a', '2', default='a2'),
+        ConfigItem('b', '1'),
+        ConfigItem('b', '2', default='b2'),
+    )
+
+    a1 = m.get('a', '1')
+    assert isinstance(a1, six.string_types)
+    assert a1 == 'a1'
+    assert not hasattr(a1, 'value')
+
+    b2 = m.get('b', '2')
+    assert b2 == 'b2'
+    m.set('b', '2', 'b22')
+
+    assert b2 == 'b2'  # shouldn't have been touched, it is a primitive type value
+    assert m.get('b', '2') == 'b22'
+
+    with pytest.raises(UnknownConfigItem):
+        m.get('c', '1')
+
+    with pytest.raises(UnknownConfigItem):
+        m.get('c', '1', 'fallback does not matter -- the item does not exist')
+
+    # Good item, no value set though
+    with pytest.raises(RuntimeError):
+        m.get('b', '1')
+
+    # Provide fallback
+    assert m.get('b', '1', 'bbbb') == 'bbbb'
+
+    # Fallback for item with default value should return default value
+    assert m.get('a', '2', 'aaaa') == 'a2'
 
 
 def test_duplicate_config_raises_value_error():
@@ -40,8 +77,8 @@ def test_sets_config():
     m.set('c', '1', '55')
     m.set('c', '2', '55')
 
-    assert m.get_item('c', '1') == 55
-    assert m.get_item('c', '2') == '55'
+    assert m.get('c', '1') == 55
+    assert m.get('c', '2') == '55'
 
 
 def test_config_manager_configs_are_safe_copies():
@@ -77,14 +114,14 @@ def test_config_section():
     assert isinstance(m.x, ConfigManager.ConfigPathProxy)
 
     with pytest.raises(RuntimeError):
-        assert not m.b
+        assert m.b.value
 
     assert isinstance(m.a.b, ConfigItem)
     assert m.a.b.exists
     assert not m.a.b.has_value
 
-    m.a.b = 1
-    assert m.a.b == '1'
+    m.a.b.value = 1
+    assert m.a.b.value == '1'
 
     with pytest.raises(AttributeError):
         m.a.xx = 23
@@ -126,16 +163,16 @@ def test_reset():
         ConfigItem('forgettable', 'y', default='YES')
     )
 
-    m.forgettable.x = 23
-    m.forgettable.y = 'NO'
+    m.forgettable.x.value = 23
+    m.forgettable.y.value = 'NO'
 
-    assert m.forgettable.x == 23
-    assert m.forgettable.y == 'NO'
+    assert m.forgettable.x.value == 23
+    assert m.forgettable.y.value == 'NO'
 
     m.reset()
 
     assert not m.forgettable.x.has_value
-    assert m.forgettable.y == 'YES'
+    assert m.forgettable.y.value == 'YES'
 
 
 def test_items_returns_all_config_items():

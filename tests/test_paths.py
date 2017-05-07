@@ -33,21 +33,20 @@ def test_config_manager_handles_config_of_three_segment_path():
     assert isinstance(m.x, ConfigManager.ConfigPathProxy)
     assert isinstance(m.x.y, ConfigManager.ConfigPathProxy)
 
-    assert m.get_item('x', 'y', 'z').value == 0.33
+    assert m.get('x', 'y', 'z') == 0.33
     assert m.x.y.z.value == 0.33
-    assert m.x.y.z == 0.33
+    assert m.x.y.z.value == 0.33
 
     m.set('x', 'y', 'z', 0.44)
-    assert m.get_item('x', 'y', 'z').value == 0.44
+    assert m.get('x', 'y', 'z') == 0.44
 
     with pytest.raises(RuntimeError):
         m.set('a.a.a', 'HAHA')
 
-    assert m.get_item('a', 'a', 'a') == 'haha'
+    assert m.get('a', 'a', 'a') == 'haha'
 
     m.set('a', 'a', 'a', 'HAHA')
-    assert m.get_item('a', 'a', 'a') == 'HAHA'
-
+    assert m.get('a', 'a', 'a') == 'HAHA'
 
 
 def test_cannot_treat_config_as_section():

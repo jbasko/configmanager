@@ -8,20 +8,20 @@ def test_reads_empty_config_from_file_obj(simple_config_manager, empty_config_fi
     with open(empty_config_file) as f:
         simple_config_manager.read_file(f)
 
-    assert simple_config_manager.simple.str == ''
-    assert simple_config_manager.simple.int == 0
-    assert simple_config_manager.simple.float == 0.0
-    assert simple_config_manager.random.name == 'Bob'
+    assert simple_config_manager.simple.str.value == ''
+    assert simple_config_manager.simple.int.value == 0
+    assert simple_config_manager.simple.float.value == 0.0
+    assert simple_config_manager.random.name.value == 'Bob'
 
 
 def test_reads_simple_config_from_file_obj(simple_config_manager, simple_config_file):
     with open(simple_config_file) as f:
         simple_config_manager.read_file(f)
 
-    assert simple_config_manager.simple.str == 'hello'
-    assert simple_config_manager.simple.int == 5
-    assert simple_config_manager.simple.float == 33.33
-    assert simple_config_manager.random.name == 'Johnny'
+    assert simple_config_manager.simple.str.value == 'hello'
+    assert simple_config_manager.simple.int.value == 5
+    assert simple_config_manager.simple.float.value == 33.33
+    assert simple_config_manager.random.name.value == 'Johnny'
 
 
 def test_writes_config_to_file(tmpdir):
@@ -36,7 +36,7 @@ def test_writes_config_to_file(tmpdir):
     with open(config_path) as f:
         assert f.read() == ''
 
-    m.random.name = 'Harry'
+    m.random.name.value = 'Harry'
 
     with open(config_path, 'w') as f:
         m.write(f)
@@ -74,8 +74,8 @@ def test_configparser_writer_does_not_accept_three_deep_paths(tmpdir):
         ConfigItem('some', 'deep', 'config'),
     )
 
-    m.some.deep.config = 'this is fine'
-    assert m.some.deep.config == 'this is fine'
+    m.some.deep.config.value = 'this is fine'
+    assert m.some.deep.config.value == 'this is fine'
 
     with pytest.raises(NotImplementedError):
         with open(config_path, 'w') as f:
@@ -115,8 +115,8 @@ def test_handles_dotted_sections_and_dotted_options(tmpdir):
     with open(config_path, 'r') as f:
         m.read_file(f)
 
-    assert m.get_item('some.deep', 'config.a') == '2_2'
-    assert m.get_item('some.deep.config', 'a') == '3_1'
+    assert m.get('some.deep', 'config.a') == '2_2'
+    assert m.get('some.deep.config', 'a') == '3_1'
 
 
 def test_read_reads_multiple_files_in_order(tmpdir):
@@ -174,8 +174,8 @@ def test_read_string_in_python3():
     )
 
     m.read_string('[a]\nx = haha\ny = yaya\n')
-    assert m.get_item('a', 'x') == 'haha'
-    assert m.get_item('a', 'y') == 'yaya'
+    assert m.get('a', 'x') == 'haha'
+    assert m.get('a', 'y') == 'yaya'
 
 
 @pytest.mark.skipif(six.PY3, reason='Python2 does not support ConfigParser.read_string')
@@ -198,10 +198,10 @@ def test_read_dict_in_python3():
         'b': {'m': 'mama', 'n': 'nono'},
     })
 
-    assert m.get_item('a', 'x') == 'xoxo'
-    assert m.get_item('a', 'y') == 'yaya'
-    assert m.get_item('b', 'm') == 'mama'
-    assert m.get_item('b', 'n') == 'nono'
+    assert m.get('a', 'x') == 'xoxo'
+    assert m.get('a', 'y') == 'yaya'
+    assert m.get('b', 'm') == 'mama'
+    assert m.get('b', 'n') == 'nono'
 
 
 @pytest.mark.skipif(six.PY3, reason='Python2 does not support ConfigParser.read_dict')

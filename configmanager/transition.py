@@ -13,9 +13,6 @@ class TransitionConfigManager(ConfigManager):
         Use this only if you have a good test coverage of configuration access or if you only
         use the most basic ``ConfigParser`` functionality.
     
-        Originally, I thought it might be a good idea to implement ConfigParser interface,
-        but it turns out that it is very file- and section- specific and differs between Python 2 and 3.
-    
     When replacing ``ConfigParser``, change code like this:
     
     .. code-block:: python
@@ -109,14 +106,6 @@ class TransitionConfigManager(ConfigManager):
         Implementation of ``ConfigParser.getboolean()``. 
         """
         return parse_bool_str(self.get_item(section, option, raw=raw, vars=vars, fallback=fallback).value)
-
-    def set(self, section, option, value):
-        """
-        Implementation of ``ConfigParser.set()``.
-        """
-        if not self.has_section(section):
-            raise NoSectionError(section)
-        self.get_item(section, option).value = value
 
     def items(self, section=not_set, raw=True, vars=None):
         """

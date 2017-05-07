@@ -31,7 +31,7 @@ def test_transition_interface():
     assert m.get('a', 'x', vars={'x': None}) is None
 
     m.set('a', 'x', '23')
-    assert m.a.x == '23'
+    assert m.a.x.value == '23'
 
     assert m.get('a', 'x') == '23'
     assert m.get('a', 'x', vars={'x': None}) is None

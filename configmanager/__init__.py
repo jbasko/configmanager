@@ -1,4 +1,4 @@
-from .base import not_set, ConfigItem, ConfigManager
+from .base import not_set, ConfigItem, ConfigManager, UnknownConfigItem
 from .transition import TransitionConfigManager
 
 __version__ = '0.0.6'

@@ -27,8 +27,14 @@ See Documentation_.
         ConfigItem('uploads', 'enabled', default=False, type=bool),
     )
 
-    if not config.uploads.enabled.value:
-        config.uploads.enabled = True
+    # ConfigParser-like access
+    if not config.get('uploads', 'enabled'):
+        config.set('uploads', 'enabled', True)
+
+    # The self-aware access
+    if config.uploads.enabled.has_value:  # True
+        config.uploads.enabled.reset()  # forgets value set by user
+        print(config.uploads.enabled.value)  # will print default value False
 
 
 .. _ConfigParser: https://docs.python.org/3/library/configparser.html

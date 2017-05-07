@@ -40,7 +40,7 @@ def test_value_with_no_default_value():
     c = ConfigItem('a', 'b')
 
     with pytest.raises(RuntimeError):
-        assert c == ''
+        assert c.value == ''
 
     assert not c.has_value
     assert not c.has_default
@@ -50,14 +50,13 @@ def test_value_with_no_default_value():
 
     c.value = 'c'
     assert c.value == 'c'
-    assert c == 'c'
+    assert c != 'c'
 
     assert c.has_value
 
     c.value = 'd'
     assert c.value == 'd'
-    assert c == 'd'
-    assert c == c.value
+    assert c != 'd'
 
     assert not c.has_default
 
@@ -92,24 +91,24 @@ def test_value_with_default_value():
 
 def test_value_gets_stringified():
     c = ConfigItem('a', value='23')
-    assert c == '23'
-    assert c != 23
+    assert c.value == '23'
+    assert c.value != 23
 
     c.value = 24
-    assert c == '24'
-    assert c != 24
+    assert c.value == '24'
+    assert c.value != 24
 
 
 def test_int_value():
     c = ConfigItem('a', type=int, default=25)
-    assert c == 25
+    assert c.value == 25
 
     c.value = '23'
-    assert c == 23
-    assert c != '23'
+    assert c.value == 23
+    assert c.value != '23'
 
     c.reset()
-    assert c == 25
+    assert c.value == 25
 
 
 def test_raw_str_value_is_reset_on_reset():
@@ -143,19 +142,19 @@ def test_bool_of_value():
 
     with pytest.raises(RuntimeError):
         # Cannot evaluate if there is no value and no default value
-        assert not c
+        assert not c.value
 
     c.value = 'b'
-    assert c
+    assert c.value
 
     c.value = ''
-    assert not c
+    assert not c.value
 
     d = ConfigItem('a', default='b')
-    assert d
+    assert d.value
 
     d.value = ''
-    assert not d
+    assert not d.value
 
 
 def test_str_and_repr_of_not_set_value_should_not_fail():
@@ -176,32 +175,32 @@ def test_bool_config_preserves_raw_str_value_used_to_set_it():
     c = ConfigItem('a.b', type=bool, default=False)
     assert c.value is False
 
-    assert not c
+    assert not c.value
     assert str(c) == 'False'
     assert c.value is False
 
     c.value = 'False'
-    assert not c
+    assert not c.value
     assert str(c) == 'False'
     assert c.value is False
 
     c.value = 'no'
-    assert not c
+    assert not c.value
     assert str(c) == 'no'
     assert c.value is False
 
     c.value = '0'
-    assert not c
+    assert not c.value
     assert str(c) == '0'
     assert c.value is False
 
     c.value = '1'
-    assert c
+    assert c.value
     assert str(c) == '1'
     assert c.value is True
 
     c.reset()
-    assert not c
+    assert not c.value
     assert c.value is False
 
     c.value = 'yes'
