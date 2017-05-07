@@ -374,6 +374,25 @@ class ConfigManager(object):
         else:
             return [c for c in self._configs.values() if c.path[:len(prefix)] == prefix[:]]
 
+    def read(self, filenames, encoding=None):
+        """
+        Read and parse configuration in the list of filenames, returning a list of filenames which
+        were successfully parsed just like ``ConfigParser``.
+        """
+        cp = ConfigParser()
+        used_filenames = []
+
+        # Do it one file after another so that we can tell which file contains invalid configuration
+        for filename in filenames:
+            if six.PY2:
+                result = cp.read([filename])
+            else:
+                result = cp.read([filename], encoding=encoding)
+            if result:
+                self.load_from_config_parser(cp)
+                used_filenames.append(filename)
+        return used_filenames
+
     def read_file(self, fileobj):
         """
         Read configuration from a file descriptor like in standard library's ``ConfigParser.read_file``
@@ -383,13 +402,20 @@ class ConfigManager(object):
         cp.read_file(fileobj)
         self.load_from_config_parser(cp)
 
-    def write(self, fileobj):
+    def write(self, fileobj_or_path):
         """
-        Write configuration to a file descriptor like in standard library's ``ConfigParser.write``.
+        Write configuration to a file object or a path.
+        
+        This differs from ``ConfigParser.write`` in that it accepts a path too.
         """
         cp = ConfigParser()
         self.load_into_config_parser(cp)
-        cp.write(fileobj)
+
+        if isinstance(fileobj_or_path, six.string_types):
+            with open(fileobj_or_path, 'w') as f:
+                cp.write(f)
+        else:
+            cp.write(fileobj_or_path)
 
     def sections(self):
         """
@@ -416,15 +442,21 @@ class ConfigManager(object):
         
         Args:
             cp (ConfigParser):
-
-        Returns:
-
         """
         for section in cp.sections():
             for option in cp.options(section):
                 self.get(section, option).value = cp.get(section, option)
 
     def load_into_config_parser(self, cp):
+        """
+        Writes config to `ConfigParser`.
+        
+        Items with :attr:`.ConfigItem.path` longer than two segments will fail
+        as standard `ConfigParser` file format does not support it.
+        
+        Args:
+            cp (ConfigParser): 
+        """
         for config in self._configs.values():
             if len(config.path) > 2:
                 raise NotImplementedError('{} with more than 2 path segments cannot be loaded into {}'.format(
@@ -435,3 +467,10 @@ class ConfigManager(object):
             if not cp.has_section(config.section):
                 cp.add_section(config.section)
             cp.set(config.section, config.option, str(config))
+
+    @property
+    def has_values(self):
+        for config in self._configs.values():
+            if config.has_value:
+                return True
+        return False

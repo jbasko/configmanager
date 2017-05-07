@@ -116,3 +116,48 @@ def test_handles_dotted_sections_and_dotted_options(tmpdir):
 
     assert m.get('some.deep', 'config.a') == '2_2'
     assert m.get('some.deep.config', 'a') == '3_1'
+
+
+def test_read_reads_multiple_files_in_order(tmpdir):
+    m = ConfigManager(
+        ConfigItem('a', 'x', type=float),
+        ConfigItem('a', 'y', default='aye'),
+        ConfigItem('b', 'm', default=False, type=bool),
+        ConfigItem('b', 'n', type=int),
+    )
+
+    path1 = tmpdir.join('config1.ini').strpath
+    path2 = tmpdir.join('config2.ini').strpath
+    path3 = tmpdir.join('config3.ini').strpath
+
+    # Empty file
+    m.write(path1)
+
+    m.set('a', 'x', 0.33)
+    m.set('b', 'n', 42)
+    m.write(path2)
+
+    m.reset()
+    m.set('a', 'x', 0.66)
+    m.set('b', 'm', 'YES')
+    m.write(path3)
+
+    m.reset()
+    assert not m.has_values
+
+    m.read([path1, path2, path3])
+
+    assert m.get('a', 'x').value == 0.66
+    assert not m.get('a', 'y').has_value
+    assert m.get('b', 'm').value is True
+    assert m.get('b', 'm').raw_str_value == 'YES'
+    assert m.get('b', 'n').value == 42
+
+    m.reset()
+    m.read([path3, path2, path1])
+
+    assert m.get('a', 'x').value == 0.33  # this is the only difference with the above order
+    assert not m.get('a', 'y').has_value
+    assert m.get('b', 'm').value is True
+    assert m.get('b', 'm').raw_str_value == 'YES'
+    assert m.get('b', 'n').value == 42

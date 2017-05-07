@@ -1,7 +1,7 @@
 configmanager
 =============
 
-Welcome to **configmanager**'s documentation!
+Welcome to **configmanager**'!
 
 Installation
 ------------
@@ -26,10 +26,30 @@ Quick Start
 
    >>> config.uploads.enabled.value
    False
+   >>> config.uploads.enabled.has_value
+   False
 
    >>> config.uploads.enabled = True
    >>> config.uploads.enabled.value
    True
+   >>> config.uploads.enabled.default
+   False
+   >>> config.uploads.enabled.has_value
+   True
+
+   >>> config.uploads.threads = 5
+   >>> config.uploads.threads.value
+   5
+   >>> config.uploads.threads.reset()
+   >>> config.uploads.threads.value
+   3
+
+   >> config.uploads.threads.name
+   'config.uploads.threads'
+   >>> config.uploads.threads.path
+   ('config, 'uploads', 'threads')
+
+
 
 Documentation
 -------------
@@ -38,5 +58,3 @@ Documentation
    :maxdepth: 2
 
    api
-
-
