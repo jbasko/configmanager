@@ -512,7 +512,7 @@ class ConfigManager(object):
 
         # Do it one file after another so that we can tell which file contains invalid configuration
         for filename in get_filenames():
-            result = cp.read([filename], **kwargs)
+            result = cp.read(filename, **kwargs)
             if result:
                 self.load_from_config_parser(cp, as_defaults=as_defaults)
                 used_filenames.append(filename)
