@@ -13,9 +13,10 @@ things about its real place in the world.
 
 See Documentation_.
 
-::
+:: code-block:: shell
 
     pip install configmanager
+
 
 .. code-block:: python
 
