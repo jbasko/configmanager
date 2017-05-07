@@ -278,7 +278,7 @@ class ConfigManager(object):
 
         @property
         def exists(self):
-            return self._config_manager_.has(self._path_)
+            return self._path_ in self._config_manager_._prefixes
 
         def __setattr__(self, key, value):
             if key.startswith('_'):
