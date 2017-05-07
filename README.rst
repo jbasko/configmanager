@@ -4,12 +4,10 @@ configmanager
 .. image:: https://travis-ci.org/jbasko/configmanager.svg?branch=master
     :target: https://travis-ci.org/jbasko/configmanager
 
-ConfigParser_ in Python standard library is for parsing configuration files, but it doesn't mean it
-should drive your configuration access design.
-
-A single item of configuration doesn't have to be a clueless string value.
-It can be a self-aware object that knows its type, its default value, its description and other
-things about its real place in the world.
+An attempt to take the best of configparser_ found in Python 3.2+ (and
+backported to Python 2.7-3.2 thanks to configparserpypi_) and make each config item
+a first class object which knows its type, default value, whether it has a value or not,
+knows an environment variable which can override it, and other attributes.
 
 See Documentation_.
 
@@ -40,3 +38,4 @@ See Documentation_.
 
 .. _ConfigParser: https://docs.python.org/3/library/configparser.html
 .. _Documentation: http://pythonhosted.org/configmanager
+.. _configparserpypi: https://pypi.python.org/pypi/configparser
