@@ -5,9 +5,10 @@ configmanager
     :target: https://travis-ci.org/jbasko/configmanager
 
 An attempt to take the best of configparser_ found in Python 3.2+ (and
-backported to Python 2.7-3.2 thanks to configparserpypi_) and make each config item
+backported to Python 2.7-3.2 thanks to `configparser package`_) and make each config item
 a first class object which knows its type, default value, whether it has a value or not,
 knows an environment variable which can override it, and other attributes.
+
 
 See Documentation_.
 
@@ -38,4 +39,4 @@ See Documentation_.
 
 .. _ConfigParser: https://docs.python.org/3/library/configparser.html
 .. _Documentation: http://pythonhosted.org/configmanager
-.. _configparserpypi: https://pypi.python.org/pypi/configparser
+.. _configparser package: https://pypi.python.org/pypi/configparser
