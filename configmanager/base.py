@@ -63,7 +63,7 @@ def resolve_config_prefix(*prefix):
 
 
 def parse_bool_str(bool_str):
-    return str(bool_str).lower().strip() in ('yes', 'y', 'yeah', 't', 'true', '1', 'yup')
+    return str(bool_str).lower().strip() in ('yes', 'y', 'yeah', 't', 'true', '1', 'yup', 'on')
 
 
 class ConfigItem(object):
