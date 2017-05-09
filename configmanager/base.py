@@ -257,11 +257,25 @@ class ConfigManager(object):
     #: Class of implicitly created config item instances, defaults to :class:`.ConfigItem`
     config_item_cls = None
 
+    class ConfigItemsProxy(object):
+        """
+        Proxy that provides access to config items via attributes (in contrast to the standard get(*path) access).
+        
+        An instance of :class:`.ConfigItemsProxy` is what you get at :attr:`.ConfigManager.items`, so you can do::
+        
+            >>> config.items.uploads.threads
+            <ConfigItem uploads.threads 5>
+        """
+
     class ConfigPathProxy(object):
         def __init__(self, config_manager, path):
             assert isinstance(path, tuple)
             self._config_manager_ = config_manager
             self._path_ = path
+
+        @property
+        def path(self):
+            return self._path_
 
         def __repr__(self):
             return '<{} {}>'.format(self.__class__.__name__, '.'.join(self._path_))
@@ -283,6 +297,11 @@ class ConfigManager(object):
         def __getattr__(self, path):
             full_path = self._path_ + (path,)
             if self._config_manager_.has(*full_path):
+                raise RuntimeError(
+                    'This syntax is dubious and should not be used anymore. '
+                    'Idea for implementation: config.values.<section> or config.items.<section> would '
+                    'return a special proxy which allows attribute access to values or items.'
+                )
                 return self._config_manager_.get_item(*full_path)
             else:
                 return self.__class__(self._config_manager_, full_path)
