@@ -117,7 +117,6 @@ def test_config_section():
         assert m.b.value
 
     assert isinstance(m.a.b, ConfigItem)
-    assert m.a.b.exists
     assert not m.a.b.has_value
 
     m.a.b.value = 1
@@ -150,8 +149,8 @@ def test_cannot_retrieve_non_existent_config():
         ConfigItem('very', 'real')
     )
 
-    a = m.get_item('very', 'real')
-    assert a.exists
+    m.get_item('very', 'real')
+    assert m.has('very', 'real')
 
     with pytest.raises(UnknownConfigItem):
         m.get_item('something', 'nonexistent')
@@ -226,11 +225,15 @@ def test_items_with_prefix_returns_matching_config_items():
 def test_can_add_items_to_default_section_and_set_their_value_without_naming_section():
     m = ConfigManager()
 
+    assert not m.has('a')
+    with pytest.raises(UnknownConfigItem):
+        m.get_item('a')
+
     m.add(ConfigItem('a', default=0, type=int))
     assert m.has('a')
     assert m.has(m.default_section, 'a')
 
-    assert m.get_item('a').exists
+    assert m.get_item('a')
     assert m.get('a') == 0
 
     m.set('a', 5)

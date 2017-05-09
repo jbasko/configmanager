@@ -208,21 +208,7 @@ def test_bool_config_preserves_raw_str_value_used_to_set_it():
     assert c.value is True
 
 
-def test_cannot_set_nonexistent_config():
-    c = ConfigItem('not', 'managed')
-    c.value = '23'
-    assert c.value == '23'
-
-    d = ConfigItem('actually', 'managed', exists=False)
-    with pytest.raises(UnknownConfigItem):
-        d.value = '23'
-
-
 def test_repr():
     assert repr(ConfigItem('this.is', 'me', default='yes')) == '<ConfigItem this.is.me yes>'
     assert repr(ConfigItem('this.is', 'me')) == '<ConfigItem this.is.me <NotSet>>'
 
-
-def test_nonexistent_item_visible_in_repr():
-    c = ConfigItem('non', 'ex.is', 'tent', exists=False)
-    assert repr(c) == '<ConfigItem non.ex.is.tent <NonExistent>>'

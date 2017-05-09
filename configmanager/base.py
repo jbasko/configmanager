@@ -69,7 +69,7 @@ def parse_bool_str(bool_str):
 class ConfigItem(object):
     """
     Represents a single configurable thing which has a name (a path), a type, a default value, a value,
-    knows whether it exists or just pretends to, and other things.
+    and other things.
     """
 
     DEFAULT_SECTION = 'DEFAULT'
@@ -93,10 +93,6 @@ class ConfigItem(object):
     #: Type, defaults to ``str``. Type can be any callable that converts a string to an instance of
     #: the expected type of the config value.
     type = Descriptor('type', default=str)
-
-    #: Set to ``False`` if the instance was created by :class:`ConfigManager` which
-    #: did not recognise it.
-    exists = Descriptor('exists', default=True)
 
     # Internally, hold on to the raw string value that was used to set value, so that
     # when we persist the value, we use the same notation
@@ -147,8 +143,6 @@ class ConfigItem(object):
         """
         Value or default value (if no value set) of the :class:`.ConfigItem` instance. 
         """
-        if self.exists is False:
-            raise UnknownConfigItem('Cannot get value of non-existent config {}'.format(self.name))
         if self._value is not not_set:
             return self._value
         if self.default is not not_set:
@@ -157,8 +151,6 @@ class ConfigItem(object):
 
     @value.setter
     def value(self, value):
-        if self.exists is False:
-            raise UnknownConfigItem('Cannot set non-existent config {}'.format(self.name))
         self._value = self._parse_str_value(value)
         if self.type is not str:
             if isinstance(value, six.string_types):
@@ -201,9 +193,7 @@ class ConfigItem(object):
         self.raw_str_value = not_set
 
     def __repr__(self):
-        if not self.exists:
-            value = '<NonExistent>'
-        elif self.has_value:
+        if self.has_value:
             value = str(self.value)
         elif self.default is not not_set:
             value = str(self.default)
@@ -276,10 +266,6 @@ class ConfigManager(object):
         def __repr__(self):
             return '<{} {}>'.format(self.__class__.__name__, '.'.join(self._path_))
 
-        @property
-        def exists(self):
-            return self._path_ in self._config_manager_._prefixes
-
         def __setattr__(self, key, value):
             if key.startswith('_'):
                 return super(ConfigManager.ConfigPathProxy, self).__setattr__(key, value)
@@ -347,7 +333,6 @@ class ConfigManager(object):
             raise ValueError('Config item {} already present'.format(item.name))
 
         item = copy.deepcopy(item)
-        item.exists = True
         self._configs[item.path] = item
 
         prefix = []
@@ -401,28 +386,20 @@ class ConfigManager(object):
 
         Returns:
             ConfigItem: an existing or newly created :class:`.ConfigItem` matching the ``path``.
-
-            If this manager does not contain an item with ``path``, the returned item's ``exists``
-            attribute will be set to ``False`` and accessing its value will raise :class:`.UnknownConfigItem`.
+        
+        Raises:
+            UnknownConfigItem: if this manager does not know about a config with the specified ``path``.
 
         Examples:
             >>> cm = ConfigManager(ConfigItem('very', 'real', default=0.0, type=float))
             >>> cm.get_item('very', 'real')
             <ConfigItem very.real 0.0>
 
-            >>> cm.get_item('quite', 'surreal')
-            <ConfigItem quite.surreal <NonExistent>>
-            >>> cm.get_item('quite', 'surreal').exists
-            False
-
         Note:
             For constant paths, you can use attribute access:
 
             >>> cm.very.real
             <ConfigItem very.real 0.0>
-
-            >>> cm.quite.surreal
-            <ConfigItem quite.surreal <NonExistent>>
 
         """
         path = self._resolve_config_path(*path)
@@ -431,7 +408,6 @@ class ConfigManager(object):
             return self._configs[path]
         else:
             raise UnknownConfigItem(*path)
-            # return self.config_item_cls(*path, exists=False)
 
     def set(self, *path_and_value):
         """
