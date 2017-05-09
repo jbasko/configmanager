@@ -430,7 +430,8 @@ class ConfigManager(object):
         if path in self._configs:
             return self._configs[path]
         else:
-            return self.config_item_cls(*path, exists=False)
+            raise UnknownConfigItem(*path)
+            # return self.config_item_cls(*path, exists=False)
 
     def set(self, *path_and_value):
         """

@@ -145,7 +145,7 @@ def test_has():
     assert not m.has('b', 'b')
 
 
-def test_can_retrieve_non_existent_config():
+def test_cannot_retrieve_non_existent_config():
     m = ConfigManager(
         ConfigItem('very', 'real')
     )
@@ -153,8 +153,10 @@ def test_can_retrieve_non_existent_config():
     a = m.get_item('very', 'real')
     assert a.exists
 
-    b = m.get_item('something', 'nonexistent')
-    assert not b.exists
+    with pytest.raises(UnknownConfigItem):
+        m.get_item('something', 'nonexistent')
+
+    assert not m.has('something', 'nonexistent')
 
 
 def test_reset():

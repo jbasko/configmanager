@@ -51,11 +51,11 @@ def test_config_manager_handles_config_of_three_segment_path():
 
 def test_cannot_treat_config_as_section():
     m = ConfigManager(
-        ConfigItem('x.y')
+        ConfigItem('x', 'y')
     )
 
-    with pytest.raises(ValueError):
-        assert not m.set('x.y.z')
+    with pytest.raises(UnknownConfigItem):
+        m.set('x', 'y', 'z', 'value')
 
-    zz = m.get_item('x.yy.zz')
-    assert not zz.exists
+    with pytest.raises(UnknownConfigItem):
+        m.get('x', 'y', 'zz', 'default')

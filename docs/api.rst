@@ -19,13 +19,6 @@ API Reference
     :inherited-members:
 
 
-``TransitionConfigManager(ConfigManager)``
-------------------------------------------
-
-.. autoclass:: TransitionConfigManager
-    :members:
-
-
 ``not_set`` Object
 ------------------
 
