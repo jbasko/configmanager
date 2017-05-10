@@ -30,12 +30,7 @@ def test_config_manager_handles_config_of_three_segment_path():
     assert m.has('x', 'y', 'z')
     assert not m.has('x.y.z')
 
-    assert isinstance(m.x, ConfigManager.ConfigPathProxy)
-    assert isinstance(m.x.y, ConfigManager.ConfigPathProxy)
-
     assert m.get('x', 'y', 'z') == 0.33
-    assert m.x.y.z.value == 0.33
-    assert m.x.y.z.value == 0.33
 
     m.set('x', 'y', 'z', 0.44)
     assert m.get('x', 'y', 'z') == 0.44
@@ -51,11 +46,11 @@ def test_config_manager_handles_config_of_three_segment_path():
 
 def test_cannot_treat_config_as_section():
     m = ConfigManager(
-        ConfigItem('x.y')
+        ConfigItem('x', 'y')
     )
 
-    with pytest.raises(ValueError):
-        assert not m.set('x.y.z')
+    with pytest.raises(UnknownConfigItem):
+        m.set('x', 'y', 'z', 'value')
 
-    zz = m.get_item('x.yy.zz')
-    assert not zz.exists
+    with pytest.raises(UnknownConfigItem):
+        m.get('x', 'y', 'zz', 'default')

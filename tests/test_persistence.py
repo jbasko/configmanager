@@ -7,20 +7,20 @@ def test_reads_empty_config_from_file_obj(simple_config_manager, empty_config_fi
     with open(empty_config_file) as f:
         simple_config_manager.read_file(f)
 
-    assert simple_config_manager.simple.str.value == ''
-    assert simple_config_manager.simple.int.value == 0
-    assert simple_config_manager.simple.float.value == 0.0
-    assert simple_config_manager.random.name.value == 'Bob'
+    assert simple_config_manager.get('simple', 'str') == ''
+    assert simple_config_manager.get('simple', 'int') == 0
+    assert simple_config_manager.get('simple', 'float') == 0.0
+    assert simple_config_manager.get('random', 'name') == 'Bob'
 
 
 def test_reads_simple_config_from_file_obj(simple_config_manager, simple_config_file):
     with open(simple_config_file) as f:
         simple_config_manager.read_file(f)
 
-    assert simple_config_manager.simple.str.value == 'hello'
-    assert simple_config_manager.simple.int.value == 5
-    assert simple_config_manager.simple.float.value == 33.33
-    assert simple_config_manager.random.name.value == 'Johnny'
+    assert simple_config_manager.get('simple', 'str') == 'hello'
+    assert simple_config_manager.get('simple', 'int') == 5
+    assert simple_config_manager.get('simple', 'float') == 33.33
+    assert simple_config_manager.get('random', 'name') == 'Johnny'
 
 
 def test_writes_config_to_file(tmpdir):
@@ -35,7 +35,7 @@ def test_writes_config_to_file(tmpdir):
     with open(config_path) as f:
         assert f.read() == ''
 
-    m.random.name.value = 'Harry'
+    m.set('random', 'name', 'Harry')
 
     with open(config_path, 'w') as f:
         m.write(f)
@@ -49,6 +49,8 @@ def test_preserves_bool_notation(tmpdir):
         ConfigItem('flags', 'enabled', type=bool, default=False)
     )
 
+    assert m.get('flags', 'enabled') is False
+
     config_path = tmpdir.join('flags.ini').strpath
     with open(config_path, 'w') as f:
         f.write('[flags]\nenabled = Yes\n\n')
@@ -56,8 +58,7 @@ def test_preserves_bool_notation(tmpdir):
     with open(config_path) as f:
         m.read_file(f)
 
-    assert m.flags.enabled
-    assert m.flags.enabled.value is True
+    assert m.get('flags', 'enabled') is True
 
     with open(config_path, 'w') as f:
         m.write(f)
@@ -73,8 +74,8 @@ def test_configparser_writer_does_not_accept_three_deep_paths(tmpdir):
         ConfigItem('some', 'deep', 'config'),
     )
 
-    m.some.deep.config.value = 'this is fine'
-    assert m.some.deep.config.value == 'this is fine'
+    m.set('some', 'deep', 'config', 'this is fine')
+    assert m.get('some', 'deep', 'config') == 'this is fine'
 
     with pytest.raises(NotImplementedError):
         with open(config_path, 'w') as f:

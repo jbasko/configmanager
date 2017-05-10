@@ -57,9 +57,6 @@ its value will raise an exception.
    >>> config.get('upload', 'threads')
    1
 
-   >>> config.upload.threads.value
-   1
-
 .. _config-manager:
 
 Config Manager
@@ -107,13 +104,6 @@ To parse the file, use :meth:`.ConfigManager.read` or :meth:`.ConfigManager.read
 
     >>> config.read('./config.ini')
 
-    >>> config.upload.threads.value
-    5
-    >>> config.upload.threads.default
-    1
-    >>> config.get('download', 'greeting')  # ConfigParser-like syntax is supported too
-    'Bye!'
-
 
 Copying Config Items Between Managers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -129,10 +119,10 @@ to use :meth:`.ConfigManager.items()`::
 
 If you don't want to keep the values (just the defaults), you can call :meth:`.ConfigManager.reset`:
 
-    >>> config2.upload.threads.value
+    >>> config2.get('upload', 'threads').value
     3
     >>> config2.reset()
-    >>> config2.upload.threads.value
+    >>> config2.get('upload', 'threads').value
     1
 
 If the second config manager already exists, you can add config items to it with
