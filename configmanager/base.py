@@ -102,6 +102,10 @@ class ConfigItem(object):
         else:
             self.path = resolved
 
+        # NB! type must be set first because otherwise setting value below may fail.
+        if 'type' in kwargs:
+            self.type = kwargs.pop('type')
+
         self._value = not_set
         for k, v in kwargs.items():
             setattr(self, k, v)
@@ -141,7 +145,7 @@ class ConfigItem(object):
     @value.setter
     def value(self, value):
         self._value = self._parse_str_value(value)
-        if self.type is not str:
+        if not issubclass(self.type, six.string_types):
             if isinstance(value, six.string_types):
                 self.raw_str_value = value
             else:
@@ -171,7 +175,11 @@ class ConfigItem(object):
 
     def __eq__(self, other):
         if isinstance(other, ConfigItem):
-            return self.has_value and other.has_value and self.value == other.value
+            return (
+                self.type == other.type
+                and self.has_value and other.has_value
+                and self.value == other.value
+            )
         return False
 
     def reset(self):
@@ -187,9 +195,9 @@ class ConfigItem(object):
         elif self.default is not not_set:
             value = str(self.default)
         else:
-            value = repr(self.default)
+            value = self.default
 
-        return '<{} {} {}>'.format(self.__class__.__name__, self.name, value)
+        return '<{} {} {!r}>'.format(self.__class__.__name__, self.name, value)
 
     def _parse_str_value(self, str_value):
         if str_value is None or str_value is not_set:
@@ -347,6 +355,8 @@ class ConfigManager(object):
         
         :param path_and_value:
         """
+        if len(path_and_value) < 2:
+            raise ValueError('set requires at least two arguments - a path segment and a value')
         self.get_item(*path_and_value[:-1]).value = path_and_value[-1]
 
     def has(self, *path):
@@ -502,18 +512,6 @@ class ConfigManager(object):
                 cp.write(f)
         else:
             cp.write(fileobj_or_path)
-
-    def sections(self):
-        """
-        Returns a list of all sections.
-        """
-        return list(prefix[0] for prefix in self._prefixes.keys() if len(prefix) == 1)
-
-    def has_section(self, section):
-        """
-        Returns ``True`` if section called ``section`` exists.
-        """
-        return tuple([section]) in self._prefixes
 
     def reset(self):
         """

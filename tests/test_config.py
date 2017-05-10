@@ -1,7 +1,7 @@
 import pytest
 import six
 
-from configmanager import ConfigItem, ConfigValueNotSet, UnknownConfigItem
+from configmanager import ConfigItem, ConfigValueNotSet, UnknownConfigItem, not_set
 
 
 def test_initialisation_of_section_and_option():
@@ -157,6 +157,14 @@ def test_bool_of_value():
     assert not d.value
 
 
+def test_repr_makes_clear_the_path_and_value():
+    c = ConfigItem('a', 'b', 'c', default='hello')
+    assert repr(c) == '<ConfigItem a.b.c \'hello\'>'
+
+    c.value = 'bye!'
+    assert repr(c) == '<ConfigItem a.b.c \'bye!\'>'
+
+
 def test_str_and_repr_of_not_set_value_should_not_fail():
     c = ConfigItem('a')
     assert str(c) == '<ConfigItem DEFAULT.a <NotSet>>'
@@ -209,6 +217,40 @@ def test_bool_config_preserves_raw_str_value_used_to_set_it():
 
 
 def test_repr():
-    assert repr(ConfigItem('this.is', 'me', default='yes')) == '<ConfigItem this.is.me yes>'
+    assert repr(ConfigItem('this.is', 'me', default='yes')) == '<ConfigItem this.is.me \'yes\'>'
     assert repr(ConfigItem('this.is', 'me')) == '<ConfigItem this.is.me <NotSet>>'
 
+
+def test_can_set_str_value_to_none():
+    c = ConfigItem('a', 'b', default='haha')
+    assert c.value == 'haha'
+
+    c.value = None
+    assert c.value is None
+
+
+def test_setting_value_to_not_set_resets_it():
+    c = ConfigItem('a', 'b', default='default', value='custom')
+    assert c.value == 'custom'
+
+    c.value = not_set
+    assert c.value == 'default'
+
+
+def test_can_set_int_value_to_none():
+    print(not_set.__dict__)
+
+    c = ConfigItem('a', 'b', type=int, default=0, value=23)
+    assert c.value == 23
+
+    c.value = None
+    assert c.value is None
+
+
+def test_equality():
+    c = ConfigItem('a', 'b', type=str, value=None)
+    cc = ConfigItem('a', 'b', type=str, value=None)
+    assert c == cc
+
+    d = ConfigItem('a', 'b', type=int, value=None)
+    assert c != d

@@ -2,4 +2,6 @@ six
 configparser
 
 pytest
+coverage
 tox
+

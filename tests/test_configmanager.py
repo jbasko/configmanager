@@ -58,6 +58,19 @@ def test_get_returns_value_not_item():
     assert m.get('a', '2', 'aaaa') == 'a2'
 
 
+@pytest.mark.parametrize('method', ['get', 'has', 'get_item', 'set'])
+def test_basic_accessors_with_no_path_raise_value_error(method):
+    m = ConfigManager()
+
+    with pytest.raises(ValueError):
+        getattr(m, method)()
+
+    m.add(ConfigItem('a', 'b'))
+
+    with pytest.raises(ValueError):
+        getattr(m, method)()
+
+
 def test_duplicate_config_raises_value_error():
     m = ConfigManager()
     m.add(ConfigItem('a', 'b'))
