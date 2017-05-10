@@ -30,12 +30,7 @@ def test_config_manager_handles_config_of_three_segment_path():
     assert m.has('x', 'y', 'z')
     assert not m.has('x.y.z')
 
-    assert isinstance(m.x, ConfigManager.ConfigPathProxy)
-    assert isinstance(m.x.y, ConfigManager.ConfigPathProxy)
-
     assert m.get('x', 'y', 'z') == 0.33
-    assert m.x.y.z.value == 0.33
-    assert m.x.y.z.value == 0.33
 
     m.set('x', 'y', 'z', 0.44)
     assert m.get('x', 'y', 'z') == 0.44

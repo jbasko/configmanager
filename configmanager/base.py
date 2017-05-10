@@ -4,19 +4,8 @@ import copy
 from configparser import ConfigParser
 import six
 
-
-class UnknownConfigItem(Exception):
-    """
-    Exception which is raised when requesting an unknown config item or
-    when accessing value of ConfigItem marked as non-existent.
-    """
-
-
-class ConfigValueNotSet(Exception):
-    """
-    Exception which is raised when requesting a value of config item that
-    has no value, or default value, or any other fallback.
-    """
+from .exceptions import UnknownConfigItem, ConfigValueNotSet
+from .proxies import ConfigItemProxy, ConfigValueProxy, ConfigSectionProxy
 
 
 class _NotSet(object):
@@ -233,92 +222,22 @@ class ConfigManager(object):
     
         config.read('defaults.ini', as_defaults=True)
     
-    .. attribute:: <section>.<option>
-
-        Get a configuration item via dot notation.
-        Returns :class:`.ConfigItem` (which is not a config value).
-        
-        Clearly, this cannot be used when there are dots in section or other segments of item path,
-        in which case you can use :meth:`.get_item` which behaves identically:
-        
-        .. code-block:: python
- 
-            config.uploads.threads == config.get_item('uploads', 'threads')
-          
-        You can then get the config value via the :attr:`.ConfigItem.value` attribute of the returned 
-        item: 
-        
-        .. code-block:: python
-        
-            config.uploads.threads.value == config.get('uploads', 'threads')
-    
     """
 
     #: Class of implicitly created config item instances, defaults to :class:`.ConfigItem`
     config_item_cls = None
-
-    class ConfigItemsProxy(object):
-        """
-        Proxy that provides access to config items via attributes (in contrast to the standard get(*path) access).
-        
-        An instance of :class:`.ConfigItemsProxy` is what you get at :attr:`.ConfigManager.items`, so you can do::
-        
-            >>> config.items.uploads.threads
-            <ConfigItem uploads.threads 5>
-        """
-
-    class ConfigPathProxy(object):
-        def __init__(self, config_manager, path):
-            assert isinstance(path, tuple)
-            self._config_manager_ = config_manager
-            self._path_ = path
-
-        @property
-        def path(self):
-            return self._path_
-
-        def __repr__(self):
-            return '<{} {}>'.format(self.__class__.__name__, '.'.join(self._path_))
-
-        def __setattr__(self, key, value):
-            if key.startswith('_'):
-                return super(ConfigManager.ConfigPathProxy, self).__setattr__(key, value)
-
-            full_path = self._path_ + (key,)
-            if self._config_manager_.has(*full_path):
-                raise RuntimeError(
-                    'This syntax is dubious and should not be used to set config values. '
-                    'Instead use ConfigManager(...).set(*path, new_value) '
-                    'or ConfigItem(...).value = new_value'
-                )
-            else:
-                raise AttributeError(key)
-
-        def __getattr__(self, path):
-            full_path = self._path_ + (path,)
-            if self._config_manager_.has(*full_path):
-                raise RuntimeError(
-                    'This syntax is dubious and should not be used anymore. '
-                    'Idea for implementation: config.values.<section> or config.items.<section> would '
-                    'return a special proxy which allows attribute access to values or items.'
-                )
-                return self._config_manager_.get_item(*full_path)
-            else:
-                return self.__class__(self._config_manager_, full_path)
 
     def __init__(self, *configs):
         self.config_item_cls = self.config_item_cls or ConfigItem
         self._configs = collections.OrderedDict()
         self._prefixes = collections.OrderedDict()  # Ordered set basically
 
+        self.t = ConfigItemProxy(self)
+        self.v = ConfigValueProxy(self)
+        self.s = ConfigSectionProxy(self)
+
         for config in configs:
             self.add(config)
-
-    def __getattr__(self, path_segment):
-        if (path_segment,) in self._prefixes:
-            return self.ConfigPathProxy(self, (path_segment,))
-        else:
-            return self.get_item(path_segment)
 
     @property
     def default_section(self):
@@ -339,7 +258,7 @@ class ConfigManager(object):
         Examples:
             >>> cm = ConfigManager()
             >>> cm.add(ConfigItem('some.path', default='/tmp/something.txt'))
-            >>> cm.some.path
+            >>> cm.get('some', 'path')
             '/tmp/something.txt'
         
         .. note::
@@ -412,12 +331,6 @@ class ConfigManager(object):
         Examples:
             >>> cm = ConfigManager(ConfigItem('very', 'real', default=0.0, type=float))
             >>> cm.get_item('very', 'real')
-            <ConfigItem very.real 0.0>
-
-        Note:
-            For constant paths, you can use attribute access:
-
-            >>> cm.very.real
             <ConfigItem very.real 0.0>
 
         """

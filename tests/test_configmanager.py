@@ -101,31 +101,6 @@ def test_config_manager_configs_are_safe_copies():
     assert c2.value == [1, 2, 3]
 
 
-def test_config_section():
-    m = ConfigManager(
-        ConfigItem('a', 'b'),
-        ConfigItem('a', 'c'),
-        ConfigItem('a', 'd'),
-        ConfigItem('x', 'y'),
-        ConfigItem('x', 'z'),
-    )
-
-    assert isinstance(m.a, ConfigManager.ConfigPathProxy)
-    assert isinstance(m.x, ConfigManager.ConfigPathProxy)
-
-    with pytest.raises(UnknownConfigItem):
-        assert m.b.value
-
-    assert isinstance(m.a.b, ConfigItem)
-    assert not m.a.b.has_value
-
-    m.a.b.value = 1
-    assert m.a.b.value == '1'
-
-    with pytest.raises(AttributeError):
-        m.a.xx = 23
-
-
 def test_has():
     m = ConfigManager()
 
@@ -164,16 +139,16 @@ def test_reset():
         ConfigItem('forgettable', 'y', default='YES')
     )
 
-    m.forgettable.x.value = 23
-    m.forgettable.y.value = 'NO'
+    m.set('forgettable', 'x', 23)
+    m.set('forgettable', 'y', 'NO')
 
-    assert m.forgettable.x.value == 23
-    assert m.forgettable.y.value == 'NO'
+    assert m.get('forgettable', 'x') == 23
+    assert m.get('forgettable', 'y') == 'NO'
 
     m.reset()
 
-    assert not m.forgettable.x.has_value
-    assert m.forgettable.y.value == 'YES'
+    assert not m.get_item('forgettable', 'x').has_value
+    assert m.get('forgettable', 'y') == 'YES'
 
 
 def test_items_returns_all_config_items():
