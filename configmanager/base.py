@@ -389,6 +389,27 @@ class ConfigManager(object):
         else:
             return [c for c in self._configs.values() if c.path[:len(prefix)] == prefix[:]]
 
+    def find_items(self, *prefix):
+        prefix = resolve_config_prefix(*prefix)
+        if not prefix:
+            return self._configs.values()
+        else:
+            return (self._configs[path] for path in self._configs.keys() if path[:len(prefix)] == prefix[:])
+
+    def find_paths(self, *prefix):
+        prefix = resolve_config_prefix(*prefix)
+        if not prefix:
+            return self._configs.keys()
+        else:
+            return (path for path in self._configs.keys() if path[:len(prefix)] == prefix[:])
+
+    def find_prefixes(self, *prefix):
+        prefix = resolve_config_prefix(*prefix)
+        if not prefix:
+            return self._prefixes.keys()
+        else:
+            return (p for p in self._prefixes.keys() if p[:len(prefix)] == prefix[:])
+
     def export(self, *prefix):
         """
         Returns:
