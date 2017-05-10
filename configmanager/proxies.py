@@ -51,9 +51,24 @@ class PathProxy(object):
         else:
             return self._set_config_item_(path, raw, value)
 
+    def __iter__(self):
+        raise NotImplementedError()
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self._path_ == other._path_
+
 
 class ConfigItemProxy(PathProxy):
-    pass
+
+    def __iter__(self):
+        for item in self._config_.find_items(*self._path_):
+            yield item.path, item
+
+    def __getitem__(self, path):
+        return self._config_.get_item(*path)
+
+    def __contains__(self, path):
+        return self._config_.has(*path)
 
 
 class ConfigSectionProxy(PathProxy):
@@ -84,9 +99,17 @@ class ConfigSectionProxy(PathProxy):
         return self._config_.has(*self._prepend_path_(*path))
 
     def items(self):
+        # TODO Deprecated
         if not self._path_:
             raise AttributeError('items')
         return self._config_.items(*self._path_)
+
+    def __iter__(self):
+        for prefix in self._config_.find_prefixes(*self._path_):
+            yield prefix, self._get_(prefix)
+
+    def __getitem__(self, prefix):
+        return self._get_(prefix)
 
 
 class ConfigValueProxy(PathProxy):
@@ -95,3 +118,11 @@ class ConfigValueProxy(PathProxy):
 
     def _set_config_item_(self, path, raw, value):
         raw.value = value
+
+    def __iter__(self):
+        for item in self._config_.find_items(*self._path_):
+            if item.has_value or item.has_default:
+                yield item.path, item.value
+
+    def __getitem__(self, path):
+        return self._config_.get(*path)

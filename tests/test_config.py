@@ -238,8 +238,6 @@ def test_setting_value_to_not_set_resets_it():
 
 
 def test_can_set_int_value_to_none():
-    print(not_set.__dict__)
-
     c = ConfigItem('a', 'b', type=int, default=0, value=23)
     assert c.value == 23
 
@@ -254,3 +252,35 @@ def test_equality():
 
     d = ConfigItem('a', 'b', type=int, value=None)
     assert c != d
+
+
+def test_item_is_equal_to_itself():
+    c = ConfigItem('a', 'b')
+    assert c == c
+
+    d = ConfigItem('a', 'b', value='d')
+    assert d == d
+
+    e = ConfigItem('a', 'b', default='e')
+    assert e == e
+
+    f = ConfigItem('a', 'b', default='f', value='g')
+    assert f == f
+
+
+def test_items_are_equal_if_path_and_type_and_effective_value_match():
+    x1 = ConfigItem('a', 'b')
+    x2 = ConfigItem('a', 'b')
+    x3 = ConfigItem('a', 'bb')
+    assert x1 == x2
+    assert x1 != x3
+
+    y1 = ConfigItem('a', 'b', default='yyy')
+    y2 = ConfigItem('a', 'b', value='yyy')
+    y3 = ConfigItem('a', 'b', default='yyy', value='YYY')
+    y4 = ConfigItem('a', 'bb', value='yyy')
+    y5 = ConfigItem('a', 'b', default='YYY', value='yyy')
+    assert y1 == y2
+    assert y1 != y3
+    assert y1 != y4
+    assert y1 == y5

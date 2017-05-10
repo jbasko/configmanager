@@ -177,8 +177,23 @@ class ConfigItem(object):
         if isinstance(other, ConfigItem):
             return (
                 self.type == other.type
-                and self.has_value and other.has_value
-                and self.value == other.value
+                and
+                self.path == other.path
+                and
+                (
+                    (
+                        # Both have a value that can be compared
+                        (self.has_value or self.has_default)
+                        and (other.has_value or other.has_default)
+                        and (self.value == other.value)
+                    )
+                    or
+                    (
+                        # Neither has value that can be compared
+                        not (self.has_value or self.has_default)
+                        and not (other.has_value or other.has_default)
+                    )
+                )
             )
         return False
 
