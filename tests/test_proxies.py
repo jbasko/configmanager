@@ -1,6 +1,7 @@
 import pytest
 
 from configmanager import ConfigManager, ConfigItem, UnknownConfigItem, UnsupportedOperation
+from configmanager.proxies import ConfigSectionProxy
 
 
 @pytest.fixture
@@ -16,7 +17,7 @@ def config():
     )
 
 
-def test_values_proxy_exposes_values_for_reading_and_writing(config):
+def test_value_proxy_exposes_values_for_reading_and_writing(config):
     assert config.v.downloads.threads == 0
 
     config.v.downloads.threads = 5
@@ -40,7 +41,7 @@ def test_values_proxy_exposes_values_for_reading_and_writing(config):
         config.v.uploads.enabled.really = True
 
 
-def test_values_proxy_does_not_provide_section_and_item_access(config):
+def test_value_proxy_does_not_provide_section_and_item_access(config):
     with pytest.raises(UnsupportedOperation):
         config.v.uploads = {}
 
@@ -52,6 +53,20 @@ def test_values_proxy_does_not_provide_section_and_item_access(config):
 
     with pytest.raises(AttributeError):
         config.v.items()
+
+
+def test_value_proxy_is_iterable(config):
+    values = dict(config.v)
+    assert len(values) == 2
+    assert values[('uploads', 'enabled')] is False
+    assert values[('downloads', 'threads')] == 0
+
+    config.set('auth', 'server', 'port', 3333)
+    config.set('uploads', 'enabled', 'yes')
+    values = dict(config.v)
+    assert len(values) == 3
+    assert values[('uploads', 'enabled')] is True
+    assert values[('auth', 'server', 'port')] == 3333
 
 
 def test_section_proxy_forbids_access_to_config_items_via_attributes(config):
@@ -96,6 +111,31 @@ def test_section_proxy_exposes_sections_and_basic_manager_interface(config):
     assert config.s.uploads.items()
 
 
+# def test_section_proxy_exposes_has_values_and_reset(config):
+#     assert not config.has_values
+#     assert not config.s.uploads.has_values
+#     assert not config.s.auth.has_values
+#     assert not config.s.auth.server.has_values
+#
+#     config.s.uploads.set('enabled', True)
+#     assert config.s.uploads.has_values
+#     assert not config.s.auth.has_values
+#     assert not config.s.auth.server.has_values
+#
+#     config.s.auth.server.set('host', 'localhost')
+#     assert config.s.auth.server.has_values
+#     assert config.s.auth.has_values
+#     assert not config.s.auth.client.has_values
+#
+#     config.s.auth.set('client', 'username', 'root')
+#     assert config.s.auth.client.has_values
+#
+#     config.s.auth.server.reset()
+#     assert not config.s.auth.server.has_values
+#     assert config.s.auth.client.has_values
+#     assert config.s.auth.has_values
+
+
 def test_section_proxy_raises_attribute_error_if_section_not_specified(config):
     with pytest.raises(AttributeError):
         config.s.get('auth')
@@ -122,7 +162,17 @@ def test_section_proxy_raises_attribute_error_if_section_not_specified(config):
         config.s.has('uploads', 'enabled')
 
 
-def test_item_proxy(config):
+def test_section_proxy_is_iterable(config):
+    sections = dict(config.s)
+    assert len(sections) == 5
+
+    uploads = sections[('uploads',)]
+    assert isinstance(uploads, ConfigSectionProxy)
+
+    assert config.s[('uploads',)] == uploads
+
+
+def test_item_proxy_provides_access_to_items(config):
     assert isinstance(config.t.uploads.enabled, ConfigItem)
 
     with pytest.raises(AttributeError):
@@ -134,3 +184,14 @@ def test_item_proxy(config):
     assert config.t.uploads.enabled.value is True
 
     assert isinstance(config.t.auth.client.username, ConfigItem)
+
+
+def test_item_proxy_is_iterable(config):
+    items = dict(config.t)
+    assert len(items) == 7
+    assert items[('uploads', 'enabled')] is config.t.uploads.enabled
+
+    assert config.t['uploads', 'enabled'] == config.t.uploads.enabled
+
+    assert ('uploads', 'enabled') in config.t
+    assert ('uploads', 'something_else') not in config.t
