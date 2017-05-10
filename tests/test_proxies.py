@@ -96,6 +96,31 @@ def test_section_proxy_exposes_sections_and_basic_manager_interface(config):
     assert config.s.uploads.items()
 
 
+def test_section_proxy_exposes_has_values_and_reset(config):
+    assert not config.has_values
+    assert not config.s.uploads.has_values
+    assert not config.s.auth.has_values
+    assert not config.s.auth.server.has_values
+
+    config.s.uploads.set('enabled', True)
+    assert config.s.uploads.has_values
+    assert not config.s.auth.has_values
+    assert not config.s.auth.server.has_values
+
+    config.s.auth.server.set('host', 'localhost')
+    assert config.s.auth.server.has_values
+    assert config.s.auth.has_values
+    assert not config.s.auth.client.has_values
+
+    config.s.auth.set('client', 'username', 'root')
+    assert config.s.auth.client.has_values
+
+    config.s.auth.server.reset()
+    assert not config.s.auth.server.has_values
+    assert config.s.auth.client.has_values
+    assert config.s.auth.has_values
+
+
 def test_section_proxy_raises_attribute_error_if_section_not_specified(config):
     with pytest.raises(AttributeError):
         config.s.get('auth')
