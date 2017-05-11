@@ -51,8 +51,8 @@ def test_value_proxy_does_not_provide_section_and_item_access(config):
     with pytest.raises(AttributeError):
         config.v.uploads.get('enabled', True)
 
-    with pytest.raises(AttributeError):
-        config.v.items()
+    # This is different, "items" don't refer to config items here, it's part of Python's dictionary interface.
+    assert config.v.items()
 
 
 def test_value_proxy_is_iterable(config):
@@ -151,8 +151,8 @@ def test_section_proxy_raises_attribute_error_if_section_not_specified(config):
     with pytest.raises(AttributeError):
         config.s.set('enabled', True)
 
-    with pytest.raises(AttributeError):
-        config.s.items()
+    # This is different now, items() is part of Python's dictionary interface, nothing to do with config items.
+    assert config.s.items()
 
     with pytest.raises(AttributeError):
         config.s.has('uploads')
@@ -194,3 +194,17 @@ def test_item_proxy_is_iterable(config):
     assert ('auth', 'server', 'port') in paths
     assert ('uploads', 'something_else') not in paths
 
+
+def test_proxies_support_items_transparently(config):
+    items = dict(config.t.items())
+    assert len(items) == 7
+    assert isinstance(items[('uploads', 'enabled')], ConfigItem)
+
+    sections = dict(config.s.items())
+    assert len(sections) == 5
+    assert isinstance(sections[('auth', 'server')], ConfigSectionProxy)
+
+    values = dict(config.v.items())
+    assert len(values) == 2
+    assert values[('uploads', 'enabled')] is False
+    assert values[('downloads', 'threads')] == 0

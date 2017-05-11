@@ -115,6 +115,7 @@ class ConfigItem(object):
         """
         The first segment of :attr:`.path`.
         """
+        # TODO Deprecated
         return self.path[0]
 
     @property
@@ -122,6 +123,7 @@ class ConfigItem(object):
         """
         The second segment of :attr:`.path`.
         """
+        # TODO Deprecated
         return self.path[-1]
 
     @property
@@ -129,6 +131,7 @@ class ConfigItem(object):
         """
         A string, :attr:`.path` joined by dots.
         """
+        # TODO Deprecated
         return '.'.join(self.path)
 
     @property
@@ -384,26 +387,6 @@ class ConfigManager(object):
         """
         return self._resolve_config_path(*path) in self._configs
 
-    def items(self, *prefix):
-        """
-        Returns:
-            list: list of :class:`.ConfigItem` instances managed by this manager.
-            
-            If ``prefix`` is specified, only items with matching path prefix are included.
-        
-        Note:
-            This is different from ``ConfigParser.items()`` which returns what we would call
-            here resolved values of items.
-        
-        See Also:
-            :meth:`.ConfigManager.export()`
-        """
-        prefix = resolve_config_prefix(*prefix)
-        if not prefix:
-            return list(self._configs.values())
-        else:
-            return [c for c in self._configs.values() if c.path[:len(prefix)] == prefix[:]]
-
     def find_items(self, *prefix):
         prefix = resolve_config_prefix(*prefix)
         if not prefix:
@@ -433,7 +416,7 @@ class ConfigManager(object):
         """
         pairs = []
 
-        for item in self.items(*prefix):
+        for item in self.find_items(*prefix):
             if item.has_value or item.has_default:
                 item_name_without_prefix = '.'.join(item.path[len(prefix):])
                 pairs.append((item_name_without_prefix, item.value))
