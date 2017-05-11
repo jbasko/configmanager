@@ -4,7 +4,7 @@ import copy
 from configparser import ConfigParser
 import six
 
-from .exceptions import UnknownConfigItem, ConfigValueNotSet
+from .exceptions import UnknownConfigItem, ConfigValueMissing
 from .proxies import ConfigItemProxy, ConfigValueProxy, ConfigSectionProxy
 
 
@@ -87,6 +87,8 @@ class ConfigItem(object):
     # when we persist the value, we use the same notation
     raw_str_value = Descriptor('raw_str_value')
 
+    required = Descriptor('required', default=False)
+
     # envvar = Descriptor('envvar')
     # prompt = Descriptor('prompt')
     # labels = Descriptor('labels')
@@ -141,9 +143,9 @@ class ConfigItem(object):
         """
         if self._value is not not_set:
             return self._value
-        if self.default is not not_set:
-            return self.default
-        raise ConfigValueNotSet('{} has no value or default value set'.format(self.name))
+        if self.default is not_set and self.required:
+            raise ConfigValueMissing(self.path)
+        return self.default
 
     @value.setter
     def value(self, value):
@@ -157,9 +159,20 @@ class ConfigItem(object):
     @property
     def has_value(self):
         """
-        Is ``True`` if the :class:`.ConfigItem` has a value set.
+        Returns:
+            ``True`` if the :class:`.ConfigItem` has a value set.
         """
         return self._value is not not_set
+
+    @property
+    def is_default(self):
+        """
+        Returns:
+            ``True`` if item does not have a value set, or its value equals the default value.
+                In other words, it returns ``True`` if item's resolved value equals its default value.
+                This is NOT the opposite of :attr:`.has_value`!
+        """
+        return self._value is not_set or self._value == self.default
 
     @property
     def has_default(self):
@@ -582,8 +595,8 @@ class ConfigManager(object):
             cp.set(config.section, config.option, str(config))
 
     @property
-    def has_values(self):
-        for config in self._configs.values():
-            if config.has_value:
-                return True
-        return False
+    def is_default(self):
+        for item in self.find_items():
+            if not item.is_default:
+                return False
+        return True

@@ -112,15 +112,11 @@ class ConfigSectionProxy(PathProxy):
         return self._get_(prefix)
 
     @property
-    def has_values(self):
-        """
-        Returns:
-            bool: ``True`` if any config with this prefix has a non-default value.
-        """
+    def is_default(self):
         for item in self._config_.find_items(*self._path_):
-            if item.has_value:
-                return True
-        return False
+            if not item.is_default:
+                return False
+        return True
 
     def reset(self):
         for item in self._config_.find_items(*self._path_):
@@ -136,8 +132,7 @@ class ConfigValueProxy(PathProxy):
 
     def __iter__(self):
         for item in self._config_.find_items(*self._path_):
-            if item.has_value or item.has_default:
-                yield item.path
+            yield item.path
 
     def __getitem__(self, path):
         return self._config_.get(*path)

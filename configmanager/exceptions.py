@@ -5,7 +5,7 @@ class UnknownConfigItem(Exception):
     """
 
 
-class ConfigValueNotSet(Exception):
+class ConfigValueMissing(Exception):
     """
     Exception which is raised when requesting a value of config item that
     has no value, or default value, or any other fallback.

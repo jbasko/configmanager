@@ -1,7 +1,7 @@
 import pytest
 import six
 
-from configmanager import ConfigItem, ConfigManager, UnknownConfigItem, ConfigValueNotSet
+from configmanager import ConfigItem, ConfigManager, UnknownConfigItem, ConfigValueMissing
 
 
 def test_get_item_returns_config_item():
@@ -25,7 +25,7 @@ def test_get_returns_value_not_item():
     m = ConfigManager(
         ConfigItem('a', '1', default='a1'),
         ConfigItem('a', '2', default='a2'),
-        ConfigItem('b', '1'),
+        ConfigItem('b', '1', required=True),
         ConfigItem('b', '2', default='b2'),
     )
 
@@ -47,8 +47,8 @@ def test_get_returns_value_not_item():
     with pytest.raises(UnknownConfigItem):
         m.get('c', '1', 'fallback does not matter -- the item does not exist')
 
-    # Good item, no value set though
-    with pytest.raises(ConfigValueNotSet):
+    # Required item with no value
+    with pytest.raises(ConfigValueMissing):
         m.get('b', '1')
 
     # Provide fallback
@@ -300,3 +300,26 @@ def test_read_as_defaults_treats_all_values_as_declarations(tmpdir):
     m.read(path)
     assert m.get('uploads', 'threads') == '5'
     assert m.get_item('uploads', 'threads').default == '5'
+
+
+def test_is_default_returns_true_if_all_values_are_default():
+    m = ConfigManager()
+    assert m.is_default
+
+    m.add(ConfigItem('a', 'b'))
+    assert m.is_default
+
+    m.set('a', 'b', 'haha')
+    assert not m.is_default
+
+    m.reset()
+    assert m.is_default
+
+    m.add(ConfigItem('x', 'y', default='haha'))
+    assert m.is_default
+
+    m.set('x', 'y', 'hihi')
+    assert not m.is_default
+
+    m.set('x', 'y', 'haha')
+    assert m.is_default
