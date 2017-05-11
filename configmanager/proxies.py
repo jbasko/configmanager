@@ -60,6 +60,9 @@ class PathProxy(object):
     def __eq__(self, other):
         return isinstance(other, self.__class__) and (self._path_ == other._path_) and (self._config_ is other._config_)
 
+    def items(self):
+        return ((k, self[k]) for k in self)
+
 
 class ConfigItemProxy(PathProxy):
 

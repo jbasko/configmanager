@@ -164,52 +164,6 @@ def test_reset():
     assert m.get('forgettable', 'y') == 'YES'
 
 
-def test_items_returns_all_config_items():
-    m = ConfigManager(
-        ConfigItem('a', 'aa', 'aaa'),
-        ConfigItem('b', 'bb'),
-        ConfigItem('a', 'aa', 'AAA'),
-        ConfigItem('b', 'BB'),
-    )
-
-    assert len(m.items()) == 4
-    assert m.items()[0].path == ('a', 'aa', 'aaa')
-    assert m.items()[-1].path == ('b', 'BB')
-
-
-def test_items_with_prefix_returns_matching_config_items():
-    m = ConfigManager(
-        ConfigItem('a', 'aa', 'aaa'),
-        ConfigItem('a.aa', 'haha'),
-        ConfigItem('b', 'bb'),
-        ConfigItem('a', 'aa', 'AAA'),
-        ConfigItem('b', 'BB'),
-    )
-
-    a_items = m.items('a')
-    assert len(a_items) == 2
-    assert a_items[0].path == ('a', 'aa', 'aaa')
-    assert a_items[1].path == ('a', 'aa', 'AAA')
-
-    a_aa_items1 = m.items('a', 'aa')
-    a_aa_items2 = m.items('a.aa')
-    assert a_aa_items1 != a_aa_items2
-
-    assert len(a_aa_items1) == 2
-    assert a_aa_items1[0].path == ('a', 'aa', 'aaa')
-    assert a_aa_items1[1].path == ('a', 'aa', 'AAA')
-
-    assert len(a_aa_items2) == 1
-    assert a_aa_items2[0].path == ('a.aa', 'haha')
-
-    assert len(m.items('b')) == 2
-    assert len(m.items('b', 'bb')) == 1
-    assert len(m.items('b.bb')) == 0
-
-    no_items = m.items('haha.haha')
-    assert len(no_items) == 0
-
-
 def test_can_add_items_to_default_section_and_set_their_value_without_naming_section():
     m = ConfigManager()
 
@@ -302,7 +256,7 @@ def test_copying_items_between_managers():
         ConfigItem('b', 'bbbb', 'q'),
     )
 
-    n = ConfigManager(*m.items())
+    n = ConfigManager(*m.find_items())
     assert m.export() == n.export()
 
     m.set('a', 'x', 'xaxa')
