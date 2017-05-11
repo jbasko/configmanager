@@ -1,7 +1,7 @@
 import pytest
 import six
 
-from configmanager import ConfigItem, ConfigValueNotSet, UnknownConfigItem, not_set
+from configmanager import ConfigItem, ConfigValueMissing, UnknownConfigItem, not_set
 
 
 def test_initialisation_of_section_and_option():
@@ -36,29 +36,30 @@ def test_paths_with_non_string_segments_raise_type_error(args):
         ConfigItem(*args)
 
 
-def test_value_with_no_default_value():
+def test_missing_required_value_raises_config_value_missing():
+    c = ConfigItem('a', 'b', required=True)
+
+    with pytest.raises(ConfigValueMissing):
+        assert c.value is not_set
+
+
+def test_required_item_can_still_fall_back_to_default():
+    c = ConfigItem('a', 'b', required=True, default=None)
+    assert c.value is None
+
+    c.reset()
+    assert c.value is None
+
+
+def test_item_with_no_value_and_no_default_returns_not_set_as_value():
     c = ConfigItem('a', 'b')
+    assert c.value is not_set
 
-    with pytest.raises(ConfigValueNotSet):
-        assert c.value == ''
+    c.value = 'hey'
+    assert c.value == 'hey'
 
-    assert not c.has_value
-    assert not c.has_default
-
-    with pytest.raises(ConfigValueNotSet):
-        assert not c.value
-
-    c.value = 'c'
-    assert c.value == 'c'
-    assert c != 'c'
-
-    assert c.has_value
-
-    c.value = 'd'
-    assert c.value == 'd'
-    assert c != 'd'
-
-    assert not c.has_default
+    c.reset()
+    assert c.value is not_set
 
 
 def test_value_with_default_value():
@@ -140,9 +141,8 @@ def test_raw_str_value_is_reset_on_non_str_value_set():
 def test_bool_of_value():
     c = ConfigItem('a')
 
-    with pytest.raises(ConfigValueNotSet):
-        # Cannot evaluate if there is no value and no default value
-        assert not c.value
+    # not_set evaluates to False
+    assert not c.value
 
     c.value = 'b'
     assert c.value

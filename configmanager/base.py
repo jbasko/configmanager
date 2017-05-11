@@ -4,7 +4,7 @@ import copy
 from configparser import ConfigParser
 import six
 
-from .exceptions import UnknownConfigItem, ConfigValueNotSet
+from .exceptions import UnknownConfigItem, ConfigValueMissing
 from .proxies import ConfigItemProxy, ConfigValueProxy, ConfigSectionProxy
 
 
@@ -87,6 +87,8 @@ class ConfigItem(object):
     # when we persist the value, we use the same notation
     raw_str_value = Descriptor('raw_str_value')
 
+    required = Descriptor('required', default=False)
+
     # envvar = Descriptor('envvar')
     # prompt = Descriptor('prompt')
     # labels = Descriptor('labels')
@@ -141,9 +143,9 @@ class ConfigItem(object):
         """
         if self._value is not not_set:
             return self._value
-        if self.default is not not_set:
-            return self.default
-        raise ConfigValueNotSet('{} has no value or default value set'.format(self.name))
+        if self.default is not_set and self.required:
+            raise ConfigValueMissing(self.name)
+        return self.default
 
     @value.setter
     def value(self, value):

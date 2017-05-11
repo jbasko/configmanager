@@ -1,7 +1,7 @@
 import pytest
 import six
 
-from configmanager import ConfigItem, ConfigManager, UnknownConfigItem, ConfigValueNotSet
+from configmanager import ConfigItem, ConfigManager, UnknownConfigItem, ConfigValueMissing
 
 
 def test_get_item_returns_config_item():
@@ -25,7 +25,7 @@ def test_get_returns_value_not_item():
     m = ConfigManager(
         ConfigItem('a', '1', default='a1'),
         ConfigItem('a', '2', default='a2'),
-        ConfigItem('b', '1'),
+        ConfigItem('b', '1', required=True),
         ConfigItem('b', '2', default='b2'),
     )
 
@@ -47,8 +47,8 @@ def test_get_returns_value_not_item():
     with pytest.raises(UnknownConfigItem):
         m.get('c', '1', 'fallback does not matter -- the item does not exist')
 
-    # Good item, no value set though
-    with pytest.raises(ConfigValueNotSet):
+    # Required item with no value
+    with pytest.raises(ConfigValueMissing):
         m.get('b', '1')
 
     # Provide fallback
