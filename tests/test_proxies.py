@@ -56,17 +56,18 @@ def test_value_proxy_does_not_provide_section_and_item_access(config):
 
 
 def test_value_proxy_is_iterable(config):
-    values = dict(config.v)
-    assert len(values) == 2
-    assert values[('uploads', 'enabled')] is False
-    assert values[('downloads', 'threads')] == 0
+    paths = list(config.v)
+    assert len(paths) == 2
+    assert config.v[paths[0]] is False
+    assert config.v[paths[1]] == 0
 
     config.set('auth', 'server', 'port', 3333)
     config.set('uploads', 'enabled', 'yes')
-    values = dict(config.v)
-    assert len(values) == 3
-    assert values[('uploads', 'enabled')] is True
-    assert values[('auth', 'server', 'port')] == 3333
+    paths = list(config.v)
+    assert len(paths) == 3
+
+    assert paths[0] == ('uploads', 'enabled')
+    assert paths[-1] == ('auth', 'server', 'port')
 
 
 def test_section_proxy_forbids_access_to_config_items_via_attributes(config):
@@ -163,13 +164,13 @@ def test_section_proxy_raises_attribute_error_if_section_not_specified(config):
 
 
 def test_section_proxy_is_iterable(config):
-    sections = dict(config.s)
-    assert len(sections) == 5
+    prefixes = list(config.s)
+    assert len(prefixes) == 5
 
-    uploads = sections[('uploads',)]
-    assert isinstance(uploads, ConfigSectionProxy)
+    assert prefixes[0] == ('uploads',)
+    assert prefixes[-1] == ('auth', 'client')
 
-    assert config.s[('uploads',)] == uploads
+    assert isinstance(config.s[prefixes[0]], ConfigSectionProxy)
 
 
 def test_item_proxy_provides_access_to_items(config):
@@ -187,11 +188,11 @@ def test_item_proxy_provides_access_to_items(config):
 
 
 def test_item_proxy_is_iterable(config):
-    items = dict(config.t)
-    assert len(items) == 7
-    assert items[('uploads', 'enabled')] is config.t.uploads.enabled
+    paths = list(config.t)
+    assert len(paths) == 7
 
-    assert config.t['uploads', 'enabled'] == config.t.uploads.enabled
+    assert config.t[paths[0]] is config.t.uploads.enabled
 
-    assert ('uploads', 'enabled') in config.t
-    assert ('uploads', 'something_else') not in config.t
+    assert ('auth', 'server', 'port') in paths
+    assert ('uploads', 'something_else') not in paths
+
