@@ -1,4 +1,4 @@
-__version__ = '0.0.14'
+__version__ = '0.0.15'
 
 from .base import not_set, ConfigItem, ConfigManager
 from .exceptions import UnknownConfigItem, ConfigValueNotSet, UnsupportedOperation
