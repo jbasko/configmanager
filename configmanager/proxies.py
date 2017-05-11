@@ -136,8 +136,7 @@ class ConfigValueProxy(PathProxy):
 
     def __iter__(self):
         for item in self._config_.find_items(*self._path_):
-            if item.has_value or item.has_default:
-                yield item.path
+            yield item.path
 
     def __getitem__(self, path):
         return self._config_.get(*path)

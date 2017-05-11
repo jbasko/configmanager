@@ -144,7 +144,7 @@ class ConfigItem(object):
         if self._value is not not_set:
             return self._value
         if self.default is not_set and self.required:
-            raise ConfigValueMissing(self.name)
+            raise ConfigValueMissing(self.path)
         return self.default
 
     @value.setter

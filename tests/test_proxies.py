@@ -1,6 +1,6 @@
 import pytest
 
-from configmanager import ConfigManager, ConfigItem, UnknownConfigItem, UnsupportedOperation
+from configmanager import ConfigManager, ConfigItem, UnsupportedOperation, ConfigValueMissing, not_set
 from configmanager.proxies import ConfigSectionProxy
 
 
@@ -12,7 +12,7 @@ def config():
         ConfigItem('downloads', 'threads', type=int, default=0),
         ConfigItem('auth', 'server', 'host'),
         ConfigItem('auth', 'server', 'port', type=int),
-        ConfigItem('auth', 'client', 'username'),
+        ConfigItem('auth', 'client', 'username', required=True),
         ConfigItem('auth', 'client', 'password')
     )
 
@@ -55,19 +55,33 @@ def test_value_proxy_does_not_provide_section_and_item_access(config):
     assert config.v.items()
 
 
+def test_iteration_over_value_proxy_returns_values_of_all_irrespective_of_status(config):
+    with pytest.raises(ConfigValueMissing):
+        dict(config.v.items())
+
+    # set the only required value
+    config.set('auth', 'client', 'username', 'admin')
+
+    values = dict(config.v.items())
+    assert len(values) == 7
+
+    assert values[('uploads', 'enabled')] is False
+    assert values[('downloads', 'enabled')] is not_set
+
+
 def test_value_proxy_is_iterable(config):
     paths = list(config.v)
-    assert len(paths) == 2
+    assert len(paths) == 7
     assert config.v[paths[0]] is False
-    assert config.v[paths[1]] == 0
+    assert config.v[paths[1]] is not_set
 
     config.set('auth', 'server', 'port', 3333)
     config.set('uploads', 'enabled', 'yes')
     paths = list(config.v)
-    assert len(paths) == 3
+    assert len(paths) == 7
 
     assert paths[0] == ('uploads', 'enabled')
-    assert paths[-1] == ('auth', 'server', 'port')
+    assert paths[-1] == ('auth', 'client', 'password')
 
 
 def test_section_proxy_forbids_access_to_config_items_via_attributes(config):
@@ -204,7 +218,11 @@ def test_proxies_support_items_transparently(config):
     assert len(sections) == 5
     assert isinstance(sections[('auth', 'server')], ConfigSectionProxy)
 
+    with pytest.raises(ConfigValueMissing):
+        dict(config.v.items())
+
+    config.v.auth.client.username = 'admin'
     values = dict(config.v.items())
-    assert len(values) == 2
+    assert len(values) == 7
     assert values[('uploads', 'enabled')] is False
     assert values[('downloads', 'threads')] == 0
