@@ -54,8 +54,11 @@ class PathProxy(object):
     def __iter__(self):
         raise NotImplementedError()
 
+    def __getitem__(self, item):
+        raise NotImplementedError()
+
     def __eq__(self, other):
-        return isinstance(other, self.__class__) and self._path_ == other._path_
+        return isinstance(other, self.__class__) and (self._path_ == other._path_) and (self._config_ is other._config_)
 
 
 class ConfigItemProxy(PathProxy):
@@ -98,18 +101,27 @@ class ConfigSectionProxy(PathProxy):
             raise AttributeError('has')
         return self._config_.has(*self._prepend_path_(*path))
 
-    def items(self):
-        # TODO Deprecated
-        if not self._path_:
-            raise AttributeError('items')
-        return self._config_.items(*self._path_)
-
     def __iter__(self):
         for prefix in self._config_.find_prefixes(*self._path_):
             yield prefix
 
     def __getitem__(self, prefix):
         return self._get_(prefix)
+
+    @property
+    def has_values(self):
+        """
+        Returns:
+            bool: ``True`` if any config with this prefix has a non-default value.
+        """
+        for item in self._config_.find_items(*self._path_):
+            if item.has_value:
+                return True
+        return False
+
+    def reset(self):
+        for item in self._config_.find_items(*self._path_):
+            item.reset()
 
 
 class ConfigValueProxy(PathProxy):
