@@ -300,3 +300,26 @@ def test_read_as_defaults_treats_all_values_as_declarations(tmpdir):
     m.read(path)
     assert m.get('uploads', 'threads') == '5'
     assert m.get_item('uploads', 'threads').default == '5'
+
+
+def test_is_default_returns_true_if_all_values_are_default():
+    m = ConfigManager()
+    assert m.is_default
+
+    m.add(ConfigItem('a', 'b'))
+    assert m.is_default
+
+    m.set('a', 'b', 'haha')
+    assert not m.is_default
+
+    m.reset()
+    assert m.is_default
+
+    m.add(ConfigItem('x', 'y', default='haha'))
+    assert m.is_default
+
+    m.set('x', 'y', 'hihi')
+    assert not m.is_default
+
+    m.set('x', 'y', 'haha')
+    assert m.is_default

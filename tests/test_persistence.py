@@ -136,7 +136,7 @@ def test_read_reads_multiple_files_in_order(tmpdir):
 
     # Can read from one empty file
     m.read(path1)
-    assert not m.has_values
+    assert m.is_default
 
     m.set('a', 'x', 0.33)
     m.set('b', 'n', 42)
@@ -144,9 +144,8 @@ def test_read_reads_multiple_files_in_order(tmpdir):
 
     # Can read from one non-empty file
     m.reset()
-    assert not m.has_values
     m.read(path2)
-    assert m.has_values
+    assert not m.is_default
     assert m.get('a', 'x') == 0.33
 
     m.reset()
@@ -155,8 +154,6 @@ def test_read_reads_multiple_files_in_order(tmpdir):
     m.write(path3)
 
     m.reset()
-    assert not m.has_values
-
     m.read([path1, path2, path3])
 
     assert m.get_item('a', 'x').value == 0.66

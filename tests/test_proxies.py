@@ -124,29 +124,29 @@ def test_section_proxy_exposes_sections_and_basic_manager_interface(config):
     assert config.get('auth', 'client', 'username') == 'user2'
 
 
-def test_section_proxy_exposes_has_values_and_reset(config):
-    assert not config.has_values
-    assert not config.s.uploads.has_values
-    assert not config.s.auth.has_values
-    assert not config.s.auth.server.has_values
+def test_section_proxy_exposes_is_default_and_reset(config):
+    assert config.is_default
+    assert config.s.uploads.is_default
+    assert config.s.auth.is_default
+    assert config.s.auth.server.is_default
 
     config.s.uploads.set('enabled', True)
-    assert config.s.uploads.has_values
-    assert not config.s.auth.has_values
-    assert not config.s.auth.server.has_values
+    assert not config.s.uploads.is_default
+    assert config.s.auth.is_default
+    assert config.s.auth.server.is_default
 
     config.s.auth.server.set('host', 'localhost')
-    assert config.s.auth.server.has_values
-    assert config.s.auth.has_values
-    assert not config.s.auth.client.has_values
+    assert not config.s.auth.server.is_default
+    assert not config.s.auth.is_default
+    assert config.s.auth.client.is_default
 
     config.s.auth.set('client', 'username', 'root')
-    assert config.s.auth.client.has_values
+    assert not config.s.auth.client.is_default
 
     config.s.auth.server.reset()
-    assert not config.s.auth.server.has_values
-    assert config.s.auth.client.has_values
-    assert config.s.auth.has_values
+    assert config.s.auth.server.is_default
+    assert not config.s.auth.client.is_default
+    assert not config.s.auth.is_default
 
 
 def test_section_proxy_raises_attribute_error_if_section_not_specified(config):
