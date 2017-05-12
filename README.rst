@@ -31,11 +31,10 @@ See Documentation_.
 
     from configmanager import ConfigManager, ConfigItem
 
-    config = ConfigManager(
-        ConfigItem('uploads', 'tmp_dir', default='/tmp/uploads'),
-        ConfigItem('uploads', 'threads', default=3, type=int),
-        ConfigItem('uploads', 'enabled', default=False, type=bool),
-    )
+    config = ConfigManager()
+    config.add('uploads', 'tmp_dir', default='/tmp/uploads')
+    config.add('uploads', 'threads', default=3, type=int)
+    config.add('uploads', 'enabled', default=False, type=bool)
 
     # Basic, ConfigParser-style access
     if not config.get('uploads', 'enabled'):

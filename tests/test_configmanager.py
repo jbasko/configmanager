@@ -99,7 +99,7 @@ def test_basic_accessors_with_no_path_raise_value_error(method):
     with pytest.raises(ValueError):
         getattr(m, method)()
 
-    m.add(ConfigItem('a', 'b'))
+    m.add('a', 'b')
 
     with pytest.raises(ValueError):
         getattr(m, method)()
@@ -107,12 +107,12 @@ def test_basic_accessors_with_no_path_raise_value_error(method):
 
 def test_duplicate_config_raises_value_error():
     m = ConfigManager()
-    m.add(ConfigItem('a', 'b'))
+    m.add('a', 'b')
 
     with pytest.raises(ValueError):
-        m.add(ConfigItem('a', 'b'))
+        m.add('a', 'b')
 
-    m.add(ConfigItem('a', 'c'))
+    m.add('a', 'c')
 
 
 def test_sets_config():
@@ -154,7 +154,7 @@ def test_has():
     assert not m.has('a', 'b')
     assert not m.has('a.b')
 
-    m.add(ConfigItem('a', 'b'))
+    m.add('a', 'b')
 
     assert m.has('a', 'b')
     assert not m.has('a.b')
@@ -205,7 +205,7 @@ def test_can_add_items_to_default_section_and_set_their_value_without_naming_sec
     with pytest.raises(UnknownConfigItem):
         m.get_item('a')
 
-    m.add(ConfigItem('a', default=0, type=int))
+    m.add('a', default=0, type=int)
     assert m.has('a')
     assert m.has(m.default_section, 'a')
 
@@ -340,7 +340,7 @@ def test_is_default_returns_true_if_all_values_are_default():
     m = ConfigManager()
     assert m.is_default
 
-    m.add(ConfigItem('a', 'b'))
+    m.add('a', 'b')
     assert m.is_default
 
     m.set('a', 'b', 'haha')
@@ -349,7 +349,7 @@ def test_is_default_returns_true_if_all_values_are_default():
     m.reset()
     assert m.is_default
 
-    m.add(ConfigItem('x', 'y', default='haha'))
+    m.add('x', 'y', default='haha')
     assert m.is_default
 
     m.set('x', 'y', 'hihi')
