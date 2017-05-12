@@ -1,22 +1,38 @@
 import pytest
 import six
 
-from configmanager import ConfigItem, ConfigValueMissing, UnknownConfigItem, not_set
+from configmanager import ConfigItem, ConfigValueMissing, not_set
 
 
-def test_initialisation_of_section_and_option():
-    c = ConfigItem('section1', 'option1')
-    assert c.section == 'section1'
-    assert c.option == 'option1'
+def test_section_and_option_is_only_supported_for_trivial_paths():
+    c = ConfigItem('a', 'b')
+    assert c.section == 'a'
+    assert c.option == 'b'
 
-    c = ConfigItem('subsection1.option1')
-    assert c.section == 'DEFAULT'
-    assert c.option == 'subsection1.option1'
+    d = ConfigItem('d')
+    assert d.section == d.DEFAULT_SECTION
+    assert d.option == 'd'
 
-    c = ConfigItem('section1', 'subsection1', 'option1')
-    assert c.section == 'section1'
-    assert c.option == 'option1'
-    assert c.path == ('section1', 'subsection1', 'option1')
+    e = ConfigItem('ee', 'ff', 'gg')
+    with pytest.raises(RuntimeError):
+        assert e.section
+
+    with pytest.raises(RuntimeError):
+        assert e.option
+
+    assert e.strpath == 'ee/ff/gg'
+    assert e.path == ('ee', 'ff', 'gg')
+
+
+def test_config_item_name_is_last_segment_of_path():
+    c = ConfigItem('c')
+    assert c.name == 'c'
+
+    d = ConfigItem('dd', 'ddd')
+    assert d.name == 'ddd'
+
+    e = ConfigItem('ee', 'eee', 'eeee')
+    assert e.name == 'eeee'
 
 
 def test_initialisation_with_default_section():
@@ -159,16 +175,16 @@ def test_bool_of_value():
 
 def test_repr_makes_clear_the_path_and_value():
     c = ConfigItem('a', 'b', 'c', default='hello')
-    assert repr(c) == '<ConfigItem a.b.c \'hello\'>'
+    assert repr(c) == '<ConfigItem a/b/c \'hello\'>'
 
     c.value = 'bye!'
-    assert repr(c) == '<ConfigItem a.b.c \'bye!\'>'
+    assert repr(c) == '<ConfigItem a/b/c \'bye!\'>'
 
 
 def test_str_and_repr_of_not_set_value_should_not_fail():
     c = ConfigItem('a')
-    assert str(c) == '<ConfigItem DEFAULT.a <NotSet>>'
-    assert repr(c) == '<ConfigItem DEFAULT.a <NotSet>>'
+    assert str(c) == '<ConfigItem DEFAULT/a <NotSet>>'
+    assert repr(c) == '<ConfigItem DEFAULT/a <NotSet>>'
 
 
 def test_bool_str_is_a_str():
@@ -217,8 +233,8 @@ def test_bool_config_preserves_raw_str_value_used_to_set_it():
 
 
 def test_repr():
-    assert repr(ConfigItem('this.is', 'me', default='yes')) == '<ConfigItem this.is.me \'yes\'>'
-    assert repr(ConfigItem('this.is', 'me')) == '<ConfigItem this.is.me <NotSet>>'
+    assert repr(ConfigItem('this.is', 'me', default='yes')) == '<ConfigItem this.is/me \'yes\'>'
+    assert repr(ConfigItem('this.is', 'me')) == '<ConfigItem this.is/me <NotSet>>'
 
 
 def test_can_set_str_value_to_none():
@@ -318,3 +334,11 @@ def test_is_default():
     assert c.is_default
     assert d.is_default
     assert e.is_default
+
+
+def test_strpath_of_config_item():
+    c = ConfigItem('a', 'b.com', 'c.d.e')
+    d = ConfigItem('d')
+
+    assert c.strpath == 'a/b.com/c.d.e'
+    assert d.strpath == '{}/d'.format(d.DEFAULT_SECTION)

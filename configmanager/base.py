@@ -62,6 +62,7 @@ class ConfigItem(object):
     """
 
     DEFAULT_SECTION = 'DEFAULT'
+    strpath_separator = '/'
 
     class Descriptor(object):
         def __init__(self, name, default=not_set, value=not_set):
@@ -113,11 +114,16 @@ class ConfigItem(object):
             setattr(self, k, v)
 
     @property
+    def strpath(self):
+        return self.strpath_separator.join(self.path)
+
+    @property
     def section(self):
         """
         The first segment of :attr:`.path`.
         """
-        # TODO Deprecated
+        if len(self.path) != 2:
+            raise RuntimeError('section is not defined for items with non-trivial paths')
         return self.path[0]
 
     @property
@@ -125,16 +131,16 @@ class ConfigItem(object):
         """
         The second segment of :attr:`.path`.
         """
-        # TODO Deprecated
+        if len(self.path) != 2:
+            raise RuntimeError('option is not defined for items with non-trivial paths')
         return self.path[-1]
 
     @property
     def name(self):
         """
-        A string, :attr:`.path` joined by dots.
+        A string, the last segment of :attr:`.path`.
         """
-        # TODO Deprecated
-        return '.'.join(self.path)
+        return self.path[-1]
 
     @property
     def value(self):
@@ -228,7 +234,7 @@ class ConfigItem(object):
         else:
             value = self.default
 
-        return '<{} {} {!r}>'.format(self.__class__.__name__, self.name, value)
+        return '<{} {} {!r}>'.format(self.__class__.__name__, self.strpath, value)
 
     def _parse_str_value(self, str_value):
         if str_value is None or str_value is not_set:

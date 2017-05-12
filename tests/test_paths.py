@@ -13,12 +13,14 @@ def test_dots_in_path_segments_dont_create_new_segments():
 
 def test_config_with_three_segment_path():
     c = ConfigItem('x', 'y', 'z')
-    assert c.name == 'x.y.z'
+    assert c.name == 'z'
     assert c.path == ('x', 'y', 'z')
+    assert c.strpath == 'x/y/z'
 
     d = ConfigItem('xx', 'yy', 'zz')
-    assert d.name == 'xx.yy.zz'
+    assert d.name == 'zz'
     assert d.path == ('xx', 'yy', 'zz')
+    assert d.strpath == 'xx/yy/zz'
 
 
 def test_config_manager_handles_config_of_three_segment_path():
