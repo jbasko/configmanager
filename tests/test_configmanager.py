@@ -4,7 +4,7 @@ import six
 from configmanager import ConfigItem, ConfigManager, UnknownConfigItem, ConfigValueMissing
 
 
-def test_can_add_items_without_creating_instances_of_config_item():
+def test_adds_items_without_creating_instances_of_config_item():
     config = ConfigManager()
 
     config.add('greetings', 'morning', default='Good morning!')
@@ -26,6 +26,17 @@ def test_can_add_items_without_creating_instances_of_config_item():
 
     assert isinstance(config.get_item('greetings', 'morning'), ConfigItem)
     assert config.get_item('uploads', 'enabled').type is bool
+
+
+def test_adds_an_explicit_instance_of_config_item():
+    config = ConfigManager()
+
+    ab = ConfigItem('a', 'b')
+    config.add(ab)
+
+    assert isinstance(config.get_item('a', 'b'), ConfigItem)
+    assert config.get_item('a', 'b') == ab
+    assert config.get_item('a', 'b') is not ab  # it's a deep copy
 
 
 def test_auto_items_are_created_using_the_assigned_config_item_factory():
