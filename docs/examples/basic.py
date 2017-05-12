@@ -1,13 +1,12 @@
-from configmanager import ConfigManager, ConfigItem
+from configmanager import ConfigManager
 
-config = ConfigManager(
-    ConfigItem('uploads', 'tmp_dir', default='/tmp/uploads'),
-    ConfigItem('uploads', 'threads', default=3, type=int),
-    ConfigItem('uploads', 'enabled', default=False, type=bool),
-)
+config = ConfigManager()
+config.add('uploads', 'tmp_dir', default='/tmp/uploads')
+config.add('uploads', 'threads', default=3, type=int)
+config.add('uploads', 'enabled', default=False, type=bool)
 
-uploads_enabled = config.uploads.enabled
-uploads_threads = config.uploads.threads
+uploads_enabled = config.t.uploads.enabled
+uploads_threads = config.t.uploads.threads
 
 print(uploads_enabled.value)  # False
 print(uploads_enabled.has_value)  # False
