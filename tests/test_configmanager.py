@@ -4,6 +4,40 @@ import six
 from configmanager import ConfigItem, ConfigManager, UnknownConfigItem, ConfigValueMissing
 
 
+def test_can_add_items_without_creating_instances_of_config_item():
+    config = ConfigManager()
+
+    config.add('greetings', 'morning', default='Good morning!')
+    config.add('uploads_path', default='/tmp')
+    config.add(section='uploads', option='threads', type=int, default=1)
+
+    # Do not allow inconsistency
+    with pytest.raises(AssertionError):
+        config.add('uploads', option='enabled', type=bool, default=True)
+
+    config.add(path=('uploads', 'enabled'), type=bool, default=True)
+    config.add('a', 'much', 'deeper', 'path', default='you found me!')
+
+    assert config.get('greetings', 'morning') == 'Good morning!'
+    assert config.get('DEFAULT', 'uploads_path') == '/tmp'
+    assert config.get('uploads', 'threads') == 1
+    assert config.get('uploads', 'enabled') is True
+    assert config.get('a', 'much', 'deeper', 'path') == 'you found me!'
+
+    assert isinstance(config.get_item('greetings', 'morning'), ConfigItem)
+    assert config.get_item('uploads', 'enabled').type is bool
+
+
+def test_auto_items_are_created_using_the_assigned_config_item_factory():
+    class CustomConfigItem(ConfigItem):
+        pass
+
+    config = ConfigManager(config_item_factory=CustomConfigItem)
+    config.add('greetings', 'morning')
+
+    assert isinstance(config.get_item('greetings', 'morning'), CustomConfigItem)
+
+
 def test_get_item_returns_config_item():
     m = ConfigManager(
         ConfigItem('a', '1', default='a1'),

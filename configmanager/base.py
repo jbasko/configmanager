@@ -269,15 +269,14 @@ class ConfigManager(object):
     
     """
 
-    #: Class of implicitly created config item instances, defaults to :class:`.ConfigItem`
-    config_item_cls = None
+    def __init__(self, *configs, **config_manager_options):
+        self._options = {
+            'config_parser_factory': config_manager_options.pop('config_parser_factory', ConfigParser),
+            'config_item_factory': config_manager_options.pop('config_item_factory', ConfigItem),
+        }
 
-    #: A callable to create underlying ``ConfigParser`` instances.
-    config_parser_factory = None
-
-    def __init__(self, *configs):
-        self.config_item_cls = self.config_item_cls or ConfigItem
-        self.config_parser_factory = self.config_parser_factory or ConfigParser
+        if config_manager_options:
+            raise ValueError('Unsupported option: {}'.format(next(config_manager_options.keys())))
 
         self._configs = collections.OrderedDict()
         self._prefixes = collections.OrderedDict()  # Ordered set basically
@@ -290,8 +289,16 @@ class ConfigManager(object):
             self.add(config)
 
     @property
+    def config_item_factory(self):
+        return self._options['config_item_factory']
+
+    @property
+    def config_parser_factory(self):
+        return self._options['config_parser_factory']
+
+    @property
     def default_section(self):
-        return self.config_item_cls.DEFAULT_SECTION
+        return self.config_item_factory.DEFAULT_SECTION
 
     def _resolve_config_path(self, *path):
         path = resolve_config_path(*path)
@@ -299,24 +306,38 @@ class ConfigManager(object):
             return (self.default_section,) + path
         return path
 
-    def add(self, item):
-        """Register a new config item to manage.
-        
-        Args:
-            config_item:
+    def add(self, *args, **kwargs):
+        """
+        Register a new config item to manage.
         
         Examples:
-            >>> cm = ConfigManager()
-            >>> cm.add(ConfigItem('some.path', default='/tmp/something.txt'))
-            >>> cm.get('some', 'path')
-            '/tmp/something.txt'
-        
-        .. note::
-            config items are deep-copied when they are registered with the manager
-            which means that it is safe to use the same instance of :class:`.ConfigItem` to register
-            a config item with multiple managers. It also means that changing the item that you
-            passed to config manager will have no effect on the item used by the manager.
+            config.add('section', 'option2', default='hello')
+            config.add('option1')
+            config.add('option2', default='hello')
+            config.add(ConfigItem('section', 'option1', default='hello'))
         """
+
+        if args:
+            if not isinstance(args[0], six.string_types):
+                assert len(args) == 1 and not kwargs
+                return self._add_config_item(args[0])
+
+        path = tuple(args)
+        if 'section' in kwargs:
+            assert 'path' not in kwargs
+            if 'option' in kwargs:
+                assert not path
+                path = (kwargs.pop('section'), kwargs.pop('option'))
+            else:
+                path += (kwargs.pop('section'))
+        elif 'path' in kwargs:
+            path = kwargs.pop('path')
+
+        assert 'option' not in kwargs  # ConfigItem('section', option='option') is truly ugly
+
+        return self._add_config_item(self.config_item_factory(*path, **kwargs))
+
+    def _add_config_item(self, item):
         if item.path in self._configs:
             raise ValueError('Config item {} already present'.format(item.name))
 
@@ -578,7 +599,7 @@ class ConfigManager(object):
                 value = cp.get(section, option)
                 if as_defaults:
                     if not self.has(section, option):
-                        self.add(self.config_item_cls(section, option, default=value))
+                        self.add(self.config_item_factory(section, option, default=value))
                     else:
                         self.get_item(section, option).default = value
                 else:
