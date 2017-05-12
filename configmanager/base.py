@@ -266,8 +266,13 @@ class ConfigManager(object):
     #: Class of implicitly created config item instances, defaults to :class:`.ConfigItem`
     config_item_cls = None
 
+    #: A callable to create underlying ``ConfigParser`` instances.
+    config_parser_factory = None
+
     def __init__(self, *configs):
         self.config_item_cls = self.config_item_cls or ConfigItem
+        self.config_parser_factory = self.config_parser_factory or ConfigParser
+
         self._configs = collections.OrderedDict()
         self._prefixes = collections.OrderedDict()  # Ordered set basically
 
@@ -462,7 +467,7 @@ class ConfigManager(object):
         as_defaults = kwargs.pop('as_defaults', False)
 
         used_filenames = []
-        cp = ConfigParser()
+        cp = self.config_parser_factory()
 
         def get_filenames():
             for arg in args:
@@ -490,7 +495,7 @@ class ConfigManager(object):
                 If set to ``True`` all parsed config items will be added to the config 
                 manager and their values set as defaults.
         """
-        cp = ConfigParser()
+        cp = self.config_parser_factory()
         cp.read_file(fileobj)
         self.load_from_config_parser(cp, as_defaults=as_defaults)
 
@@ -505,7 +510,7 @@ class ConfigManager(object):
                 If set to ``True`` all parsed config items will be added to the config 
                 manager and their values set as defaults.
         """
-        cp = ConfigParser()
+        cp = self.config_parser_factory()
         if source is not not_set:
             args = (string, source)
         else:
@@ -522,7 +527,7 @@ class ConfigManager(object):
                 If set to ``True`` all parsed config items will be added to the config 
                 manager and their values set as defaults.
         """
-        cp = ConfigParser()
+        cp = self.config_parser_factory()
         if source is not not_set:
             args = (dictionary, source)
         else:
@@ -536,7 +541,7 @@ class ConfigManager(object):
         
         This differs from ``ConfigParser.write`` in that it accepts a path too.
         """
-        cp = ConfigParser()
+        cp = self.config_parser_factory()
         self.load_into_config_parser(cp)
 
         if isinstance(fileobj_or_path, six.string_types):
