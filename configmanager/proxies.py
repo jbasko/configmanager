@@ -1,4 +1,4 @@
-from .exceptions import UnsupportedOperation, UnknownConfigItem
+from .exceptions import UnsupportedOperation
 
 
 class PathProxy(object):

@@ -1,7 +1,8 @@
 import pytest
 
-from configmanager import ConfigManager, ConfigItem, UnsupportedOperation, ConfigValueMissing, not_set
+from configmanager import ConfigManager, ConfigItem, UnsupportedOperation, ConfigValueMissing
 from configmanager.proxies import ConfigSectionProxy
+from configmanager.utils import not_set
 
 
 @pytest.fixture

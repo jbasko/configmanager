@@ -1,6 +1,6 @@
 import pytest
 
-from configmanager.base import resolve_config_path, resolve_config_prefix
+from configmanager.utils import resolve_config_path, resolve_config_prefix
 
 
 def test_path_is_a_tuple():
