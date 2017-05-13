@@ -17,14 +17,14 @@ def config():
     )
 
 
-def test_finds_all_paths(config):
+def test_all_paths(config):
     paths = list(config.iter_paths())
     assert len(paths) == 7
     assert paths[0] == ('uploads', 'enabled')
     assert paths[-1] == ('auth', 'client', 'password')
 
 
-def test_finds_paths_by_prefix(config):
+def test_paths_with_prefix(config):
     upload_paths = list(config.iter_paths('uploads'))
     assert len(upload_paths) == 1
     assert upload_paths[0] == ('uploads', 'enabled')
@@ -40,7 +40,7 @@ def test_finds_paths_by_prefix(config):
     assert server_paths[1] == ('auth', 'server', 'port')
 
 
-def test_finds_all_prefixes(config):
+def test_all_prefixes(config):
     prefixes = list(config.iter_prefixes())
     assert len(prefixes) == 5
     assert prefixes[0] == ('uploads',)
@@ -48,10 +48,8 @@ def test_finds_all_prefixes(config):
     assert prefixes[4] == ('auth', 'client')
 
 
-def test_finds_prefixes_by_prefix(config):
-    upload_prefixes = list(config.iter_prefixes('uploads'))
-    assert len(upload_prefixes) == 1
-    assert upload_prefixes[0] == ('uploads',)
+def test_prefixes_with_prefix(config):
+    assert list(config.iter_prefixes('uploads')) == [('uploads',)]
 
     auth_prefixes = list(config.iter_prefixes('auth'))
     assert len(auth_prefixes) == 3
@@ -63,7 +61,7 @@ def test_finds_prefixes_by_prefix(config):
     assert server_prefixes == [('auth', 'server',)]
 
 
-def test_finds_all_items(config):
+def test_all_items(config):
     items = list(config.iter_items())
     assert len(items) == 7
     assert isinstance(items[0], ConfigItem)
@@ -71,7 +69,7 @@ def test_finds_all_items(config):
     assert items[-1] is config.t.auth.client.password
 
 
-def test_finds_items_by_prefix(config):
+def test_items_with_prefix(config):
     download_items = list(config.iter_items('downloads'))
     assert len(download_items) == 2
     assert download_items[0] is config.t.downloads.enabled

@@ -115,8 +115,8 @@ class ConfigManager(object):
             prefix.append(p)
             temp_prefix = tuple(prefix)
             if temp_prefix not in self._prefixes:
-                self._prefixes[temp_prefix] = set()
-            self._prefixes[temp_prefix].add(item)
+                self._prefixes[temp_prefix] = []
+            self._prefixes[temp_prefix].append(item)
 
     def remove(self, *path):
         item = self.get_item(*path)
@@ -220,9 +220,8 @@ class ConfigManager(object):
             for item in self._configs.values():
                 yield item
         else:
-            for path in self._configs.keys():
-                if path[:len(prefix)] == prefix[:]:
-                    yield self._configs[path]
+            for item in self._prefixes[prefix]:
+                yield item
 
     def iter_paths(self, *prefix):
         prefix = resolve_config_prefix(*prefix)
@@ -230,9 +229,8 @@ class ConfigManager(object):
             for path in self._configs.keys():
                 yield path
         else:
-            for path in self._configs.keys():
-                if path[:len(prefix)] == prefix[:]:
-                    yield path
+            for item in self._prefixes[prefix]:
+                yield item.path
 
     def iter_prefixes(self, *prefix):
         prefix = resolve_config_prefix(*prefix)
