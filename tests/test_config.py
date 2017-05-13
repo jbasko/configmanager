@@ -1,7 +1,8 @@
 import pytest
 import six
 
-from configmanager import ConfigItem, ConfigValueMissing, not_set
+from configmanager import ConfigItem, ConfigValueMissing
+from configmanager.utils import not_set
 
 
 def test_section_and_option_is_only_supported_for_trivial_paths():

@@ -1,7 +1,8 @@
 import pytest
 import six
 
-from configmanager import ConfigItem, ConfigManager, UnknownConfigItem, ConfigValueMissing, not_set
+from configmanager import ConfigItem, ConfigManager, UnknownConfigItem, ConfigValueMissing
+from configmanager.utils import not_set
 
 
 def test_adds_items_without_creating_instances_of_config_item():
