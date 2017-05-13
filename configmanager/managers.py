@@ -214,26 +214,35 @@ class ConfigManager(object):
         """
         return self._resolve_config_path(*path) in self._configs
 
-    def find_items(self, *prefix):
+    def iter_items(self, *prefix):
         prefix = resolve_config_prefix(*prefix)
         if not prefix:
-            return self._configs.values()
+            for item in self._configs.values():
+                yield item
         else:
-            return (self._configs[path] for path in self._configs.keys() if path[:len(prefix)] == prefix[:])
+            for path in self._configs.keys():
+                if path[:len(prefix)] == prefix[:]:
+                    yield self._configs[path]
 
-    def find_paths(self, *prefix):
+    def iter_paths(self, *prefix):
         prefix = resolve_config_prefix(*prefix)
         if not prefix:
-            return self._configs.keys()
+            for path in self._configs.keys():
+                yield path
         else:
-            return (path for path in self._configs.keys() if path[:len(prefix)] == prefix[:])
+            for path in self._configs.keys():
+                if path[:len(prefix)] == prefix[:]:
+                    yield path
 
-    def find_prefixes(self, *prefix):
+    def iter_prefixes(self, *prefix):
         prefix = resolve_config_prefix(*prefix)
         if not prefix:
-            return self._prefixes.keys()
+            for prefix in self._prefixes.keys():
+                yield prefix
         else:
-            return (p for p in self._prefixes.keys() if p[:len(prefix)] == prefix[:])
+            for p in self._prefixes.keys():
+                if p[:len(prefix)] == prefix[:]:
+                    yield p
 
     def export(self, *prefix):
         """
@@ -243,7 +252,7 @@ class ConfigManager(object):
         """
         pairs = []
 
-        for item in self.find_items(*prefix):
+        for item in self.iter_items(*prefix):
             if item.has_value or item.has_default:
                 item_name_without_prefix = '.'.join(item.path[len(prefix):])
                 pairs.append((item_name_without_prefix, item.value))
@@ -410,7 +419,7 @@ class ConfigManager(object):
 
     @property
     def is_default(self):
-        for item in self.find_items():
+        for item in self.iter_items():
             if not item.is_default:
                 return False
         return True
