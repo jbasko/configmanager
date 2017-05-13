@@ -195,8 +195,15 @@ class ConfigItem(object):
         else:
             return repr(self)
 
+    def __hash__(self):
+        return hash(
+            (self.type, self.path, self._value if self.has_value else self.default)
+        )
+
     def __eq__(self, other):
         if isinstance(other, ConfigItem):
+            # if self is other:
+            #     return True
             return (
                 self.type == other.type
                 and
@@ -349,7 +356,23 @@ class ConfigManager(object):
             prefix.append(p)
             temp_prefix = tuple(prefix)
             if temp_prefix not in self._prefixes:
-                self._prefixes[temp_prefix] = []
+                self._prefixes[temp_prefix] = set()
+            self._prefixes[temp_prefix].add(item)
+
+    def remove(self, *path):
+        item = self.get_item(*path)
+
+        prefixes_to_remove = []
+        for prefix in self._prefixes.keys():
+            if item in self._prefixes[prefix]:
+                self._prefixes[prefix].remove(item)
+                if not self._prefixes[prefix]:
+                    prefixes_to_remove.append(prefix)
+
+        for prefix in prefixes_to_remove:
+            del self._prefixes[prefix]
+
+        del self._configs[item.path]
 
     def get(self, *path_and_fallback):
         """

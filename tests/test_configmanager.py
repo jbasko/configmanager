@@ -1,7 +1,7 @@
 import pytest
 import six
 
-from configmanager import ConfigItem, ConfigManager, UnknownConfigItem, ConfigValueMissing
+from configmanager import ConfigItem, ConfigManager, UnknownConfigItem, ConfigValueMissing, not_set
 
 
 def test_adds_items_without_creating_instances_of_config_item():
@@ -37,6 +37,33 @@ def test_adds_an_explicit_instance_of_config_item():
     assert isinstance(config.get_item('a', 'b'), ConfigItem)
     assert config.get_item('a', 'b') == ab
     assert config.get_item('a', 'b') is not ab  # it's a deep copy
+
+
+def test_removes_item_by_path():
+    config = ConfigManager()
+    config.add('a', 'b', default='ab')
+    config.add('a', 'c', default='ac')
+    config.add('x', 'y', default='xy')
+
+    config.remove('a', 'c')
+
+    with pytest.raises(UnknownConfigItem):
+        config.get('a', 'c')
+
+    assert config.get('a', 'b') == 'ab'
+    assert config.get('x', 'y') == 'xy'
+
+    assert ('a',) in config.find_prefixes()
+    assert ('x',) in config.find_prefixes()
+
+    config.remove('x', 'y')
+
+    assert ('a',) in config.find_prefixes()
+    assert ('x',) not in config.find_prefixes()
+
+    config.remove('a', 'b')
+
+    assert ('a',) not in config.find_prefixes()
 
 
 def test_auto_items_are_created_using_the_assigned_config_item_factory():
