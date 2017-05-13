@@ -223,6 +223,15 @@ class ConfigManager(object):
             for item in self._prefixes[prefix]:
                 yield item
 
+    def iter_values(self, *prefix):
+        prefix = resolve_config_prefix(*prefix)
+        if prefix:
+            for item in self._prefixes[prefix]:
+                yield item.value
+        else:
+            for item in self._configs.values():
+                yield item.value
+
     def iter_paths(self, *prefix):
         prefix = resolve_config_prefix(*prefix)
         if not prefix:

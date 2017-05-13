@@ -2,6 +2,7 @@ import pytest
 
 
 from configmanager import ConfigManager, ConfigItem
+from configmanager.utils import not_set
 
 
 @pytest.fixture
@@ -82,3 +83,17 @@ def test_items_with_prefix(config):
     auth_server_items = list(config.iter_items('auth', 'server'))
     assert len(auth_server_items) == 2
     assert auth_server_items[0] is config.t.auth.server.host
+
+
+def test_all_values(config):
+    values = list(config.iter_values())
+    assert len(values) == 7
+    assert values[0] is False
+    assert values[-1] is not_set
+
+
+def test_values_with_prefix(config):
+    values = list(config.iter_values('downloads'))
+    assert len(values) == 2
+    assert values[0] == config.get('downloads', 'enabled')
+    assert values[1] == config.get('downloads', 'threads')
