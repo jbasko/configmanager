@@ -286,7 +286,7 @@ class ConfigManager(object):
             raise ValueError('Unsupported option: {}'.format(next(config_manager_options.keys())))
 
         self._configs = collections.OrderedDict()
-        self._prefixes = collections.OrderedDict()  # Ordered set basically
+        self._prefixes = collections.OrderedDict()
 
         self.t = ConfigItemProxy(self)
         self.v = ConfigValueProxy(self)

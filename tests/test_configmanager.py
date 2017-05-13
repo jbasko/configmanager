@@ -166,7 +166,7 @@ def test_sets_config():
     assert m.get('c', '2') == '55'
 
 
-def test_config_manager_configs_are_safe_copies():
+def test_config_items_in_config_manager_are_safe_copies():
     c1 = ConfigItem('c', '1', type=int)
     c2 = ConfigItem('c', '2', type=list)
 
