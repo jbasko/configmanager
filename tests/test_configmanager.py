@@ -54,17 +54,17 @@ def test_removes_item_by_path():
     assert config.get('a', 'b') == 'ab'
     assert config.get('x', 'y') == 'xy'
 
-    assert ('a',) in config.find_prefixes()
-    assert ('x',) in config.find_prefixes()
+    assert ('a',) in config.iter_prefixes()
+    assert ('x',) in config.iter_prefixes()
 
     config.remove('x', 'y')
 
-    assert ('a',) in config.find_prefixes()
-    assert ('x',) not in config.find_prefixes()
+    assert ('a',) in config.iter_prefixes()
+    assert ('x',) not in config.iter_prefixes()
 
     config.remove('a', 'b')
 
-    assert ('a',) not in config.find_prefixes()
+    assert ('a',) not in config.iter_prefixes()
 
 
 def test_auto_items_are_created_using_the_assigned_config_item_factory():
@@ -329,7 +329,7 @@ def test_copying_items_between_managers():
         ConfigItem('b', 'bbbb', 'q'),
     )
 
-    n = ConfigManager(*m.find_items())
+    n = ConfigManager(*m.iter_items())
     assert m.export() == n.export()
 
     m.set('a', 'x', 'xaxa')

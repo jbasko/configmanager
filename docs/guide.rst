@@ -109,13 +109,13 @@ Copying Config Items Between Managers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The easiest way to copy all config items from one :ref:`config-manager` to another is
-to use :meth:`.ConfigManager.find_items()`::
+to use :meth:`.ConfigManager.iter_items()`::
 
     config1 = ConfigManager(
          ConfigItem('upload', 'threads', default=1, value=3)
     )
 
-    config2 = ConfigManager(*config1.find_items())
+    config2 = ConfigManager(*config1.iter_items())
 
 If you don't want to keep the values (just the defaults), you can call :meth:`.ConfigManager.reset`:
 
@@ -128,4 +128,4 @@ If you don't want to keep the values (just the defaults), you can call :meth:`.C
 If the second config manager already exists, you can add config items to it with
 :meth:`.ConfigManager.add`::
 
-    map(config2.add, config1.find_items())
+    map(config2.add, config1.iter_items())

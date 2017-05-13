@@ -67,7 +67,7 @@ class PathProxy(object):
 class ConfigItemProxy(PathProxy):
 
     def __iter__(self):
-        for item in self._config_.find_items(*self._path_):
+        for item in self._config_.iter_items(*self._path_):
             yield item.path
 
     def __getitem__(self, path):
@@ -105,7 +105,7 @@ class ConfigSectionProxy(PathProxy):
         return self._config_.has(*self._prepend_path_(*path))
 
     def __iter__(self):
-        for prefix in self._config_.find_prefixes(*self._path_):
+        for prefix in self._config_.iter_prefixes(*self._path_):
             yield prefix
 
     def __getitem__(self, prefix):
@@ -113,13 +113,13 @@ class ConfigSectionProxy(PathProxy):
 
     @property
     def is_default(self):
-        for item in self._config_.find_items(*self._path_):
+        for item in self._config_.iter_items(*self._path_):
             if not item.is_default:
                 return False
         return True
 
     def reset(self):
-        for item in self._config_.find_items(*self._path_):
+        for item in self._config_.iter_items(*self._path_):
             item.reset()
 
 
@@ -131,7 +131,7 @@ class ConfigValueProxy(PathProxy):
         raw.value = value
 
     def __iter__(self):
-        for item in self._config_.find_items(*self._path_):
+        for item in self._config_.iter_items(*self._path_):
             yield item.path
 
     def __getitem__(self, path):
