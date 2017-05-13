@@ -1,12 +1,11 @@
 import collections
 import copy
-
 from configparser import ConfigParser
 
 import six
 
-from .items import ConfigItem
 from .exceptions import UnknownConfigItem
+from .items import ConfigItem
 from .proxies import ConfigItemProxy, ConfigValueProxy, ConfigSectionProxy
 from .utils import not_set, resolve_config_path, resolve_config_prefix
 
