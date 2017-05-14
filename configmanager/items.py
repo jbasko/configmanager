@@ -1,21 +1,10 @@
+import copy
+
 import six
 
-from .utils import not_set, resolve_config_path, parse_bool_str
+from .base import ItemAttribute
 from .exceptions import ConfigValueMissing
-
-
-class ItemAttribute(object):
-    def __init__(self, name, default=not_set, value=not_set):
-        self.name = name
-        self.default = default
-        self.value = value
-        self.attr_name = '_{}'.format(self.name)
-
-    def __set__(self, instance, value):
-        setattr(instance, self.attr_name, value)
-
-    def __get__(self, instance, owner):
-        return getattr(instance, self.attr_name, self.default)
+from .utils import not_set, resolve_config_path, parse_bool_str
 
 
 class ConfigItem(object):
@@ -96,7 +85,10 @@ class ConfigItem(object):
             return self._value
         if self.default is not_set and self.required:
             raise ConfigValueMissing(self.path)
-        return self.default
+
+        # In case default value is a mutable type, you don't want user to accidentally change
+        # the defaults!
+        return copy.deepcopy(self.default)
 
     @value.setter
     def value(self, value):
