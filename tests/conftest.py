@@ -1,16 +1,20 @@
 import pytest
 
-from configmanager import ConfigManager, ConfigItem
+from configmanager.v1 import Config
 
 
 @pytest.fixture
-def simple_config_manager():
-    return ConfigManager(
-        ConfigItem('simple', 'str', default='', type=str),
-        ConfigItem('simple', 'int', default=0, type=int),
-        ConfigItem('simple', 'float', default=0.0, type=float),
-        ConfigItem('random', 'name', default='Bob')
-    )
+def simple_config():
+    return Config({
+        'simple': {
+            'str': '',
+            'int': 0,
+            'float': 0.0,
+        },
+        'random': {
+            'name': 'Bob',
+        },
+    })
 
 
 @pytest.fixture

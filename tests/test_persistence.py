@@ -1,32 +1,46 @@
 import pytest
 
-from configmanager import ConfigManager, ConfigItem
+from configmanager.v1 import Config, Item
 
 
-def test_reads_empty_config_from_file_obj(simple_config_manager, empty_config_file):
+def test_reads_empty_config_from_file_obj(simple_config, empty_config_file):
     with open(empty_config_file) as f:
-        simple_config_manager.read_file(f)
+        simple_config.read_file(f)
 
-    assert simple_config_manager.get('simple', 'str') == ''
-    assert simple_config_manager.get('simple', 'int') == 0
-    assert simple_config_manager.get('simple', 'float') == 0.0
-    assert simple_config_manager.get('random', 'name') == 'Bob'
+    assert simple_config.to_dict() == {
+        'simple': {
+            'str': '',
+            'int': 0,
+            'float': 0.0,
+        },
+        'random': {
+            'name': 'Bob',
+        },
+    }
 
 
-def test_reads_simple_config_from_file_obj(simple_config_manager, simple_config_file):
+def test_reads_simple_config_from_file_obj(simple_config, simple_config_file):
     with open(simple_config_file) as f:
-        simple_config_manager.read_file(f)
+        simple_config.read_file(f)
 
-    assert simple_config_manager.get('simple', 'str') == 'hello'
-    assert simple_config_manager.get('simple', 'int') == 5
-    assert simple_config_manager.get('simple', 'float') == 33.33
-    assert simple_config_manager.get('random', 'name') == 'Johnny'
+    assert simple_config.to_dict() == {
+        'simple': {
+            'str': 'hello',
+            'int': 5,
+            'float': 33.33,
+        },
+        'random': {
+            'name': 'Johnny',
+        },
+    }
 
 
 def test_writes_config_to_file(tmpdir):
-    m = ConfigManager(
-        ConfigItem('random', 'name', default='Bob')
-    )
+    m = Config({
+        'random': {
+            'name': 'Bob',
+        },
+    })
     config_path = tmpdir.join('config1.ini').strpath
     with open(config_path, 'w') as f:
         m.write(f)
@@ -35,7 +49,7 @@ def test_writes_config_to_file(tmpdir):
     with open(config_path) as f:
         assert f.read() == ''
 
-    m.set('random', 'name', 'Harry')
+    m['random']['name'].value = 'Harry'
 
     with open(config_path, 'w') as f:
         m.write(f)
@@ -45,11 +59,13 @@ def test_writes_config_to_file(tmpdir):
 
 
 def test_preserves_bool_notation(tmpdir):
-    m = ConfigManager(
-        ConfigItem('flags', 'enabled', type=bool, default=False)
-    )
+    m = Config({
+        'flags': {
+            'enabled': False
+        }
+    })
 
-    assert m.get('flags', 'enabled') is False
+    assert m.flags.enabled.value is False
 
     config_path = tmpdir.join('flags.ini').strpath
     with open(config_path, 'w') as f:
@@ -58,7 +74,7 @@ def test_preserves_bool_notation(tmpdir):
     with open(config_path) as f:
         m.read_file(f)
 
-    assert m.get('flags', 'enabled') is True
+    assert m.flags.enabled.value is True
 
     with open(config_path, 'w') as f:
         m.write(f)
@@ -70,62 +86,29 @@ def test_preserves_bool_notation(tmpdir):
 def test_configparser_writer_does_not_accept_three_deep_paths(tmpdir):
     config_path = tmpdir.join('conf.ini').strpath
 
-    m = ConfigManager(
-        ConfigItem('some', 'deep', 'config'),
-    )
+    m = Config({
+        'some': {'deep': {'config': None}}
+    })
 
-    m.set('some', 'deep', 'config', 'this is fine')
-    assert m.get('some', 'deep', 'config') == 'this is fine'
+    m.some.deep.config.value = 'this is fine'
+    assert m.some.deep.config.value == 'this is fine'
 
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(RuntimeError):
         with open(config_path, 'w') as f:
             m.write(f)
 
 
-def test_handles_dotted_sections_and_dotted_options(tmpdir):
-    config_path = tmpdir.join('conf.ini').strpath
-
-    m = ConfigManager(
-        ConfigItem('some.deep', 'config.a'),
-        ConfigItem('some', 'deep.config.a'),
-        ConfigItem('some.deep.config', 'a'),
-    )
-
-    m.set('some.deep', 'config.a', '2_2')
-
-    with open(config_path, 'w') as f:
-        m.write(f)
-
-    with open(config_path, 'r') as f:
-        assert f.read() == '[some.deep]\nconfig.a = 2_2\n\n'
-
-    m.set('some.deep.config', 'a', '3_1')
-
-    with open(config_path, 'w') as f:
-        m.write(f)
-
-    with open(config_path, 'r') as f:
-        assert f.read() == '[some.deep]\nconfig.a = 2_2\n\n[some.deep.config]\na = 3_1\n\n'
-
-    m.reset()
-
-    assert not m.get_item('some.deep', 'config.a').has_value
-    assert not m.get_item('some.deep.config', 'a').has_value
-
-    with open(config_path, 'r') as f:
-        m.read_file(f)
-
-    assert m.get('some.deep', 'config.a') == '2_2'
-    assert m.get('some.deep.config', 'a') == '3_1'
-
-
 def test_read_reads_multiple_files_in_order(tmpdir):
-    m = ConfigManager(
-        ConfigItem('a', 'x', type=float),
-        ConfigItem('a', 'y', default='aye'),
-        ConfigItem('b', 'm', default=False, type=bool),
-        ConfigItem('b', 'n', type=int),
-    )
+    m = Config({
+        'a': {
+            'x': Item(type=float),
+            'y': 'aye',
+        },
+        'b': {
+            'm': False,
+            'n': Item(type=int),
+        }
+    })
 
     path1 = tmpdir.join('config1.ini').strpath
     path2 = tmpdir.join('config2.ini').strpath
@@ -138,75 +121,106 @@ def test_read_reads_multiple_files_in_order(tmpdir):
     m.read(path1)
     assert m.is_default
 
-    m.set('a', 'x', 0.33)
-    m.set('b', 'n', 42)
+    m.a.x.value = 0.33
+    m.b.n.value = 42
     m.write(path2)
 
     # Can read from one non-empty file
     m.reset()
     m.read(path2)
     assert not m.is_default
-    assert m.get('a', 'x') == 0.33
+    assert m.a.x.value == 0.33
 
     m.reset()
-    m.set('a', 'x', 0.66)
-    m.set('b', 'm', 'YES')
+    m.a.x.value = 0.66
+    m.b.m.value = 'YES'
     m.write(path3)
 
     m.reset()
     m.read([path1, path2, path3])
 
-    assert m.get_item('a', 'x').value == 0.66
-    assert not m.get_item('a', 'y').has_value
-    assert m.get_item('b', 'm').value is True
-    assert m.get_item('b', 'm').raw_str_value == 'YES'
-    assert m.get_item('b', 'n').value == 42
+    assert m.a.x.value == 0.66
+    assert m.a.y.is_default
+    assert m.b.m.value is True
+    assert m.b.m.raw_str_value == 'YES'
+    assert m.b.n.value == 42
 
     m.reset()
     m.read([path3, path2, path1])
 
-    assert m.get_item('a', 'x').value == 0.33  # this is the only difference with the above order
-    assert not m.get_item('a', 'y').has_value
-    assert m.get_item('b', 'm').value is True
-    assert m.get_item('b', 'm').raw_str_value == 'YES'
-    assert m.get_item('b', 'n').value == 42
+    assert m.a.x.value == 0.33  # this is the only difference with the above order
+    assert m.a.y.is_default
+    assert m.b.m.value is True
+    assert m.b.m.raw_str_value == 'YES'
+    assert m.b.n.value == 42
 
     # Make sure multiple paths supported in non-list syntax.
     m.reset()
     m.read(path3, path2, path1)
 
-    assert m.get('a', 'x') == 0.33
-    assert m.get('b', 'm') is True
+    assert m.a.x.value == 0.33
+    assert m.b.m.value is True
 
 
 def test_read_string():
-    m = ConfigManager(
-        ConfigItem('a', 'x'),
-        ConfigItem('a', 'y'),
-        ConfigItem('b', 'm'),
-        ConfigItem('b', 'n'),
-    )
+    m = Config({
+        'a': {
+            'x': Item(), 'y': Item(),
+        },
+        'b': {
+            'm': Item(), 'n': Item(),
+        },
+    })
 
     m.read_string(u'[a]\nx = haha\ny = yaya\n')
-    assert m.get('a', 'x') == 'haha'
-    assert m.get('a', 'y') == 'yaya'
+    assert m.a.x.value == 'haha'
+    assert m.a.y.value == 'yaya'
 
 
-def test_read_dict_in_python3():
-    m = ConfigManager(
-        ConfigItem('a', 'x'),
-        ConfigItem('a', 'y'),
-        ConfigItem('b', 'm'),
-        ConfigItem('b', 'n'),
-    )
+def test_read_dict():
+    m = Config({
+        'a': {
+            'x': Item(), 'y': Item(),
+        },
+        'b': {
+            'm': Item(), 'n': Item(),
+        },
+    })
 
     m.read_dict({
         'a': {'x': 'xoxo', 'y': 'yaya'},
         'b': {'m': 'mama', 'n': 'nono'},
     })
 
-    assert m.get('a', 'x') == 'xoxo'
-    assert m.get('a', 'y') == 'yaya'
-    assert m.get('b', 'm') == 'mama'
-    assert m.get('b', 'n') == 'nono'
+    assert m.to_dict() == {
+        'a': {'x': 'xoxo', 'y': 'yaya'},
+        'b': {'m': 'mama', 'n': 'nono'},
+    }
 
+
+def test_read_as_defaults_treats_all_values_as_declarations(tmpdir):
+    path = tmpdir.join('conf.ini').strpath
+    with open(path, 'w') as f:
+        f.write('[uploads]\nthreads = 5\nenabled = no\n')
+        f.write('[messages]\ngreeting = Hello, home!\n')
+
+    m = Config()
+    m.read(path, as_defaults=True)
+
+    assert m.uploads
+    assert m.uploads.threads.value == '5'
+    assert m.uploads.enabled.value == 'no'
+    with pytest.raises(AttributeError):
+        assert m.uploads.something_else
+    assert m.messages.greeting.value == 'Hello, home!'
+
+    # Reading again with as_defaults=True should not change the values, only the defaults
+    m.uploads.threads.value = '55'
+    m.read(path, as_defaults=True)
+    assert m.uploads.threads.value == '55'
+    assert m.uploads.threads.default == '5'
+
+    # But reading with as_defaults=False should change the value
+    m.read(path)
+    assert m.uploads.threads.value == '5'
+    assert m.uploads.threads.default == '5'

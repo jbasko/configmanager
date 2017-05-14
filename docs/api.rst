@@ -3,18 +3,18 @@ API Reference
 
 .. module:: configmanager
 
-``ConfigManager``
------------------
+``Config``
+----------
 
-.. autoclass:: ConfigManager
+.. autoclass:: Config
     :members:
     :inherited-members:
 
 
-``ConfigItem``
---------------
+``Item``
+--------
 
-.. autoclass:: ConfigItem
+.. autoclass:: Item
     :members:
     :inherited-members:
 

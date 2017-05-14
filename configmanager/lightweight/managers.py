@@ -1,15 +1,18 @@
 import collections
+import configparser
 
+from configmanager.persistence import ConfigParserMixin
 from .items import LwItem
 from .parsers import parse_config_declaration
 
 
-class LwConfig(object):
+class LwConfig(ConfigParserMixin, object):
     """
     Represents a collection of config items or sections of items
     which in turn are instances of Config.
     """
     cm__item_cls = LwItem
+    cm__config_parser_factory = configparser.ConfigParser
 
     def __new__(cls, config_declaration=None):
         if config_declaration:

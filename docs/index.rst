@@ -5,6 +5,8 @@ configmanager
 
 Welcome to **configmanager**'s documentation.
 
+**THIS IS OUT OF DATE**
+
 Install it from pypi.org:
 
 .. code-block:: shell
