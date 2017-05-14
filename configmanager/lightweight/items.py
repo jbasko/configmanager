@@ -70,3 +70,11 @@ class LwItem(object):
             return parse_bool_str(str_value)
         else:
             return self.type(str_value)
+
+    def reset(self):
+        self._value = not_set
+        self.raw_str_value = not_set
+
+    @property
+    def is_default(self):
+        return self._value is not_set or self._value == self.default

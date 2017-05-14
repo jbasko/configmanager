@@ -99,12 +99,22 @@ def test_nested_config():
         'greeting': 'Hello',  # and you can have plain config items next to sections
     })
 
+    # You can read values
     assert config.client.timeout.value == 10
     assert config.greeting.value == 'Hello'
 
+    # You can change values and they will be converted to the right type if possible
+    config.client.timeout.value = '20'
+    assert config.client.timeout.value == 20
+
+    # Your original declarations are safe -- db_config dictionary won't be changed
     config.db.user.value = 'root'
     assert config.db.user.value == 'root'
-    assert db_config['user'] == 'admin'  # your original declarations are safe, of course
+    assert db_config['user'] == 'admin'
+
+    # You can check if config value is the default value
+    assert not config.db.user.is_default
+    assert config.server.port.is_default
 
     # Iterate over all items (recursively)
     all = dict(config.iter_items())
@@ -122,3 +132,19 @@ def test_nested_config():
 
     # Each section is a Config instance too, so you can export those separately too:
     assert config.server.to_dict() == config_dict['server']
+
+    # You can reset individual items to their default values
+    assert config.db.user.value == 'root'
+    config.db.user.reset()
+    assert config.db.user.value == 'admin'
+
+    # Or sections
+    config.db.user.value = 'root_again'
+    assert config.db.user.value == 'root_again'
+    config.db.reset()
+    assert config.db.user.value == 'admin'
+
+    # Or all configuration
+    assert config.client.timeout.value == 20
+    config.reset()
+    assert config.client.timeout.value == 10

@@ -93,3 +93,7 @@ class LwConfig(object):
             else:
                 values[item_name] = item.value
         return values
+
+    def reset(self):
+        for _, item in self.iter_items():
+            item.reset()
