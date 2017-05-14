@@ -144,7 +144,9 @@ def test_nested_config():
     config.db.reset()
     assert config.db.user.value == 'admin'
 
-    # Or all configuration
+    # Or you can reset all configuration and you can make sure all values match defaults
     assert config.client.timeout.value == 20
+    assert not config.is_default
     config.reset()
     assert config.client.timeout.value == 10
+    assert config.is_default

@@ -97,3 +97,10 @@ class LwConfig(object):
     def reset(self):
         for _, item in self.iter_items():
             item.reset()
+
+    @property
+    def is_default(self):
+        for _, item in self.iter_items():
+            if not item.is_default:
+                return False
+        return True
