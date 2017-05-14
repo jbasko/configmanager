@@ -8,6 +8,7 @@
 
 from .lightweight import LwConfig as _LwConfig
 from .lightweight import LwItem as _LwItem
+from .exceptions import _ConfigValueMissing as ConfigValueMissing
 
 
 class Item(_LwItem):

@@ -2,7 +2,7 @@ import copy
 
 import six
 
-from configmanager.exceptions import ConfigValueMissing
+from configmanager.exceptions import _ConfigValueMissing
 from configmanager.base import ItemAttribute
 from configmanager.utils import not_set, parse_bool_str
 
@@ -51,7 +51,7 @@ class LwItem(object):
         if self._value is not not_set:
             return self._value
         if self.default is not_set and self.required:
-            raise ConfigValueMissing(self.name)
+            raise _ConfigValueMissing(self.name)
         return copy.deepcopy(self.default)
 
     @value.setter

@@ -3,7 +3,7 @@ import copy
 import six
 
 from .base import ItemAttribute
-from .exceptions import ConfigValueMissing
+from .exceptions import _ConfigValueMissing
 from .utils import not_set, resolve_config_path, parse_bool_str
 
 
@@ -84,7 +84,7 @@ class ConfigItem(object):
         if self._value is not not_set:
             return self._value
         if self.default is not_set and self.required:
-            raise ConfigValueMissing(self.path)
+            raise _ConfigValueMissing(self.path)
 
         # In case default value is a mutable type, you don't want user to accidentally change
         # the defaults!

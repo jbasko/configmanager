@@ -1,63 +1,17 @@
 import pytest
 import six
 
-from configmanager import ConfigItem, ConfigValueMissing
+from configmanager import ConfigItem
 from configmanager.utils import not_set
 
-
-def test_section_and_option_is_only_supported_for_trivial_paths():
-    c = ConfigItem('a', 'b')
-    assert c.section == 'a'
-    assert c.option == 'b'
-
-    d = ConfigItem('d')
-    assert d.section == d.DEFAULT_SECTION
-    assert d.option == 'd'
-
-    e = ConfigItem('ee', 'ff', 'gg')
-    with pytest.raises(RuntimeError):
-        assert e.section
-
-    with pytest.raises(RuntimeError):
-        assert e.option
-
-    assert e.strpath == 'ee/ff/gg'
-    assert e.path == ('ee', 'ff', 'gg')
-
-
-def test_config_item_name_is_last_segment_of_path():
-    c = ConfigItem('c')
-    assert c.name == 'c'
-
-    d = ConfigItem('dd', 'ddd')
-    assert d.name == 'ddd'
-
-    e = ConfigItem('ee', 'eee', 'eeee')
-    assert e.name == 'eeee'
-
-
-def test_initialisation_with_default_section():
-    c = ConfigItem('option1')
-    assert c.section == 'DEFAULT'
-    assert c.option == 'option1'
-
-
-@pytest.mark.parametrize('args', [
-    (True, True),
-    ('section', True),
-    (True, 'section'),
-    (123, 456),
-])
-def test_paths_with_non_string_segments_raise_type_error(args):
-    with pytest.raises(TypeError):
-        ConfigItem(*args)
+from configmanager.v1 import Item, ConfigValueMissing
 
 
 def test_missing_required_value_raises_config_value_missing():
-    c = ConfigItem('a', 'b', required=True)
+    a = Item('a', required=True)
 
     with pytest.raises(ConfigValueMissing):
-        assert c.value is not_set
+        assert a.value is not_set
 
 
 def test_required_item_can_still_fall_back_to_default():

@@ -1,7 +1,7 @@
 import pytest
 import six
 
-from configmanager import ConfigItem, ConfigManager, UnknownConfigItem, ConfigValueMissing
+from configmanager import ConfigItem, ConfigManager, _UnknownConfigItem, _ConfigValueMissing
 
 from configmanager.v1 import Config, Item
 

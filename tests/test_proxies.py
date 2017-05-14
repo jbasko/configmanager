@@ -1,6 +1,6 @@
 import pytest
 
-from configmanager import ConfigManager, ConfigItem, UnsupportedOperation, ConfigValueMissing
+from configmanager import ConfigManager, ConfigItem, _UnsupportedOperation, _ConfigValueMissing
 from configmanager.proxies import ConfigSectionProxy
 from configmanager.utils import not_set
 
@@ -43,7 +43,7 @@ def test_value_proxy_exposes_values_for_reading_and_writing(config):
 
 
 def test_value_proxy_does_not_provide_section_and_item_access(config):
-    with pytest.raises(UnsupportedOperation):
+    with pytest.raises(_UnsupportedOperation):
         config.v.uploads = {}
 
     with pytest.raises(AttributeError):
@@ -57,7 +57,7 @@ def test_value_proxy_does_not_provide_section_and_item_access(config):
 
 
 def test_iteration_over_value_proxy_returns_values_of_all_irrespective_of_status(config):
-    with pytest.raises(ConfigValueMissing):
+    with pytest.raises(_ConfigValueMissing):
         dict(config.v.items())
 
     # set the only required value
@@ -219,7 +219,7 @@ def test_proxies_support_items_transparently(config):
     assert len(sections) == 5
     assert isinstance(sections[('auth', 'server')], ConfigSectionProxy)
 
-    with pytest.raises(ConfigValueMissing):
+    with pytest.raises(_ConfigValueMissing):
         dict(config.v.items())
 
     config.v.auth.client.username = 'admin'

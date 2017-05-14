@@ -1,4 +1,4 @@
-from .exceptions import UnsupportedOperation
+from .exceptions import _UnsupportedOperation
 
 
 class PathProxy(object):
@@ -13,13 +13,13 @@ class PathProxy(object):
         return raw
 
     def _set_config_item_(self, path, raw, value):
-        raise UnsupportedOperation(path)
+        raise _UnsupportedOperation(path)
 
     def _get_proxy_(self, path, raw):
         return raw
 
     def _set_proxy_(self, path, raw, value):
-        raise UnsupportedOperation(path)
+        raise _UnsupportedOperation(path)
 
     def _get_raw_(self, path):
         if path in self._config_._configs:

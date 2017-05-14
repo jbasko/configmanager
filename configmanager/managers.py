@@ -4,7 +4,7 @@ from configparser import ConfigParser
 
 import six
 
-from .exceptions import UnknownConfigItem
+from .exceptions import _UnknownConfigItem
 from .items import ConfigItem
 from .proxies import ConfigItemProxy, ConfigValueProxy, ConfigSectionProxy
 from .utils import not_set, resolve_config_path, resolve_config_prefix
@@ -144,7 +144,7 @@ class ConfigManager(object):
             config value
         
         Raises:
-            UnknownConfigItem:
+            _UnknownConfigItem:
                 if a config item with the specified ``path`` is not
                 managed by this manager.
 
@@ -164,7 +164,7 @@ class ConfigManager(object):
             else:
                 return fallback
         else:
-            raise UnknownConfigItem('Config not found: {}'.format(path_and_fallback))
+            raise _UnknownConfigItem('Config not found: {}'.format(path_and_fallback))
 
     def get_item(self, *path):
         """Get a config item by path.
@@ -178,7 +178,7 @@ class ConfigManager(object):
             ConfigItem: an existing or newly created :class:`.ConfigItem` matching the ``path``.
         
         Raises:
-            UnknownConfigItem: if this manager does not know about a config with the specified ``path``.
+            _UnknownConfigItem: if this manager does not know about a config with the specified ``path``.
 
         Examples:
             >>> cm = ConfigManager(ConfigItem('very', 'real', default=0.0, type=float))
@@ -191,7 +191,7 @@ class ConfigManager(object):
         if path in self._configs:
             return self._configs[path]
         else:
-            raise UnknownConfigItem(*path)
+            raise _UnknownConfigItem(*path)
 
     def set(self, *path_and_value):
         """
