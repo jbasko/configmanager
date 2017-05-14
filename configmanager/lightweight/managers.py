@@ -11,16 +11,14 @@ class LwConfig(object):
     """
     cm__item_cls = LwItem
 
-    @classmethod
-    def create(cls, config_declaration=None):
+    def __new__(cls, config_declaration=None):
         if config_declaration:
             return parse_config_declaration(config_declaration, item_cls=cls.cm__item_cls, tree_cls=cls)
         else:
-            return cls()
-
-    def __init__(self):
-        self.cm__configs = collections.OrderedDict()
-        self.cm__is_config_manager = True
+            instance = super(LwConfig, cls).__new__(cls)
+            instance.cm__configs = collections.OrderedDict()
+            instance.cm__is_config_manager = True
+            return instance
 
     def __contains__(self, item):
         return item in self.cm__configs

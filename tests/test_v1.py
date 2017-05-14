@@ -5,7 +5,7 @@ from configmanager.v1 import Config, Item
 
 def test_simple_config():
     # Initialisation of a config manager
-    config = Config.create({
+    config = Config({
         'greeting': 'Hello, world!',
         'threads': 1,
         'throttling_enabled': False,
@@ -80,7 +80,7 @@ def test_nested_config():
     }
 
     # Or, it may be an already functional instance of Config
-    server_config = Config.create({
+    server_config = Config({
         'port': 8080,
     })
 
@@ -92,7 +92,7 @@ def test_nested_config():
     #
     # All these sections can be combined into one config:
     #
-    config = Config.create({
+    config = Config({
         'db': db_config,
         'server': server_config,
         'client': ClientConfig,  # a class, not an instance
