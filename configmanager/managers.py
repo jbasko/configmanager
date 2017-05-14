@@ -112,21 +112,6 @@ class ConfigManager(object):
                 self._prefixes[temp_prefix] = []
             self._prefixes[temp_prefix].append(item)
 
-    def remove(self, *path):
-        item = self.get_item(*path)
-
-        prefixes_to_remove = []
-        for prefix in self._prefixes.keys():
-            if item in self._prefixes[prefix]:
-                self._prefixes[prefix].remove(item)
-                if not self._prefixes[prefix]:
-                    prefixes_to_remove.append(prefix)
-
-        for prefix in prefixes_to_remove:
-            del self._prefixes[prefix]
-
-        del self._configs[item.path]
-
     def get(self, *path_and_fallback):
         """
         Returns :attr:`.ConfigItem.value` of item matching the path. If the item does
@@ -216,34 +201,6 @@ class ConfigManager(object):
         else:
             for item in self._prefixes[prefix]:
                 yield item
-
-    def iter_values(self, *prefix):
-        prefix = resolve_config_prefix(*prefix)
-        if prefix:
-            for item in self._prefixes[prefix]:
-                yield item.value
-        else:
-            for item in self._configs.values():
-                yield item.value
-
-    def iter_paths(self, *prefix):
-        prefix = resolve_config_prefix(*prefix)
-        if not prefix:
-            for path in self._configs.keys():
-                yield path
-        else:
-            for item in self._prefixes[prefix]:
-                yield item.path
-
-    def iter_prefixes(self, *prefix):
-        prefix = resolve_config_prefix(*prefix)
-        if not prefix:
-            for prefix in self._prefixes.keys():
-                yield prefix
-        else:
-            for p in self._prefixes.keys():
-                if p[:len(prefix)] == prefix[:]:
-                    yield p
 
     def read(self, *args, **kwargs):
         """
