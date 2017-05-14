@@ -1,18 +1,18 @@
+from .lightweight import LwConfig as LwConfig
+from .lightweight import LwItem as LwItem
+from .exceptions import _ConfigValueMissing
+
 #
-# v1
-#
-# Lw* classes are not part of the public interface.
-# Instead, it is the Item and Config classes;
-# And they should be imported from here.
+# Only the names assigned below and the public attributes of respective classes are part of the v1.0 public interface.
+# Names like Lw* and _* are NOT part of the interface and may change at any time in future.
 #
 
-from .lightweight import LwConfig as _LwConfig
-from .lightweight import LwItem as _LwItem
+Item = LwItem
+Item.__name__ = 'Item'
 
+Config = LwConfig
+Config.__name__ = 'Config'
 
-class Item(_LwItem):
-    pass
+ConfigValueMissing = _ConfigValueMissing
+ConfigValueMissing.__name__ = 'ConfigValueMissing'
 
-
-class Config(_LwConfig):
-    cm__item_cls = Item

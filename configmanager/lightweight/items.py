@@ -2,7 +2,7 @@ import copy
 
 import six
 
-from configmanager.exceptions import ConfigValueMissing
+from configmanager.exceptions import _ConfigValueMissing
 from configmanager.base import ItemAttribute
 from configmanager.utils import not_set, parse_bool_str
 
@@ -43,6 +43,14 @@ class LwItem(object):
 
         return '<{} {} {!r}>'.format(self.__class__.__name__, self.name, value)
 
+    def __str__(self):
+        if self.raw_str_value is not not_set:
+            return self.raw_str_value
+        if self._value is not not_set or self.default is not not_set:
+            return str(self.value)
+        else:
+            return repr(self)
+
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
 
@@ -51,7 +59,7 @@ class LwItem(object):
         if self._value is not not_set:
             return self._value
         if self.default is not_set and self.required:
-            raise ConfigValueMissing(self.name)
+            raise _ConfigValueMissing(self.name)
         return copy.deepcopy(self.default)
 
     @value.setter
@@ -70,3 +78,11 @@ class LwItem(object):
             return parse_bool_str(str_value)
         else:
             return self.type(str_value)
+
+    def reset(self):
+        self._value = not_set
+        self.raw_str_value = not_set
+
+    @property
+    def is_default(self):
+        return self._value is not_set or self._value == self.default

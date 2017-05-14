@@ -50,20 +50,20 @@ def mixed_app_config(raw_logging_config, raw_db_config):
      A config that contains a previously existing config
      as well as one generated on initialisation.
     """
-    return LwConfig.create({
-        'logging': LwConfig.create(raw_logging_config),
+    return LwConfig({
+        'logging': LwConfig(raw_logging_config),
         'db': raw_db_config,
     })
 
 
 def test_declaration_parser_does_not_modify_config(raw_logging_config):
-    logging_config = LwConfig.create(raw_logging_config)
+    logging_config = LwConfig(raw_logging_config)
     assert isinstance(logging_config, LwConfig)
 
     assert logging_config['version']
     assert logging_config['formatters']
 
-    config = LwConfig.create({'logging': logging_config})
+    config = LwConfig({'logging': logging_config})
     assert isinstance(config, LwConfig)
 
     assert config['logging']['version']
@@ -181,7 +181,7 @@ def test_can_have_a_dict_as_a_config_value_if_wrapped_inside_item():
     # You may want to have a dictionary as a config value if you only
     # change it all together or you only pass it all in one piece.
 
-    config = LwConfig.create({
+    config = LwConfig({
         'db': {
             'user': 'admin',
             'password': 'secret',

@@ -1,6 +1,3 @@
-import six
-
-
 class _NotSet(object):
     def __nonzero__(self):
         return False
@@ -22,26 +19,6 @@ class _NotSet(object):
 
 
 not_set = _NotSet()
-
-
-def resolve_config_path(*path):
-    for p in path:
-        if not isinstance(p, six.string_types):
-            raise TypeError('Config path segments should be strings, got a {}: {}'.format(type(p), p))
-        if not p:
-            raise ValueError('Config path segments should be non-empty strings, got an empty one')
-
-    if len(path) == 0:
-        raise ValueError('Config path must not be empty')
-
-    return tuple(path)
-
-
-def resolve_config_prefix(*prefix):
-    if len(prefix) == 0:
-        return tuple()
-
-    return resolve_config_path(*prefix)
 
 
 def parse_bool_str(bool_str):

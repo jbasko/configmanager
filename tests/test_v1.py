@@ -1,11 +1,11 @@
 import pytest
 
-from configmanager.v1 import Config, Item
+from configmanager.v1 import Config, Item, ConfigValueMissing
 
 
 def test_simple_config():
     # Initialisation of a config manager
-    config = Config.create({
+    config = Config({
         'greeting': 'Hello, world!',
         'threads': 1,
         'throttling_enabled': False,
@@ -80,7 +80,7 @@ def test_nested_config():
     }
 
     # Or, it may be an already functional instance of Config
-    server_config = Config.create({
+    server_config = Config({
         'port': 8080,
     })
 
@@ -92,19 +92,29 @@ def test_nested_config():
     #
     # All these sections can be combined into one config:
     #
-    config = Config.create({
+    config = Config({
         'db': db_config,
         'server': server_config,
         'client': ClientConfig,  # a class, not an instance
         'greeting': 'Hello',  # and you can have plain config items next to sections
     })
 
+    # You can read values
     assert config.client.timeout.value == 10
     assert config.greeting.value == 'Hello'
 
+    # You can change values and they will be converted to the right type if possible
+    config.client.timeout.value = '20'
+    assert config.client.timeout.value == 20
+
+    # Your original declarations are safe -- db_config dictionary won't be changed
     config.db.user.value = 'root'
     assert config.db.user.value == 'root'
-    assert db_config['user'] == 'admin'  # your original declarations are safe, of course
+    assert db_config['user'] == 'admin'
+
+    # You can check if config value is the default value
+    assert not config.db.user.is_default
+    assert config.server.port.is_default
 
     # Iterate over all items (recursively)
     all = dict(config.iter_items())
@@ -122,3 +132,28 @@ def test_nested_config():
 
     # Each section is a Config instance too, so you can export those separately too:
     assert config.server.to_dict() == config_dict['server']
+
+    # You can reset individual items to their default values
+    assert config.db.user.value == 'root'
+    config.db.user.reset()
+    assert config.db.user.value == 'admin'
+
+    # Or sections
+    config.db.user.value = 'root_again'
+    assert config.db.user.value == 'root_again'
+    config.db.reset()
+    assert config.db.user.value == 'admin'
+
+    # Or you can reset all configuration and you can make sure all values match defaults
+    assert config.client.timeout.value == 20
+    assert not config.is_default
+    config.reset()
+    assert config.client.timeout.value == 10
+    assert config.is_default
+
+
+def test_exceptions():
+    # Items marked as required raise ConfigValueMissing when their value is accessed
+    password = Item('password', required=True)
+    with pytest.raises(ConfigValueMissing):
+        assert not password.value
