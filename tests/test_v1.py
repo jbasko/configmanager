@@ -1,6 +1,6 @@
 import pytest
 
-from configmanager.v1 import Config, Item
+from configmanager.v1 import Config, Item, ConfigValueMissing
 
 
 def test_simple_config():
@@ -150,3 +150,10 @@ def test_nested_config():
     config.reset()
     assert config.client.timeout.value == 10
     assert config.is_default
+
+
+def test_exceptions():
+    # Items marked as required raise ConfigValueMissing when their value is accessed
+    password = Item('password', required=True)
+    with pytest.raises(ConfigValueMissing):
+        assert not password.value
