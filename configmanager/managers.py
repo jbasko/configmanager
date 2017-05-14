@@ -6,7 +6,6 @@ import six
 
 from .exceptions import _UnknownConfigItem
 from .items import ConfigItem
-from .proxies import ConfigItemProxy, ConfigValueProxy, ConfigSectionProxy
 from .utils import not_set, resolve_config_path, resolve_config_prefix
 
 
@@ -45,10 +44,6 @@ class ConfigManager(object):
 
         self._configs = collections.OrderedDict()
         self._prefixes = collections.OrderedDict()
-
-        self.t = ConfigItemProxy(self)
-        self.v = ConfigValueProxy(self)
-        self.s = ConfigSectionProxy(self)
 
         for config in configs:
             self.add(config)
@@ -249,21 +244,6 @@ class ConfigManager(object):
             for p in self._prefixes.keys():
                 if p[:len(prefix)] == prefix[:]:
                     yield p
-
-    def export(self, *prefix):
-        """
-        Returns:
-            list: list of ``(name_without_prefix, value)`` pairs for each config item under the specified
-            prefix.
-        """
-        pairs = []
-
-        for item in self.iter_items(*prefix):
-            if item.has_value or item.has_default:
-                item_name_without_prefix = '.'.join(item.path[len(prefix):])
-                pairs.append((item_name_without_prefix, item.value))
-
-        return pairs
 
     def read(self, *args, **kwargs):
         """
