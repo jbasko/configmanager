@@ -8,5 +8,11 @@ from .exceptions import _ConfigValueMissing
 #
 
 Item = LwItem
+Item.__name__ = 'Item'
+
 Config = LwConfig
+Config.__name__ = 'Config'
+
 ConfigValueMissing = _ConfigValueMissing
+ConfigValueMissing.__name__ = 'ConfigValueMissing'
+

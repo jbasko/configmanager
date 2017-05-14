@@ -43,6 +43,14 @@ class LwItem(object):
 
         return '<{} {} {!r}>'.format(self.__class__.__name__, self.name, value)
 
+    def __str__(self):
+        if self.raw_str_value is not not_set:
+            return self.raw_str_value
+        if self._value is not not_set or self.default is not not_set:
+            return str(self.value)
+        else:
+            return repr(self)
+
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
 

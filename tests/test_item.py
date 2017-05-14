@@ -1,9 +1,7 @@
 import pytest
 import six
 
-from configmanager import ConfigItem
 from configmanager.utils import not_set
-
 from configmanager.v1 import Item, ConfigValueMissing
 
 
@@ -14,16 +12,16 @@ def test_missing_required_value_raises_config_value_missing():
         assert a.value is not_set
 
 
-def test_required_item_can_still_fall_back_to_default():
-    c = ConfigItem('a', 'b', required=True, default=None)
-    assert c.value is None
+def test_required_item_falls_back_to_default_when_there_is_one():
+    a = Item('a', required=True, default=None)
+    assert a.value is None
 
-    c.reset()
-    assert c.value is None
+    a.reset()
+    assert a.value is None
 
 
 def test_item_with_no_value_and_no_default_returns_not_set_as_value():
-    c = ConfigItem('a', 'b')
+    c = Item('a')
     assert c.value is not_set
 
     c.value = 'hey'
@@ -33,36 +31,8 @@ def test_item_with_no_value_and_no_default_returns_not_set_as_value():
     assert c.value is not_set
 
 
-def test_value_with_default_value():
-    c = ConfigItem('a', 'b', default='c')
-
-    assert not c.has_value
-    assert c.has_default
-    assert c.value == 'c'
-
-    c.value = 'd'
-
-    assert c.has_value
-    assert c.has_default
-    assert c.value == 'd'
-
-    c.reset()
-    assert not c.has_value
-    assert c.has_default
-    assert c.value == 'c'
-
-    d = ConfigItem('a', 'b', default='c', value='d')
-    assert d.value == 'd'
-
-    d.value = 'e'
-    assert d.value == 'e'
-
-    d.reset()
-    assert d.value == 'c'
-
-
 def test_value_gets_stringified():
-    c = ConfigItem('a', value='23')
+    c = Item('a', value='23')
     assert c.value == '23'
     assert c.value != 23
 
@@ -72,7 +42,7 @@ def test_value_gets_stringified():
 
 
 def test_int_value():
-    c = ConfigItem('a', type=int, default=25)
+    c = Item('a', type=int, default=25)
     assert c.value == 25
 
     c.value = '23'
@@ -84,7 +54,7 @@ def test_int_value():
 
 
 def test_raw_str_value_is_reset_on_reset():
-    c = ConfigItem('a', type=int, default=25)
+    c = Item('a', type=int, default=25)
     assert str(c) == '25'
 
     c.value = '23'
@@ -95,7 +65,7 @@ def test_raw_str_value_is_reset_on_reset():
 
 
 def test_raw_str_value_is_reset_on_non_str_value_set():
-    c = ConfigItem('a', type=int, default=25)
+    c = Item('a', type=int, default=25)
     c.value = '23'
     assert str(c) == '23'
 
@@ -110,7 +80,7 @@ def test_raw_str_value_is_reset_on_non_str_value_set():
 
 
 def test_bool_of_value():
-    c = ConfigItem('a')
+    c = Item('a')
 
     # not_set evaluates to False
     assert not c.value
@@ -121,29 +91,29 @@ def test_bool_of_value():
     c.value = ''
     assert not c.value
 
-    d = ConfigItem('a', default='b')
+    d = Item('a', default='b')
     assert d.value
 
     d.value = ''
     assert not d.value
 
 
-def test_repr_makes_clear_the_path_and_value():
-    c = ConfigItem('a', 'b', 'c', default='hello')
-    assert repr(c) == '<ConfigItem a/b/c \'hello\'>'
+def test_repr_makes_clear_name_and_value():
+    c = Item('a', default='hello')
+    assert repr(c) == '<Item a \'hello\'>'
 
     c.value = 'bye!'
-    assert repr(c) == '<ConfigItem a/b/c \'bye!\'>'
+    assert repr(c) == '<Item a \'bye!\'>'
 
 
 def test_str_and_repr_of_not_set_value_should_not_fail():
-    c = ConfigItem('a')
-    assert str(c) == '<ConfigItem DEFAULT/a <NotSet>>'
-    assert repr(c) == '<ConfigItem DEFAULT/a <NotSet>>'
+    c = Item('a')
+    assert str(c) == '<Item a <NotSet>>'
+    assert repr(c) == '<Item a <NotSet>>'
 
 
 def test_bool_str_is_a_str():
-    c = ConfigItem('a.b', type=bool)
+    c = Item('a', type=bool)
     assert isinstance(str(c), six.string_types)
 
     c.value = True
@@ -151,7 +121,7 @@ def test_bool_str_is_a_str():
 
 
 def test_bool_config_preserves_raw_str_value_used_to_set_it():
-    c = ConfigItem('a.b', type=bool, default=False)
+    c = Item('a', type=bool, default=False)
     assert c.value is False
 
     assert not c.value
@@ -187,13 +157,8 @@ def test_bool_config_preserves_raw_str_value_used_to_set_it():
     assert c.value is True
 
 
-def test_repr():
-    assert repr(ConfigItem('this.is', 'me', default='yes')) == '<ConfigItem this.is/me \'yes\'>'
-    assert repr(ConfigItem('this.is', 'me')) == '<ConfigItem this.is/me <NotSet>>'
-
-
 def test_can_set_str_value_to_none():
-    c = ConfigItem('a', 'b', default='haha')
+    c = Item('a', default='haha')
     assert c.value == 'haha'
 
     c.value = None
@@ -201,7 +166,7 @@ def test_can_set_str_value_to_none():
 
 
 def test_setting_value_to_not_set_resets_it():
-    c = ConfigItem('a', 'b', default='default', value='custom')
+    c = Item('a', default='default', value='custom')
     assert c.value == 'custom'
 
     c.value = not_set
@@ -209,7 +174,7 @@ def test_setting_value_to_not_set_resets_it():
 
 
 def test_can_set_int_value_to_none():
-    c = ConfigItem('a', 'b', type=int, default=0, value=23)
+    c = Item('a', type=int, default=0, value=23)
     assert c.value == 23
 
     c.value = None
@@ -217,50 +182,32 @@ def test_can_set_int_value_to_none():
 
 
 def test_equality():
-    c = ConfigItem('a', 'b', type=str, value=None)
-    cc = ConfigItem('a', 'b', type=str, value=None)
+    c = Item('a', type=str, value=None)
+    cc = Item('a', type=str, value=None)
     assert c == cc
 
-    d = ConfigItem('a', 'b', type=int, value=None)
+    d = Item('a', type=int, value=None)
     assert c != d
 
 
 def test_item_is_equal_to_itself():
-    c = ConfigItem('a', 'b')
+    c = Item('a')
     assert c == c
 
-    d = ConfigItem('a', 'b', value='d')
+    d = Item('a', value='d')
     assert d == d
 
-    e = ConfigItem('a', 'b', default='e')
+    e = Item('a', default='e')
     assert e == e
 
-    f = ConfigItem('a', 'b', default='f', value='g')
+    f = Item('a', default='f', value='g')
     assert f == f
 
 
-def test_items_are_equal_if_path_and_type_and_effective_value_match():
-    x1 = ConfigItem('a', 'b')
-    x2 = ConfigItem('a', 'b')
-    x3 = ConfigItem('a', 'bb')
-    assert x1 == x2
-    assert x1 != x3
-
-    y1 = ConfigItem('a', 'b', default='yyy')
-    y2 = ConfigItem('a', 'b', value='yyy')
-    y3 = ConfigItem('a', 'b', default='yyy', value='YYY')
-    y4 = ConfigItem('a', 'bb', value='yyy')
-    y5 = ConfigItem('a', 'b', default='YYY', value='yyy')
-    assert y1 == y2
-    assert y1 != y3
-    assert y1 != y4
-    assert y1 == y5
-
-
 def test_is_default():
-    c = ConfigItem('a', 'b')
-    d = ConfigItem('a', 'b', default=None)
-    e = ConfigItem('a', 'b', value=None)
+    c = Item('a')
+    d = Item('a', default=None)
+    e = Item('a', value=None)
 
     assert c.is_default
     assert d.is_default
@@ -289,11 +236,3 @@ def test_is_default():
     assert c.is_default
     assert d.is_default
     assert e.is_default
-
-
-def test_strpath_of_config_item():
-    c = ConfigItem('a', 'b.com', 'c.d.e')
-    d = ConfigItem('d')
-
-    assert c.strpath == 'a/b.com/c.d.e'
-    assert d.strpath == '{}/d'.format(d.DEFAULT_SECTION)
