@@ -107,8 +107,8 @@ def test_class_based_config_declaration(app_config_cls_example):
     assert tree['downloads']['deep']
     assert tree['downloads']['deep']['question']
     assert tree['downloads']['deep']['question'].value
-    assert tree['downloads']['threads'].name == 'threads'
 
+    assert tree['downloads']['threads'].name == 'threads'
     assert tree['greeting'].name == 'greeting'
 
     assert 'deep' not in tree

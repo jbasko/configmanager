@@ -1,6 +1,8 @@
 import collections
 
 import configparser
+
+import copy
 import six
 
 from configmanager.persistence import ConfigParserMixin
@@ -74,6 +76,7 @@ class LwConfig(ConfigParserMixin, object):
     def _cm__set_item(self, alias, item):
         if not isinstance(alias, six.string_types):
             raise TypeError('Item name must be a string, got a {!r}'.format(type(alias)))
+        item = copy.deepcopy(item)
         if item.name is not_set:
             item.name = alias
         self.cm__configs[item.name] = item
