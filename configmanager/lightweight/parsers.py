@@ -48,11 +48,17 @@ def parse_config_declaration(config_decl, item_cls=LwItem, tree_cls=collections.
             config_tree[k] = v
         else:
             if isinstance(v, item_cls):
-                item = copy.deepcopy(v)
-                if not item.name:
+                if not v.name:
+                    # We must make sure item has the right name, but we don't want to edit
+                    # someone else's instance, so we are forced to deep-copy it and it will
+                    # be done twice -- once here and once in Config._cm__set_item().
+                    item = copy.deepcopy(v)
                     item.name = k
+                    config_tree[k] = item
+                else:
+                    config_tree[v.name] = v
             else:
                 item = item_cls(name=k, default=copy.deepcopy(v))
-            config_tree[item.name] = item
+                config_tree[item.name] = item
 
     return config_tree

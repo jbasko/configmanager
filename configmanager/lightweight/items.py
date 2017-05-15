@@ -15,6 +15,8 @@ class LwItem(object):
     required = ItemAttribute('required', default=False)
 
     def __init__(self, name=not_set, **kwargs):
+        self._section = None
+
         if name is not not_set:
             if not isinstance(name, six.string_types):
                 raise TypeError('Item name must be a string, got {!r}'.format(type(name)))
@@ -101,3 +103,10 @@ class LwItem(object):
     @property
     def has_value(self):
         return self.default is not not_set or self._value is not not_set
+
+    @property
+    def section(self):
+        return self._section
+
+    def added_to_section(self, alias, section):
+        self._section = section
