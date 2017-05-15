@@ -9,10 +9,12 @@ from .exceptions import _ConfigValueMissing
 
 Item = LwItem
 Item.__name__ = 'Item'
+Item.__module__ = 'configmanager.v1'
 
 Config = LwConfig
 Config.__name__ = 'Config'
+Config.__module__ = 'configmanager.v1'
 
 ConfigValueMissing = _ConfigValueMissing
 ConfigValueMissing.__name__ = 'ConfigValueMissing'
-
+ConfigValueMissing.__module__ = 'configmanager.v1'
