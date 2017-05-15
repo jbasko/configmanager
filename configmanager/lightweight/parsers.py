@@ -52,7 +52,7 @@ def parse_config_declaration(config_decl, item_cls=LwItem, tree_cls=collections.
                 if not item.name:
                     item.name = k
             else:
-                item = item_cls(name=k, default=v)
+                item = item_cls(name=k, default=copy.deepcopy(v))
             config_tree[item.name] = item
 
     return config_tree

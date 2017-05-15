@@ -132,3 +132,13 @@ def test_mixed_config_declaration(app_config_mixed_example, app_config_cls_examp
     mixed_tree = parse_config_declaration(app_config_mixed_example, tree_cls=dict)
     cls_tree = parse_config_declaration(app_config_cls_example, tree_cls=dict)
     assert mixed_tree == cls_tree
+
+
+def test_default_value_is_deep_copied():
+    things = [1, 2, 3, 4]
+
+    config = parse_config_declaration({'items': things}, tree_cls=dict)
+    assert config['items'].value == [1, 2, 3, 4]
+
+    things.remove(2)
+    assert config['items'].value == [1, 2, 3, 4]
