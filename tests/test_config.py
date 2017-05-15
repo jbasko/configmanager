@@ -105,3 +105,19 @@ def test_section_name_must_be_a_string():
 
     with pytest.raises(TypeError):
         config[5] = Config()
+
+
+def test_to_dict_should_not_include_items_with_no_usable_value():
+    config = Config()
+    assert config.to_dict() == {}
+
+    config.a = Item()
+    config.b = Item()
+    config.dummies = Config({'x': Item(), 'y': Item()})
+    assert config.to_dict() == {}
+
+    config.dummies.x.value = 'yes'
+    assert config.to_dict() == {'dummies': {'x': 'yes'}}
+
+    config.b.value = 'no'
+    assert config.to_dict() == {'dummies': {'x': 'yes'}, 'b': 'no'}

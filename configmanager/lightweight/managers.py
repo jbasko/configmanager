@@ -122,9 +122,12 @@ class LwConfig(ConfigParserMixin, object):
         values = {}
         for item_name, item in self.cm__configs.items():
             if isinstance(item, self.__class__):
-                values[item_name] = item.to_dict(**kwargs)
+                section_values = item.to_dict(**kwargs)
+                if section_values:
+                    values[item_name] = section_values
             else:
-                values[item.name] = item.value
+                if item.has_value:
+                    values[item.name] = item.value
         return values
 
     def reset(self):
