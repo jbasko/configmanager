@@ -15,7 +15,10 @@ class LwItem(object):
     required = ItemAttribute('required', default=False)
 
     def __init__(self, name=not_set, **kwargs):
-        self.name = name
+        if name is not not_set:
+            if not isinstance(name, six.string_types):
+                raise TypeError('Item name must be a string, got {!r}'.format(type(name)))
+            self.name = name
 
         # Type must be set first because otherwise setting value below may fail.
         if 'type' in kwargs:

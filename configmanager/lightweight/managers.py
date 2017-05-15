@@ -1,5 +1,7 @@
 import collections
+
 import configparser
+import six
 
 from configmanager.persistence import ConfigParserMixin
 from configmanager.utils import not_set
@@ -34,7 +36,7 @@ class LwConfig(ConfigParserMixin, object):
         if isinstance(value, self.cm__item_cls):
             self._cm__set_item(name, value)
         elif isinstance(value, self.__class__):
-            self.cm__configs[name] = value
+            self._cm__set_section(name, value)
         else:
             raise TypeError(
                 'Config sections/items can only be replaced with sections/items, '
@@ -59,7 +61,7 @@ class LwConfig(ConfigParserMixin, object):
         elif isinstance(value, self.cm__item_cls):
             self._cm__set_item(name, value)
         elif isinstance(value, self.__class__):
-            self.cm__configs[name] = value
+            self._cm__set_section(name, value)
         else:
             raise TypeError(
                 'Config sections/items can only be replaced with sections/items, '
@@ -70,10 +72,17 @@ class LwConfig(ConfigParserMixin, object):
             )
 
     def _cm__set_item(self, alias, item):
+        if not isinstance(alias, six.string_types):
+            raise TypeError('Item name must be a string, got a {!r}'.format(type(alias)))
         if item.name is not_set:
             item.name = alias
         self.cm__configs[item.name] = item
         self.cm__configs[alias] = item
+
+    def _cm__set_section(self, alias, section):
+        if not isinstance(alias, six.string_types):
+            raise TypeError('Section name must be a string, got a {!r}'.format(type(alias)))
+        self.cm__configs[alias] = section
 
     def iter_items(self):
         """

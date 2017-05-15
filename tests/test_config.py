@@ -1,3 +1,5 @@
+import pytest
+
 from configmanager.v1 import Config, Item
 
 
@@ -83,3 +85,23 @@ def test_assigning_item_with_name_directly_to_config_should_preserve_its_name():
     assert ('a_b',) not in items
     assert ('www',) in items
     assert ('w',) not in items
+
+
+def test_item_name_and_alias_must_be_a_string():
+    config = Config()
+
+    with pytest.raises(TypeError):
+        config.x = Item(name=5)
+
+    with pytest.raises(TypeError):
+        config[5] = Item()
+
+    with pytest.raises(TypeError):
+        config[5] = Item(name='x')
+
+
+def test_section_name_must_be_a_string():
+    config = Config()
+
+    with pytest.raises(TypeError):
+        config[5] = Config()
