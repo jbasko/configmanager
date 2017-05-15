@@ -78,6 +78,7 @@ class LwConfig(ConfigParserMixin, object):
             item.name = alias
         self.cm__configs[item.name] = item
         self.cm__configs[alias] = item
+        item.added_to_section(alias, self)
 
     def _cm__set_section(self, alias, section):
         if not isinstance(alias, six.string_types):
