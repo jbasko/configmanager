@@ -59,11 +59,7 @@ class LwItem(object):
 
     @property
     def value(self):
-        if self._value is not not_set:
-            return self._value
-        if self.default is not_set and self.required:
-            raise _ConfigValueMissing(self.name)
-        return copy.deepcopy(self.default)
+        return self.get()
 
     @value.setter
     def value(self, value):
@@ -73,6 +69,18 @@ class LwItem(object):
                 self.raw_str_value = value
             else:
                 self.raw_str_value = not_set
+
+    def get(self, fallback=not_set):
+        if self.has_value:
+            if self._value is not not_set:
+                return self._value
+            else:
+                return copy.deepcopy(self.default)
+        elif fallback is not not_set:
+            return fallback
+        elif self.required:
+            raise _ConfigValueMissing(self.name)
+        return fallback
 
     def _parse_str_value(self, str_value):
         if str_value is None or str_value is not_set:

@@ -1,6 +1,7 @@
 from .lightweight import LwConfig as LwConfig
 from .lightweight import LwItem as LwItem
 from .exceptions import _ConfigValueMissing
+from .base import ItemAttribute
 
 #
 # Only the names assigned below and the public attributes of respective classes are part of the v1.0 public interface.
