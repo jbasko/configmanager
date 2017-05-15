@@ -8,13 +8,13 @@ from configmanager.utils import not_set, parse_bool_str
 
 
 class LwItem(object):
-    name = ItemAttribute('name', default=None)
+    name = ItemAttribute('name')
     default = ItemAttribute('default')
     type = ItemAttribute('type', default=str)
     raw_str_value = ItemAttribute('raw_str_value')
     required = ItemAttribute('required', default=False)
 
-    def __init__(self, name=None, **kwargs):
+    def __init__(self, name=not_set, **kwargs):
         self.name = name
 
         # Type must be set first because otherwise setting value below may fail.

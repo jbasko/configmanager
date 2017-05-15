@@ -2,6 +2,7 @@ import collections
 import configparser
 
 from configmanager.persistence import ConfigParserMixin
+from configmanager.utils import not_set
 from .items import LwItem
 from .parsers import parse_config_declaration
 
@@ -30,7 +31,9 @@ class LwConfig(ConfigParserMixin, object):
         return item in self.cm__configs
 
     def __setitem__(self, name, value):
-        if isinstance(value, (self.cm__item_cls, self.__class__)):
+        if isinstance(value, self.cm__item_cls):
+            self._cm__set_item(name, value)
+        elif isinstance(value, self.__class__):
             self.cm__configs[name] = value
         else:
             raise TypeError(
@@ -53,7 +56,9 @@ class LwConfig(ConfigParserMixin, object):
     def __setattr__(self, name, value):
         if name.startswith('cm__'):
             return super(LwConfig, self).__setattr__(name, value)
-        elif isinstance(value, (self.cm__item_cls, self.__class__)):
+        elif isinstance(value, self.cm__item_cls):
+            self._cm__set_item(name, value)
+        elif isinstance(value, self.__class__):
             self.cm__configs[name] = value
         else:
             raise TypeError(
@@ -64,6 +69,12 @@ class LwConfig(ConfigParserMixin, object):
                 )
             )
 
+    def _cm__set_item(self, alias, item):
+        if item.name is not_set:
+            item.name = alias
+        self.cm__configs[item.name] = item
+        self.cm__configs[alias] = item
+
     def iter_items(self):
         """
         Iterate over all items contained (recursively).
@@ -72,12 +83,19 @@ class LwConfig(ConfigParserMixin, object):
             iterator: iterator over all items contained in this config and its
                 sections recursively.
         """
+        names_yielded = set()
         for item_name, item in self.cm__configs.items():
             if isinstance(item, self.__class__):
                 for sub_item_path, sub_item in item.iter_items():
                     yield (item_name,) + sub_item_path, sub_item
             else:
-                yield (item_name,), item
+                # cm__configs contains duplicates so that we can have multiple aliases point
+                # to the same item. We have to de-duplicate here.
+                if item.name in names_yielded:
+                    continue
+                names_yielded.add(item.name)
+
+                yield (item.name,), item
 
     def iter_sections(self):
         """
@@ -97,7 +115,7 @@ class LwConfig(ConfigParserMixin, object):
             if isinstance(item, self.__class__):
                 values[item_name] = item.to_dict(**kwargs)
             else:
-                values[item_name] = item.value
+                values[item.name] = item.value
         return values
 
     def reset(self):
