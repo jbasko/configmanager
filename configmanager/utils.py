@@ -1,4 +1,14 @@
 class _NotSet(object):
+    instance = None
+
+    def __init__(self):
+        if self.__class__.instance is not None:
+            raise RuntimeError('An instance of {} already initialised'.format(self.__class__.__name__))
+        self.__class__.instance = self
+
+    def __eq__(self, other):
+        return self is other
+
     def __nonzero__(self):
         return False
 
