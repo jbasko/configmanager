@@ -24,6 +24,11 @@ def test_simple_config():
     assert config.throttling_enabled.value is False
     assert config.throttling_enabled.type is bool
 
+    # If you are working with items which don't have default values, you can use .get() method
+    # which accepts fallback value:
+    assert config.greeting.get() == 'Hello, world!'
+    assert config.greeting.get('Hey!') == 'Hello, world!'
+
     # Can check if a config item is managed by the manager
     assert 'greeting' in config
     assert 'warning' not in config
@@ -115,6 +120,9 @@ def test_nested_config():
     # You can check if config value is the default value
     assert not config.db.user.is_default
     assert config.server.port.is_default
+
+    # Or if it has any value at all
+    assert config.server.port.has_value
 
     # Iterate over all items (recursively)
     all = dict(config.iter_items())
