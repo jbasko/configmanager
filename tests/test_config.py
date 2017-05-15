@@ -36,3 +36,8 @@ def test_reset_resets_values_to_defaults():
 
     assert config.x.is_default
     assert config.y.value == 'YES'
+
+
+def test_repr_of_config():
+    config = Config()
+    assert repr(config).startswith('<Config at ')

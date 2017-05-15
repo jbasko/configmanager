@@ -23,6 +23,9 @@ class LwConfig(ConfigParserMixin, object):
             instance.cm__is_config_manager = True
             return instance
 
+    def __repr__(self):
+        return '<{cls} at {id}>'.format(cls=self.__class__.__name__, id=id(self))
+
     def __contains__(self, item):
         return item in self.cm__configs
 
