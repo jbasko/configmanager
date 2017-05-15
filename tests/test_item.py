@@ -236,3 +236,40 @@ def test_is_default():
     assert c.is_default
     assert d.is_default
     assert e.is_default
+
+
+def test_has_value_returns_true_if_value_or_default_is_set():
+    c = Item()
+    assert not c.has_value
+    c.value = '5'
+    assert c.has_value
+    c.reset()
+    assert not c.has_value
+
+    d = Item(default=5)
+    assert d.has_value
+    d.value = 6
+    assert d.has_value
+    d.reset()
+    assert d.has_value
+
+    e = Item(value=8)
+    assert e.has_value
+    e.value = 9
+    assert e.has_value
+    e.reset()
+    assert not e.has_value
+
+
+def test_type_is_guessed_either_from_default_or_value():
+    c = Item()
+    assert c.type is str
+
+    d = Item(default=5)
+    assert d.type is int
+
+    e = Item(value=5)
+    assert e.type is int
+
+    f = Item(default=None, value=5)
+    assert f.type is int

@@ -89,3 +89,7 @@ class LwItem(object):
     @property
     def is_default(self):
         return self._value is not_set or self._value == self.default
+
+    @property
+    def has_value(self):
+        return self.default is not not_set or self._value is not not_set
