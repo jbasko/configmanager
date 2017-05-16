@@ -2,7 +2,8 @@ from configmanager.utils import not_set
 
 
 class BaseItem(object):
-    pass
+    def added_to_section(self, alias, section):
+        pass
 
 
 def is_config_item(obj):
@@ -19,12 +20,21 @@ class BaseSection(object):
         """
         return self.cm__item_cls(*args, **kwargs)
 
+    def cm__add_item(self, alias, item):
+        raise NotImplementedError()
+
     def cm__create_section(self, *args, **kwargs):
         """
         Returns:
             config (BaseSection):
         """
         return self.__class__(*args, **kwargs)
+
+    def cm__add_section(self, alias, section):
+        raise NotImplementedError()
+
+    def added_to_section(self, alias, section):
+        pass
 
 
 def is_config_instance(obj):

@@ -22,6 +22,7 @@ class LwConfig(ConfigParserMixin, BaseSection):
 
     def __new__(cls, config_declaration=None, item_cls=None):
         instance = super(LwConfig, cls).__new__(cls)
+        instance._cm__section = None
         instance.cm__configs = collections.OrderedDict()
         if item_cls:
             instance.cm__item_cls = item_cls
@@ -38,9 +39,9 @@ class LwConfig(ConfigParserMixin, BaseSection):
 
     def __setitem__(self, name, value):
         if is_config_item(value):
-            self._cm__set_item(name, value)
+            self.cm__add_item(name, value)
         elif isinstance(value, self.__class__):
-            self._cm__set_section(name, value)
+            self.cm__add_section(name, value)
         else:
             raise TypeError(
                 'Config sections/items can only be replaced with sections/items, '
@@ -60,12 +61,12 @@ class LwConfig(ConfigParserMixin, BaseSection):
             raise AttributeError(name)
 
     def __setattr__(self, name, value):
-        if name.startswith('cm__'):
+        if name.startswith('cm__') or name.startswith('_cm__'):
             return super(LwConfig, self).__setattr__(name, value)
         elif is_config_item(value):
-            self._cm__set_item(name, value)
+            self.cm__add_item(name, value)
         elif isinstance(value, self.__class__):
-            self._cm__set_section(name, value)
+            self.cm__add_section(name, value)
         else:
             raise TypeError(
                 'Config sections/items can only be replaced with sections/items, '
@@ -75,7 +76,7 @@ class LwConfig(ConfigParserMixin, BaseSection):
                 )
             )
 
-    def _cm__set_item(self, alias, item):
+    def cm__add_item(self, alias, item):
         if not isinstance(alias, six.string_types):
             raise TypeError('Item name must be a string, got a {!r}'.format(type(alias)))
         item = copy.deepcopy(item)
@@ -85,10 +86,11 @@ class LwConfig(ConfigParserMixin, BaseSection):
         self.cm__configs[alias] = item
         item.added_to_section(alias, self)
 
-    def _cm__set_section(self, alias, section):
+    def cm__add_section(self, alias, section):
         if not isinstance(alias, six.string_types):
             raise TypeError('Section name must be a string, got a {!r}'.format(type(alias)))
         self.cm__configs[alias] = section
+        section.added_to_section(alias, self)
 
     def iter_items(self):
         """
@@ -146,3 +148,10 @@ class LwConfig(ConfigParserMixin, BaseSection):
             if not item.is_default:
                 return False
         return True
+
+    @property
+    def section(self):
+        return self._cm__section
+
+    def added_to_section(self, alias, section):
+        self._cm__section = section

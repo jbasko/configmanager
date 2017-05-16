@@ -41,12 +41,12 @@ class ConfigDeclarationParser(object):
             if k.startswith('_'):
                 continue
             elif is_config_section(v):
-                section[k] = v
+                section.cm__add_section(k, v)
             elif is_config_declaration(v):
-                section[k] = self.__call__(v, section=self.section.cm__create_section())
+                section.cm__add_section(k, self.__call__(v, section=self.section.cm__create_section()))
             elif is_config_item(v):
-                section[k] = copy.deepcopy(v)
+                section.cm__add_item(k, copy.deepcopy(v))
             else:
-                section[k] = self.section.cm__create_item(default=copy.deepcopy(v))
+                section.cm__add_item(k, self.section.cm__create_item(default=copy.deepcopy(v)))
 
         return section
