@@ -122,3 +122,58 @@ def test_to_dict_should_not_include_items_with_no_usable_value():
 
     config.b.value = 'no'
     assert config.to_dict() == {'dummies': {'x': 'yes'}, 'b': 'no'}
+
+
+def test_read_dict_recursively_loads_values_from_a_dictionary():
+    config = Config({
+        'a': {
+            'x': 0,
+            'y': True,
+            'z': 0.0,
+        },
+        'b': {
+            'c': {
+                'd': {
+                    'x': 'xxx',
+                    'y': 'yyy',
+                },
+            },
+        },
+    })
+    assert config.a.x.value == 0
+    assert config.a.y.value is True
+
+    config.read_dict({
+        'a': {'x': '5', 'y': 'no'},
+    })
+    assert config.a.x.value == 5
+    assert config.a.y.value is False
+
+    config.b.c.read_dict({
+        'e': 'haha',  # will be ignored
+        'd': {'x': 'XXX'},
+    })
+    assert config.b.c.d.x.value == 'XXX'
+    assert 'e' not in config.b.c
+
+
+def test_read_dict_as_defaults_loads_default_values_from_a_dictionary():
+    config = Config()
+
+    # both will be ignored
+    config.read_dict({
+        'a': 5,
+        'b': True,
+    })
+
+    assert 'a' not in config
+    assert 'b' not in config
+
+    # both will be added
+    config.read_dict({
+        'a': 5,
+        'b': True,
+    }, as_defaults=True)
+
+    assert config.a.value == 5
+    assert config.b.value is True

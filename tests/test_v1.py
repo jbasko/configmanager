@@ -117,6 +117,13 @@ def test_nested_config():
     assert config.db.user.value == 'root'
     assert db_config['user'] == 'admin'
 
+    # You can also change values by reading them from a dictionary.
+    # Unknown names will be ignored unless you pass as_defaults=True
+    # but in that case you will overwrite any previously existing items.
+    config.read_dict({'greeting': 'Good morning!', 'comments': {'enabled': False}})
+    assert config.greeting.value == 'Good morning!'
+    assert 'comments' not in config
+
     # You can check if config value is the default value
     assert not config.db.user.is_default
     assert config.server.port.is_default

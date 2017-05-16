@@ -152,6 +152,18 @@ class LwConfig(BaseSection):
                     values[item.name] = item.value
         return values
 
+    def read_dict(self, dictionary, as_defaults=False):
+        if as_defaults:
+            self.cm__process_config_declaration(dictionary)
+        else:
+            for name, value in dictionary.items():
+                if name not in self:
+                    continue
+                if is_config_item(self[name]):
+                    self[name].value = value
+                else:
+                    self[name].read_dict(value, as_defaults=as_defaults)
+
     def reset(self):
         for _, item in self.iter_items():
             item.reset()
