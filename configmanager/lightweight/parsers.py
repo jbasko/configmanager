@@ -1,9 +1,10 @@
-import collections
 import copy
 import inspect
 import types
 
-from .items import LwItem
+import six
+
+from configmanager.base import is_config_instance, is_config_item
 
 
 def is_config_declaration(obj):
@@ -14,51 +15,38 @@ def is_config_declaration(obj):
     )
 
 
-def is_config_instance(obj):
-    return getattr(obj, 'cm__is_config_manager', False)
+class ConfigDeclarationParser(object):
+    def __init__(self, section):
+        assert section
+        assert hasattr(section, 'cm__create_item')
+        assert hasattr(section, 'cm__create_section')
+        self.section = section
 
+    def __call__(self, config_decl, section=None):
+        if section is None:
+            section = self.section
 
-def parse_config_declaration(config_decl, item_cls=LwItem, tree_cls=collections.OrderedDict):
-    """
-    Args:
-        config_decl: 
-        tree_cls=collections.OrderedDict: change to ``dict`` in tests for comparisons because
-            the iteration over items in declaration may be unordered.
-
-    Returns:
-        config_tree (collections.OrderedDict): an instance of ``tree_cls``
-    """
-    if isinstance(config_decl, dict):
-        keys_and_values = config_decl.items()
-    elif isinstance(config_decl, types.ModuleType):
-        keys_and_values = config_decl.__dict__.items()
-    elif inspect.isclass(config_decl):
-        keys_and_values = config_decl.__dict__.items()
-    else:
-        raise TypeError('Unsupported config declaration type {!r}'.format(type(config_decl)))
-
-    config_tree = tree_cls()
-
-    for k, v in keys_and_values:
-        if k.startswith('_'):
-            continue
-        elif is_config_declaration(v):
-            config_tree[k] = parse_config_declaration(v, item_cls=item_cls, tree_cls=tree_cls)
-        elif is_config_instance(v):
-            config_tree[k] = v
+        if isinstance(config_decl, dict):
+            keys_and_values = config_decl.items()
+        elif isinstance(config_decl, types.ModuleType):
+            keys_and_values = config_decl.__dict__.items()
+        elif inspect.isclass(config_decl):
+            keys_and_values = config_decl.__dict__.items()
         else:
-            if isinstance(v, item_cls):
-                if not v.name:
-                    # We must make sure item has the right name, but we don't want to edit
-                    # someone else's instance, so we are forced to deep-copy it and it will
-                    # be done twice -- once here and once in Config._cm__set_item().
-                    item = copy.deepcopy(v)
-                    item.name = k
-                    config_tree[k] = item
-                else:
-                    config_tree[v.name] = v
-            else:
-                item = item_cls(name=k, default=copy.deepcopy(v))
-                config_tree[item.name] = item
+            raise TypeError('Unsupported config declaration type {!r}'.format(type(config_decl)))
 
-    return config_tree
+        for k, v in keys_and_values:
+            if not isinstance(k, six.string_types):
+                raise TypeError('Config section and item names must be strings, got {}: {!r}'.format(type(k), k))
+            if k.startswith('_'):
+                continue
+            elif is_config_instance(v):
+                section[k] = v
+            elif is_config_declaration(v):
+                section[k] = self.__call__(v, section=self.section.cm__create_section())
+            elif is_config_item(v):
+                section[k] = copy.deepcopy(v)
+            else:
+                section[k] = self.section.cm__create_item(default=copy.deepcopy(v))
+
+        return section

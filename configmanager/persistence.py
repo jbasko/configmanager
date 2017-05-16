@@ -73,7 +73,7 @@ class ConfigParserMixin(object):
                     if section not in self:
                         self[section] = self.__class__()
                     if option not in self[section]:
-                        self[section][option] = self.cm__item_cls(option, default=value)
+                        self[section][option] = self.cm__create_item(option, default=value)
                     else:
                         self[section][option].default = value
                 else:

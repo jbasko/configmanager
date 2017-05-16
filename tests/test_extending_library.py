@@ -2,6 +2,27 @@ from configmanager.v1 import Item, ItemAttribute, Config
 from configmanager.utils import not_set
 
 
+def test_allow_passing_item_class_to_config_on_creation():
+    class CustomItem(Item):
+        is_custom = ItemAttribute(name='is_custom', default=True)
+
+    config = Config({
+        'a': {
+            'b': 1,
+            'c': True,
+        },
+        'd': 'e',
+        'f': Item(default='this will not be converted'),
+    }, item_cls=CustomItem)
+
+    assert isinstance(config.a.b, CustomItem)
+    assert isinstance(config.d, CustomItem)
+
+    assert not isinstance(config.f, CustomItem)
+    assert config.f.value == 'this will not be converted'
+    assert isinstance(config.f, Item)
+
+
 def test_extending_item_class(monkeypatch):
     import os
 
