@@ -3,12 +3,13 @@ import pytest
 from configmanager.v1 import Config, Item
 
 
-def test_items_are_created_using_the_assigned_cm__item_cls():
+def test_items_are_created_using_cm_create_item_method():
     class CustomItem(Item):
         pass
 
     class CustomConfig(Config):
-        cm__item_cls = CustomItem
+        def cm__create_item(self, *args, **kwargs):
+            return CustomItem(*args, **kwargs)
 
     config = CustomConfig({
         'a': {'b': {'c': {'d': 1, 'e': '2', 'f': True}}},

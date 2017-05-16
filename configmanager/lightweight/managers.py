@@ -5,13 +5,14 @@ import configparser
 import copy
 import six
 
+from configmanager.base import BaseSection, is_config_item
+from configmanager.lightweight.parsers import ConfigDeclarationParser
 from configmanager.persistence import ConfigParserMixin
 from configmanager.utils import not_set
 from .items import LwItem
-from .parsers import parse_config_declaration
 
 
-class LwConfig(ConfigParserMixin, object):
+class LwConfig(ConfigParserMixin, BaseSection):
     """
     Represents a collection of config items or sections of items
     which in turn are instances of Config.
@@ -19,14 +20,15 @@ class LwConfig(ConfigParserMixin, object):
     cm__item_cls = LwItem
     cm__config_parser_factory = configparser.ConfigParser
 
-    def __new__(cls, config_declaration=None):
+    def __new__(cls, config_declaration=None, item_cls=None):
+        instance = super(LwConfig, cls).__new__(cls)
+        instance.cm__configs = collections.OrderedDict()
+        if item_cls:
+            instance.cm__item_cls = item_cls
+        instance.cm__parse_config_declaration = ConfigDeclarationParser(section=instance)
         if config_declaration:
-            return parse_config_declaration(config_declaration, item_cls=cls.cm__item_cls, tree_cls=cls)
-        else:
-            instance = super(LwConfig, cls).__new__(cls)
-            instance.cm__configs = collections.OrderedDict()
-            instance.cm__is_config_manager = True
-            return instance
+            instance.cm__parse_config_declaration(config_declaration)
+        return instance
 
     def __repr__(self):
         return '<{cls} at {id}>'.format(cls=self.__class__.__name__, id=id(self))
@@ -35,7 +37,7 @@ class LwConfig(ConfigParserMixin, object):
         return item in self.cm__configs
 
     def __setitem__(self, name, value):
-        if isinstance(value, self.cm__item_cls):
+        if is_config_item(value):
             self._cm__set_item(name, value)
         elif isinstance(value, self.__class__):
             self._cm__set_section(name, value)
@@ -60,7 +62,7 @@ class LwConfig(ConfigParserMixin, object):
     def __setattr__(self, name, value):
         if name.startswith('cm__'):
             return super(LwConfig, self).__setattr__(name, value)
-        elif isinstance(value, self.cm__item_cls):
+        elif is_config_item(value):
             self._cm__set_item(name, value)
         elif isinstance(value, self.__class__):
             self._cm__set_section(name, value)

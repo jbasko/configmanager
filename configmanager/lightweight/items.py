@@ -3,11 +3,11 @@ import copy
 import six
 
 from configmanager.exceptions import _ConfigValueMissing
-from configmanager.base import ItemAttribute
+from configmanager.base import ItemAttribute, BaseItem
 from configmanager.utils import not_set, parse_bool_str
 
 
-class LwItem(object):
+class LwItem(BaseItem):
     name = ItemAttribute('name')
     default = ItemAttribute('default')
     type = ItemAttribute('type', default=str)

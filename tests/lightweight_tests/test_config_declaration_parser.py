@@ -3,7 +3,7 @@ import types
 import pytest
 
 from configmanager.lightweight.items import LwItem
-from configmanager.lightweight.parsers import parse_config_declaration
+from configmanager.v1 import Config
 
 
 @pytest.fixture
@@ -30,7 +30,7 @@ def app_config_cls_example():
 
 
 @pytest.fixture
-def app_config_example_dict():
+def app_config_dict_example():
     return {
         'uploads': {
             'enabled': True,
@@ -96,7 +96,7 @@ def app_config_mixed_example():
 
 
 def test_class_based_config_declaration(app_config_cls_example):
-    tree = parse_config_declaration(app_config_cls_example)
+    tree = Config(app_config_cls_example)
 
     assert tree['uploads']
     assert tree['uploads']['enabled'].name == 'enabled'
@@ -116,28 +116,28 @@ def test_class_based_config_declaration(app_config_cls_example):
     assert 'enabled' not in tree
 
 
-def test_dict_based_config_declaration(app_config_example_dict, app_config_cls_example):
-    dict_tree = parse_config_declaration(app_config_example_dict, tree_cls=dict)
-    cls_tree = parse_config_declaration(app_config_cls_example, tree_cls=dict)
-    assert dict_tree == cls_tree
+def test_dict_based_config_declaration(app_config_dict_example, app_config_cls_example):
+    dict_tree = Config(app_config_dict_example)
+    cls_tree = Config(app_config_cls_example)
+    assert dict_tree.to_dict() == cls_tree.to_dict()
 
 
 def test_module_based_config_declaration(app_config_module_example, app_config_cls_example):
-    module_tree = parse_config_declaration(app_config_module_example, tree_cls=dict)
-    cls_tree = parse_config_declaration(app_config_cls_example, tree_cls=dict)
-    assert module_tree == cls_tree
+    module_tree = Config(app_config_module_example)
+    cls_tree = Config(app_config_cls_example)
+    assert module_tree.to_dict() == cls_tree.to_dict()
 
 
 def test_mixed_config_declaration(app_config_mixed_example, app_config_cls_example):
-    mixed_tree = parse_config_declaration(app_config_mixed_example, tree_cls=dict)
-    cls_tree = parse_config_declaration(app_config_cls_example, tree_cls=dict)
-    assert mixed_tree == cls_tree
+    mixed_tree = Config(app_config_mixed_example)
+    cls_tree = Config(app_config_cls_example)
+    assert mixed_tree.to_dict() == cls_tree.to_dict()
 
 
 def test_default_value_is_deep_copied():
     things = [1, 2, 3, 4]
 
-    config = parse_config_declaration({'items': things}, tree_cls=dict)
+    config = Config({'items': things})
     assert config['items'].value == [1, 2, 3, 4]
 
     things.remove(2)
