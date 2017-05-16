@@ -16,26 +16,32 @@ class LwConfig(ConfigParserMixin, BaseSection):
     """
     Represents a collection of config items or sections of items
     which in turn are instances of Config.
+    
+    Notes:
+        Members whose name starts with "cm__" are public, but should only be 
+        used to customise (extend) the behaviour of Config.
+        Members whose name starts with "_cm__" should not be accessed directly.
     """
+
     cm__item_cls = LwItem
     cm__config_parser_factory = configparser.ConfigParser
 
     def __new__(cls, config_declaration=None, item_cls=None):
         instance = super(LwConfig, cls).__new__(cls)
         instance._cm__section = None
-        instance.cm__configs = collections.OrderedDict()
+        instance._cm__configs = collections.OrderedDict()
         if item_cls:
             instance.cm__item_cls = item_cls
-        instance.cm__parse_config_declaration = ConfigDeclarationParser(section=instance)
+        instance.cm__process_config_declaration = ConfigDeclarationParser(section=instance)
         if config_declaration:
-            instance.cm__parse_config_declaration(config_declaration)
+            instance.cm__process_config_declaration(config_declaration)
         return instance
 
     def __repr__(self):
         return '<{cls} at {id}>'.format(cls=self.__class__.__name__, id=id(self))
 
     def __contains__(self, item):
-        return item in self.cm__configs
+        return item in self._cm__configs
 
     def __setitem__(self, name, value):
         if is_config_item(value):
@@ -52,11 +58,11 @@ class LwConfig(ConfigParserMixin, BaseSection):
             )
 
     def __getitem__(self, name):
-        return self.cm__configs[name]
+        return self._cm__configs[name]
 
     def __getattr__(self, name):
-        if name in self.cm__configs:
-            return self.cm__configs[name]
+        if name in self._cm__configs:
+            return self._cm__configs[name]
         else:
             raise AttributeError(name)
 
@@ -82,14 +88,14 @@ class LwConfig(ConfigParserMixin, BaseSection):
         item = copy.deepcopy(item)
         if item.name is not_set:
             item.name = alias
-        self.cm__configs[item.name] = item
-        self.cm__configs[alias] = item
+        self._cm__configs[item.name] = item
+        self._cm__configs[alias] = item
         item.added_to_section(alias, self)
 
     def cm__add_section(self, alias, section):
         if not isinstance(alias, six.string_types):
             raise TypeError('Section name must be a string, got a {!r}'.format(type(alias)))
-        self.cm__configs[alias] = section
+        self._cm__configs[alias] = section
         section.added_to_section(alias, self)
 
     def iter_items(self):
@@ -101,12 +107,12 @@ class LwConfig(ConfigParserMixin, BaseSection):
                 sections recursively.
         """
         names_yielded = set()
-        for item_name, item in self.cm__configs.items():
+        for item_name, item in self._cm__configs.items():
             if isinstance(item, self.__class__):
                 for sub_item_path, sub_item in item.iter_items():
                     yield (item_name,) + sub_item_path, sub_item
             else:
-                # cm__configs contains duplicates so that we can have multiple aliases point
+                # _cm__configs contains duplicates so that we can have multiple aliases point
                 # to the same item. We have to de-duplicate here.
                 if item.name in names_yielded:
                     continue
@@ -122,13 +128,13 @@ class LwConfig(ConfigParserMixin, BaseSection):
         Returns:
             iterator: iterator over sections of this config.
         """
-        for item_name, item in self.cm__configs.items():
+        for item_name, item in self._cm__configs.items():
             if isinstance(item, self.__class__):
                 yield item_name, item
 
     def to_dict(self, **kwargs):
         values = {}
-        for item_name, item in self.cm__configs.items():
+        for item_name, item in self._cm__configs.items():
             if isinstance(item, self.__class__):
                 section_values = item.to_dict(**kwargs)
                 if section_values:
