@@ -1,14 +1,20 @@
+import configparser
+
 import six
 
 from configmanager.utils import not_set
 
 
-class ConfigParserMixin(object):
+class ConfigParserAdapter(object):
+    def __init__(self, config, config_parser_factory=None):
+        self.config = config
+        self.config_parser_factory = config_parser_factory or configparser.ConfigParser
+
     def read(self, *args, **kwargs):
         as_defaults = kwargs.pop('as_defaults', False)
 
         used_filenames = []
-        cp = self.cm__config_parser_factory()
+        cp = self.config_parser_factory()
 
         def get_filenames():
             for arg in args:
@@ -28,12 +34,12 @@ class ConfigParserMixin(object):
         return used_filenames
 
     def read_file(self, fileobj, as_defaults=False):
-        cp = self.cm__config_parser_factory()
+        cp = self.config_parser_factory()
         cp.read_file(fileobj)
         self.load_from_config_parser(cp, as_defaults=as_defaults)
 
     def read_string(self, string, source=not_set, as_defaults=False):
-        cp = self.cm__config_parser_factory()
+        cp = self.config_parser_factory()
         if source is not not_set:
             args = (string, source)
         else:
@@ -42,7 +48,7 @@ class ConfigParserMixin(object):
         self.load_from_config_parser(cp, as_defaults=as_defaults)
 
     def read_dict(self, dictionary, source=not_set, as_defaults=False):
-        cp = self.cm__config_parser_factory()
+        cp = self.config_parser_factory()
         if source is not not_set:
             args = (dictionary, source)
         else:
@@ -50,14 +56,14 @@ class ConfigParserMixin(object):
         cp.read_dict(*args)
         self.load_from_config_parser(cp, as_defaults=as_defaults)
 
-    def write(self, fileobj_or_path):
+    def write(self, fileobj_or_path, with_defaults=False):
         """
         Write configuration to a file object or a path.
 
         This differs from ``ConfigParser.write`` in that it accepts a path too.
         """
-        cp = self.cm__config_parser_factory()
-        self.load_into_config_parser(cp)
+        cp = self.config_parser_factory()
+        self.load_into_config_parser(cp, with_defaults=with_defaults)
 
         if isinstance(fileobj_or_path, six.string_types):
             with open(fileobj_or_path, 'w') as f:
@@ -70,27 +76,27 @@ class ConfigParserMixin(object):
             for option in cp.options(section):
                 value = cp.get(section, option)
                 if as_defaults:
-                    if section not in self:
-                        self[section] = self.__class__()
-                    if option not in self[section]:
-                        self[section][option] = self.cm__create_item(option, default=value)
+                    if section not in self.config:
+                        self.config.cm__add_section(section, self.config.cm__create_section())
+                    if option not in self.config[section]:
+                        self.config[section].cm__add_item(option, self.config.cm__create_item(option, default=value))
                     else:
-                        self[section][option].default = value
+                        self.config[section][option].default = value
                 else:
-                    if section not in self:
+                    if section not in self.config:
                         continue
-                    if option not in self[section]:
+                    if option not in self.config[section]:
                         continue
-                    self[section][option].value = value
+                    self.config[section][option].value = value
 
-    def load_into_config_parser(self, cp):
-        for item_path, item in self.iter_items():
+    def load_into_config_parser(self, cp, with_defaults=False):
+        for item_path, item in self.config.iter_items():
             if len(item_path) > 2:
                 raise RuntimeError(
                     '{cls} with more than 2 path segments cannot be loaded into ConfigParser'.format(
                         cls=item.__class__.__name__,
                 ))
-            if item.is_default:
+            if not with_defaults and item.is_default:
                 continue
 
             if len(item_path) == 2:

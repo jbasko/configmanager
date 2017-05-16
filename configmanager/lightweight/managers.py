@@ -7,12 +7,12 @@ import six
 
 from configmanager.base import BaseSection, is_config_item
 from configmanager.lightweight.parsers import ConfigDeclarationParser
-from configmanager.persistence import ConfigParserMixin
+from configmanager.persistence import ConfigParserAdapter
 from configmanager.utils import not_set
 from .items import LwItem
 
 
-class LwConfig(ConfigParserMixin, BaseSection):
+class LwConfig(BaseSection):
     """
     Represents a collection of config items or sections of items
     which in turn are instances of Config.
@@ -24,17 +24,25 @@ class LwConfig(ConfigParserMixin, BaseSection):
     """
 
     cm__item_cls = LwItem
-    cm__config_parser_factory = configparser.ConfigParser
+    cm__configparser_factory = configparser.ConfigParser
 
-    def __new__(cls, config_declaration=None, item_cls=None):
+    def __new__(cls, config_declaration=None, item_cls=None, configparser_factory=None):
         instance = super(LwConfig, cls).__new__(cls)
+
         instance._cm__section = None
         instance._cm__configs = collections.OrderedDict()
+        instance._cm__configparser_adapter = None
+
         if item_cls:
             instance.cm__item_cls = item_cls
+        if configparser_factory:
+            instance.cm__configparser_factory = configparser_factory
+
         instance.cm__process_config_declaration = ConfigDeclarationParser(section=instance)
+
         if config_declaration:
             instance.cm__process_config_declaration(config_declaration)
+
         return instance
 
     def __repr__(self):
@@ -161,3 +169,16 @@ class LwConfig(ConfigParserMixin, BaseSection):
 
     def added_to_section(self, alias, section):
         self._cm__section = section
+
+    @property
+    def configparser(self):
+        """
+        Returns:
+            ConfigParserAdapter
+        """
+        if self._cm__configparser_adapter is None:
+            self._cm__configparser_adapter = ConfigParserAdapter(
+                config=self,
+                config_parser_factory=self.cm__configparser_factory,
+            )
+        return self._cm__configparser_adapter
