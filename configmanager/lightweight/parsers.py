@@ -4,7 +4,7 @@ import types
 
 import six
 
-from configmanager.base import is_config_instance, is_config_item
+from configmanager.base import is_config_item, is_config_section
 
 
 def is_config_declaration(obj):
@@ -40,7 +40,7 @@ class ConfigDeclarationParser(object):
                 raise TypeError('Config section and item names must be strings, got {}: {!r}'.format(type(k), k))
             if k.startswith('_'):
                 continue
-            elif is_config_instance(v):
+            elif is_config_section(v):
                 section[k] = v
             elif is_config_declaration(v):
                 section[k] = self.__call__(v, section=self.section.cm__create_section())
