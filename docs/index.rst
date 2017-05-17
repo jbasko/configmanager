@@ -1,52 +1,78 @@
-:tocdepth: 5
-
 configmanager
 =============
 
-Welcome to **configmanager**'s documentation.
+*Self-conscious items of configuration in Python.*
 
-**THIS IS OUT OF DATE**
+Features
+--------
 
-Install it from pypi.org:
+- Manager of configuration items when they have to be more than just key-value pairs.
+- Configuration is organised into sections which contain items and other sections.
+- Each configuration item is an object which knows and respects its type, default value, custom value,
+  the section it has been added to, whether it is required.
+- Configuration item and section classes are designed for extension: easy to implement things
+  like value override via environment variables, command-line prompt message to ask for a missing value,
+  custom type conversions, etc.
+- `ConfigParser` integration.
+- Easy to use with JSON, YAML, and any other format that can be easily converted to and from dictionaries.
 
-.. code-block:: shell
+Interface Status
+----------------
 
-   pip install configmanager
+This is being actively tested before the public interface gets finalised.
 
-And you are ready to go:
+Public methods of classes :class:`.Config` and :class:`.Item` that don't start with ``cm__`` aren't expected
+to change much.
 
-.. code-block:: python
+Quick Start
+-----------
 
-   >>> from configmanager import ConfigItem, ConfigManager
+1. Install the latest version from pypi.org ::
 
-   >>> config = ConfigManager(
-   ...    ConfigItem('standard', 'greeting', 'Hello, world!')
-   ... )
-   >>> config.read('./config.ini')
+    pip install configmanager
 
-   >>> config.standard.greeting.has_value
-   False
-   >>> config.standard.greeting.has_default
-   True
-   >>> config.standard.greeting.value
-   'Hello, world!'
+2. Import :class:`.Config`. ::
 
-   >>> config.standard.greeting.value = 'Hey!'
-   >>> config.standard.greeting.value
-   'Hey!'
-   >>> config.standard.greeting.default
-   'Hello, world!'
+    from configmanager.v1 import Config
 
-   >>> config.standard.write('./config.ini')
+3. Create your main config section and declare defaults. ::
 
+    config = Config({
+        'greeting': 'Hello, world!',
+    })
 
-.. toctree::
-   :maxdepth: 3
+4. Inspect config values. ::
 
-   guide
+    >>> config.greeting.__dict__
+    {'_default': 'Hello, world!',
+     '_name': 'greeting',
+     '_section': <Config at 4415747688>,
+     '_type': str,
+     '_value': <NotSet>}
 
+    >>> config.greeting.value
+    'Hello, world!'
 
-.. toctree::
-   :maxdepth: 3
+    >>> config.to_dict()
+    {'greeting': 'Hello, world!'}
 
-   api
+5. Change config values. ::
+
+    >>> config.greeting.value = 'Hey!'
+    >>> config.greeting.__dict__
+    {'_default': 'Hello, world!',
+     '_name': 'greeting',
+     '_section': <Config at 4415747688>,
+     '_type': str,
+     '_value': 'Hey!'}
+
+    >>> config.read_dict({'greeting': 'Good evening!'})
+    >>> config.greeting.value
+    'Good evening!'
+
+    >>> config.to_dict()
+    {'greeting': 'Good evening!'}
+
+6. Persist the configuration. ::
+
+    config.configparser.write('config.ini')

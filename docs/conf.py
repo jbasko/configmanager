@@ -97,7 +97,14 @@ html_theme_options = {
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
-html_sidebars = { '**': ['globaltoc.html', 'relations.html', 'sourcelink.html', 'searchbox.html'], }
+html_sidebars = {
+    'index': [
+    ],
+    '**': [
+        'localtoc.html',
+        'relations.html',
+    ],
+}
 
 # -- Options for HTMLHelp output ------------------------------------------
 
