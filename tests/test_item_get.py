@@ -1,7 +1,7 @@
 import pytest
 
 from configmanager.utils import not_set
-from configmanager.v1 import Item, ConfigValueMissing
+from configmanager import Item, ConfigValueMissing
 
 
 def test_get_returns_value_when_value_is_set():

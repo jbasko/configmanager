@@ -2,8 +2,8 @@ import types
 
 import pytest
 
-from configmanager.lightweight.items import LwItem
-from configmanager.v1 import Config
+from configmanager.items import Item
+from configmanager import Config
 
 
 @pytest.fixture
@@ -14,12 +14,12 @@ def app_config_cls_example():
     class UploadsConfig:
         enabled = True
         threads = 1
-        type_ = LwItem(name='type', default=None)
+        type_ = Item(name='type', default=None)
 
     class DownloadsConfig:
         content_type = 'text/plain'
         deep = DeepConfig
-        threads = LwItem(type=int)
+        threads = Item(type=int)
 
     class AppConfig:
         uploads = UploadsConfig
@@ -35,14 +35,14 @@ def app_config_dict_example():
         'uploads': {
             'enabled': True,
             'threads': 1,
-            'type_': LwItem(name='type', default=None),
+            'type_': Item(name='type', default=None),
         },
         'downloads': {
             'content_type': 'text/plain',
             'deep': {
                 'question': 'Why would you want a config this deep?',
             },
-            'threads': LwItem(type=int),
+            'threads': Item(type=int),
         },
         'greeting': 'Hello, world!',
     }
@@ -53,7 +53,7 @@ def app_config_module_example():
     uploads = types.ModuleType('uploads')
     uploads.enabled = True
     uploads.threads = 1
-    uploads.type_ = LwItem(name='type', default=None)
+    uploads.type_ = Item(name='type', default=None)
 
     downloads = types.ModuleType('downloads')
     downloads.content_type = 'text/plain'
@@ -61,7 +61,7 @@ def app_config_module_example():
     deep = types.ModuleType('deep')
     deep.question = 'Why would you want a config this deep?'
     downloads.deep = deep
-    downloads.threads = LwItem(type=int)
+    downloads.threads = Item(type=int)
 
     app_config = types.ModuleType('app_config')
     app_config.uploads = uploads
@@ -79,12 +79,12 @@ def app_config_mixed_example():
     uploads_module = types.ModuleType('uploads')
     uploads_module.enabled = True
     uploads_module.threads = 1
-    uploads_module.type_ = LwItem(name='type', default=None)
+    uploads_module.type_ = Item(name='type', default=None)
 
     downloads_dict = {
         'content_type': 'text/plain',
         'deep': DeepConfig,
-        'threads': LwItem(type=int),
+        'threads': Item(type=int),
     }
 
     class AppConfig:

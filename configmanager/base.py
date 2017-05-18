@@ -1,4 +1,4 @@
-from configmanager.utils import not_set
+from .utils import not_set
 
 
 class BaseItem(object):

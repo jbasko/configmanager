@@ -1,18 +1,17 @@
 import collections
-
 import configparser
-
 import copy
+
 import six
 
-from configmanager.base import BaseSection, is_config_item
-from configmanager.lightweight.parsers import ConfigDeclarationParser
-from configmanager.persistence import ConfigParserAdapter
-from configmanager.utils import not_set
-from .items import LwItem
+from .base import BaseSection, is_config_item
+from .items import Item
+from .parsers import ConfigDeclarationParser
+from .persistence import ConfigParserAdapter
+from .utils import not_set
 
 
-class LwConfig(BaseSection):
+class Config(BaseSection):
     """
     Represents a collection of config items or sections of items
     which in turn are instances of Config.
@@ -23,11 +22,11 @@ class LwConfig(BaseSection):
         Members whose name starts with "_cm__" should not be accessed directly.
     """
 
-    cm__item_cls = LwItem
+    cm__item_cls = Item
     cm__configparser_factory = configparser.ConfigParser
 
     def __new__(cls, config_declaration=None, item_cls=None, configparser_factory=None):
-        instance = super(LwConfig, cls).__new__(cls)
+        instance = super(Config, cls).__new__(cls)
 
         instance._cm__section = None
         instance._cm__configs = collections.OrderedDict()
@@ -76,7 +75,7 @@ class LwConfig(BaseSection):
 
     def __setattr__(self, name, value):
         if name.startswith('cm__') or name.startswith('_cm__'):
-            return super(LwConfig, self).__setattr__(name, value)
+            return super(Config, self).__setattr__(name, value)
         elif is_config_item(value):
             self.cm__add_item(name, value)
         elif isinstance(value, self.__class__):

@@ -1,6 +1,6 @@
 import pytest
 
-from configmanager.v1 import Config, Item, ConfigValueMissing
+from configmanager import Config, Item, ConfigValueMissing
 
 
 def test_simple_config():
