@@ -76,3 +76,47 @@ Quick Start
 6. Persist the configuration. ::
 
     config.configparser.write('config.ini')
+
+
+API Reference
+-------------
+
+.. module:: configmanager
+
+
+Config Object
+^^^^^^^^^^^^^
+
+.. autoclass:: Config
+   :members:
+   :inherited-members:
+
+
+Item Object
+^^^^^^^^^^^
+
+.. autoclass:: Item
+   :members:
+   :inherited-members:
+
+
+ConfigValueMissing Object
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: ConfigValueMissing
+   :members:
+
+
+ConfigParserAdapter Object
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: ConfigParserAdapter
+   :members:
+   :inherited-members:
+
+
+ItemAttribute Object
+^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: ItemAttribute
+   :members:

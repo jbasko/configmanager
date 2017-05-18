@@ -15,8 +15,11 @@ class BaseSection(object):
 
     def cm__create_item(self, *args, **kwargs):
         """
-        Returns:
-            config_item (BaseItem):
+        Internal method used to create a config item.
+        
+        Warnings:
+            Should only be called or overridden when extending *configmanager*'s functionality.
+            The name of the method may change.
         """
         return self.cm__item_cls(*args, **kwargs)
 
@@ -25,8 +28,11 @@ class BaseSection(object):
 
     def cm__create_section(self, *args, **kwargs):
         """
-        Returns:
-            config (BaseSection):
+        Internal method used to create a config section.
+        
+        Warnings:
+            Should only be called or overridden when extending *configmanager*'s functionality.
+            The name of the method may change.
         """
         return self.__class__(*args, **kwargs)
 
@@ -46,6 +52,10 @@ def is_config_section(obj):
 
 
 class ItemAttribute(object):
+    """
+    Class used in :class:`.Item` class to declare attributes of config items.
+    """
+
     def __init__(self, name, default=not_set, value=not_set):
         self.name = name
         self.default = default

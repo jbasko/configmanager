@@ -13,13 +13,33 @@ from .utils import not_set
 
 class Config(BaseSection):
     """
-    Represents a collection of config items or sections of items
-    which in turn are instances of Config.
+    Represents a section consisting of config items (instances of :class:`.Item`) and other sections
+    (instances of :class:`.Config`).
     
     Notes:
         Members whose name starts with "cm__" are public, but should only be 
         used to customise (extend) the behaviour of Config.
         Members whose name starts with "_cm__" should not be accessed directly.
+    
+    .. attribute:: Config(config_declaration=None, item_cls=None, configparser_factory=None)
+        
+        Creates a config section from a declaration, optionally specifies the class used to
+        auto-create new config items, and the class used to create ``ConfigParser`` instances
+        if needed.
+    
+    .. attribute:: <config>[name]
+    
+        Access a config item by its name.
+        
+        Returns:
+            :class:`.Item`
+    
+    .. attribute:: <config>.<name>
+    
+        Access a config item by its name.
+        
+        Returns:
+            :class:`.Item`
     """
 
     cm__item_cls = Item
@@ -89,22 +109,6 @@ class Config(BaseSection):
                 )
             )
 
-    def cm__add_item(self, alias, item):
-        if not isinstance(alias, six.string_types):
-            raise TypeError('Item name must be a string, got a {!r}'.format(type(alias)))
-        item = copy.deepcopy(item)
-        if item.name is not_set:
-            item.name = alias
-        self._cm__configs[item.name] = item
-        self._cm__configs[alias] = item
-        item.added_to_section(alias, self)
-
-    def cm__add_section(self, alias, section):
-        if not isinstance(alias, six.string_types):
-            raise TypeError('Section name must be a string, got a {!r}'.format(type(alias)))
-        self._cm__configs[alias] = section
-        section.added_to_section(alias, self)
-
     def iter_items(self):
         """
         Iterate over all items contained (recursively).
@@ -133,17 +137,27 @@ class Config(BaseSection):
         Does not recurse into sub-sections of sections.
         
         Returns:
-            iterator: iterator over sections of this config.
+            iterator: iterator over direct sub-sections of this section.
         """
         for item_name, item in self._cm__configs.items():
             if isinstance(item, self.__class__):
                 yield item_name, item
 
-    def to_dict(self, **kwargs):
+    def to_dict(self):
+        """
+        Export values of all items contained in this section to a dictionary.
+        
+        Returns:
+            dict: A dictionary of key-value pairs, where for sections values are dictionaries
+            of their contents.
+        
+        See Also:
+            :meth:`.read_dict` does the opposite.
+        """
         values = {}
         for item_name, item in self._cm__configs.items():
             if isinstance(item, self.__class__):
-                section_values = item.to_dict(**kwargs)
+                section_values = item.to_dict()
                 if section_values:
                     values[item_name] = section_values
             else:
@@ -152,6 +166,23 @@ class Config(BaseSection):
         return values
 
     def read_dict(self, dictionary, as_defaults=False):
+        """
+        Import config values from a dictionary.
+        
+        When ``as_defaults`` is set to ``True``, the values
+        imported will be set as defaults. This can be used to
+        declare the sections and items of configuration.
+        Values of sections and items in ``dictionary`` can be
+        dictionaries as well as instances of :class:`.Item` and
+        :class:`.Config`.
+        
+        Args:
+            dictionary: 
+            as_defaults: if ``True``, the imported values will be set as defaults.
+        
+        See Also:
+            :meth:`to_dict` does the opposite.
+        """
         if as_defaults:
             self.cm__process_config_declaration(dictionary)
         else:
@@ -164,11 +195,19 @@ class Config(BaseSection):
                     self[name].read_dict(value, as_defaults=as_defaults)
 
     def reset(self):
+        """
+        Recursively resets values of all items contained in this section
+        and its subsections to their default values.
+        """
         for _, item in self.iter_items():
             item.reset()
 
     @property
     def is_default(self):
+        """
+        ``True`` if values of all config items in this section and its subsections
+        have their values equal to defaults or have no value set.
+        """
         for _, item in self.iter_items():
             if not item.is_default:
                 return False
@@ -176,16 +215,33 @@ class Config(BaseSection):
 
     @property
     def section(self):
+        """
+        Returns:
+            (:class:`.Config`): section to which this section belongs or ``None`` if this
+            hasn't been added to any section.
+        """
         return self._cm__section
 
     def added_to_section(self, alias, section):
+        """
+        A hook that is called when this section is added to another.
+        This should only be called when extending functionality of :class:`.Config`.
+        
+        Args:
+            alias (str): alias with which the section as added as a sub-section to another 
+            section (:class:`.Config`): section to which this section has been added
+        """
         self._cm__section = section
 
     @property
     def configparser(self):
         """
+        Adapter which exposes some of Python standard library's ``configparser.ConfigParser``
+        (or ``ConfigParser.ConfigParser`` in Python 2) functionality
+        to read and write INI format files. 
+        
         Returns:
-            ConfigParserAdapter
+            :class:`.ConfigParserAdapter`
         """
         if self._cm__configparser_adapter is None:
             self._cm__configparser_adapter = ConfigParserAdapter(
@@ -193,3 +249,34 @@ class Config(BaseSection):
                 config_parser_factory=self.cm__configparser_factory,
             )
         return self._cm__configparser_adapter
+
+    def cm__add_item(self, alias, item):
+        """
+        Internal method used to add a config item to this section.
+        Should only be called or overridden when extending *configmanager*'s functionality.
+        
+        Warnings:
+            The name of the method may change.
+        """
+        if not isinstance(alias, six.string_types):
+            raise TypeError('Item name must be a string, got a {!r}'.format(type(alias)))
+        item = copy.deepcopy(item)
+        if item.name is not_set:
+            item.name = alias
+        self._cm__configs[item.name] = item
+        self._cm__configs[alias] = item
+        item.added_to_section(alias, self)
+
+    def cm__add_section(self, alias, section):
+        """
+        Internal method used to add a sub-section to this section.
+        
+        Should only be called or overridden when extending *configmanager*'s functionality.
+
+        Warnings:
+            The name of the method may change.
+        """
+        if not isinstance(alias, six.string_types):
+            raise TypeError('Section name must be a string, got a {!r}'.format(type(alias)))
+        self._cm__configs[alias] = section
+        section.added_to_section(alias, self)

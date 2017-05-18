@@ -8,13 +8,31 @@ from .utils import not_set, parse_bool_str
 
 
 class Item(BaseItem):
+    """
+    Represents a config item -- something that has a name, a type, a default value,
+    a user- or environment-specific (custom) value, and other attributes.
+    """
+
+    #: Name of the config item.
     name = ItemAttribute('name')
+
+    #: Default value of the config item.
     default = ItemAttribute('default')
+
+    #: Type of the config item's value, a callable. Defaults to string.
     type = ItemAttribute('type', default=str)
+
     raw_str_value = ItemAttribute('raw_str_value')
+
+    #: ``True`` if config item requires a value.
+    #: Note that if an item has a default value, marking it as ``required`` will have no effect.
     required = ItemAttribute('required', default=False)
 
     def __init__(self, name=not_set, **kwargs):
+        """
+        Creates a config item with its attributes. 
+        """
+
         self._section = None
 
         if name is not not_set:
@@ -61,6 +79,12 @@ class Item(BaseItem):
 
     @property
     def value(self):
+        """
+        The config value.
+        
+        See Also:
+            :meth:`.get(fallback=not_set)` and :meth:`.set(value)`
+        """
         return self.get()
 
     @value.setter
@@ -68,6 +92,12 @@ class Item(BaseItem):
         self.set(value)
 
     def get(self, fallback=not_set):
+        """
+        Returns config value.
+
+        See Also:
+            :meth:`.set` and :attr:`.value`
+        """
         if self.has_value:
             if self._value is not not_set:
                 return self._value
@@ -80,6 +110,12 @@ class Item(BaseItem):
         return fallback
 
     def set(self, value):
+        """
+        Sets config value.
+        
+        See Also:
+            :meth:`.get` and :attr:`.value`
+        """
         self._value = self._parse_str_value(value)
         if not issubclass(self.type, six.string_types):
             if isinstance(value, six.string_types):
@@ -96,20 +132,40 @@ class Item(BaseItem):
             return self.type(str_value)
 
     def reset(self):
+        """
+        Resets the value of config item to its default value.
+        """
         self._value = not_set
         self.raw_str_value = not_set
 
     @property
     def is_default(self):
+        """
+        ``True`` if the item's value is its default value or if no value and no default value are set.
+        """
         return self._value is not_set or self._value == self.default
 
     @property
     def has_value(self):
+        """
+        ``True`` if item has a default value or custom value set.
+        """
         return self.default is not not_set or self._value is not not_set
 
     @property
     def section(self):
+        """
+        Config section (an instance of :class:`.Config`) to which the item has been added or ``None`` if
+        it hasn't been added to a section yet.
+        """
         return self._section
 
     def added_to_section(self, alias, section):
+        """
+        Hook to be used when extending *configmanager*. This is called
+        when the item has been added to a section.
+        
+        See Also:
+            :meth:`.Config.added_to_section`
+        """
         self._section = section
