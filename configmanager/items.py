@@ -2,12 +2,12 @@ import copy
 
 import six
 
-from configmanager.exceptions import _ConfigValueMissing
+from configmanager.exceptions import ConfigValueMissing
 from configmanager.base import ItemAttribute, BaseItem
 from configmanager.utils import not_set, parse_bool_str
 
 
-class LwItem(BaseItem):
+class Item(BaseItem):
     name = ItemAttribute('name')
     default = ItemAttribute('default')
     type = ItemAttribute('type', default=str)
@@ -81,7 +81,7 @@ class LwItem(BaseItem):
         elif fallback is not not_set:
             return fallback
         elif self.required:
-            raise _ConfigValueMissing(self.name)
+            raise ConfigValueMissing(self.name)
         return fallback
 
     def _parse_str_value(self, str_value):
