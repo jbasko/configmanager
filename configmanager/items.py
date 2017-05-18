@@ -2,9 +2,9 @@ import copy
 
 import six
 
-from configmanager.exceptions import ConfigValueMissing
-from configmanager.base import ItemAttribute, BaseItem
-from configmanager.utils import not_set, parse_bool_str
+from .exceptions import ConfigValueMissing
+from .base import ItemAttribute, BaseItem
+from .utils import not_set, parse_bool_str
 
 
 class Item(BaseItem):

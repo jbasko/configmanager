@@ -1,4 +1,4 @@
-from configmanager.v1 import Config, Item
+from configmanager import Config, Item
 
 
 def test_item_knows_the_section_it_has_been_added_to():

@@ -2,7 +2,7 @@ import pytest
 import six
 
 from configmanager.utils import not_set
-from configmanager.v1 import Item, ConfigValueMissing
+from configmanager import Item, ConfigValueMissing
 
 
 def test_missing_required_value_raises_config_value_missing():

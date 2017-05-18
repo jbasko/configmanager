@@ -33,7 +33,7 @@ Quick Start
 
 2. Import :class:`.Config`. ::
 
-    from configmanager.v1 import Config
+    from configmanager import Config
 
 3. Create your main config section and declare defaults. ::
 

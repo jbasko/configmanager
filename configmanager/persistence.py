@@ -2,7 +2,7 @@ import configparser
 
 import six
 
-from configmanager.utils import not_set
+from .utils import not_set
 
 
 class ConfigParserAdapter(object):

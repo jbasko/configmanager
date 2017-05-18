@@ -4,7 +4,7 @@ import types
 
 import six
 
-from configmanager.base import is_config_item, is_config_section
+from .base import is_config_item, is_config_section
 
 
 def is_config_declaration(obj):

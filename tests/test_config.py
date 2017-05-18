@@ -1,7 +1,6 @@
 import pytest
 
 from configmanager import Config, Item
-from configmanager.v1 import Config, Item
 
 
 def test_items_are_created_using_cm_create_item_method():

@@ -1,6 +1,6 @@
 import pytest
 
-from configmanager.v1 import Config, Item
+from configmanager import Config, Item
 
 
 @pytest.fixture

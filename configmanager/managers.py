@@ -4,11 +4,11 @@ import copy
 
 import six
 
-from configmanager.base import BaseSection, is_config_item
-from configmanager.items import Item
-from configmanager.parsers import ConfigDeclarationParser
-from configmanager.persistence import ConfigParserAdapter
-from configmanager.utils import not_set
+from .base import BaseSection, is_config_item
+from .items import Item
+from .parsers import ConfigDeclarationParser
+from .persistence import ConfigParserAdapter
+from .utils import not_set
 
 
 class Config(BaseSection):

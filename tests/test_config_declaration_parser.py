@@ -3,7 +3,7 @@ import types
 import pytest
 
 from configmanager.items import Item
-from configmanager.v1 import Config
+from configmanager import Config
 
 
 @pytest.fixture

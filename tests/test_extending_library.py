@@ -1,4 +1,4 @@
-from configmanager.v1 import Item, ItemAttribute, Config
+from configmanager import Item, ItemAttribute, Config
 from configmanager.utils import not_set
 
 
