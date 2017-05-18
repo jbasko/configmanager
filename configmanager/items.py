@@ -65,12 +65,7 @@ class Item(BaseItem):
 
     @value.setter
     def value(self, value):
-        self._value = self._parse_str_value(value)
-        if not issubclass(self.type, six.string_types):
-            if isinstance(value, six.string_types):
-                self.raw_str_value = value
-            else:
-                self.raw_str_value = not_set
+        self.set(value)
 
     def get(self, fallback=not_set):
         if self.has_value:
@@ -83,6 +78,14 @@ class Item(BaseItem):
         elif self.required:
             raise ConfigValueMissing(self.name)
         return fallback
+
+    def set(self, value):
+        self._value = self._parse_str_value(value)
+        if not issubclass(self.type, six.string_types):
+            if isinstance(value, six.string_types):
+                self.raw_str_value = value
+            else:
+                self.raw_str_value = not_set
 
     def _parse_str_value(self, str_value):
         if str_value is None or str_value is not_set:

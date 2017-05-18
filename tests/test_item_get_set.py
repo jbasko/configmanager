@@ -49,3 +49,26 @@ def test_value_calls_get_so_users_can_extend_item_class_by_overriding_just_get()
 
     item.reset()
     assert item.value == 55
+
+
+def test_set_sets_value():
+    a = Item(type=int)
+    assert not a.has_value
+
+    a.set(5)
+    assert a.has_value
+    assert a.value == 5
+
+    b = Item(default=55)
+    b.set(5)
+    assert b.value == 5
+
+
+def test_value_setting_calls_set_so_users_can_extend_item_class_by_overriding_just_set():
+    class CustomItem(Item):
+        def set(self, value):
+            super(CustomItem, self).set(value * 2)
+
+    item = CustomItem(value=0)
+    item.value = 3
+    assert item.value == 6
