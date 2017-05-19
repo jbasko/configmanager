@@ -11,10 +11,9 @@ Interface Status
 ----------------
 
 This is being actively tested before the public interface gets finalised.
-
 Any code reviewers welcome!
 
-Public methods of classes :class:`.Config` and :class:`.Item` that don't start with ``cm__`` aren't expected
+Public methods of ``Config`` and ``Item`` classes that don't start with ``cm__`` aren't expected
 to change.
 
 
@@ -84,10 +83,10 @@ More documentation at http://pythonhosted.org/configmanager
     {}
 
     >>> config.uploads.read_dict({'threads': '2'})
-    >>> config.uploads.to_dict()
+    >>> config.uploads.to_dict(with_defaults=False)
     {'threads': 2}
 
-    >>> config.to_dict()
+    >>> config.to_dict(with_defaults=False)
     {
         'uploads': {
             'threads': 2
