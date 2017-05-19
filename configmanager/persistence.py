@@ -1,4 +1,5 @@
 import configparser
+import json
 
 import six
 
@@ -108,3 +109,26 @@ class ConfigParserAdapter(object):
             if not cp.has_section(section):
                 cp.add_section(section)
             cp.set(section, option, str(item))
+
+
+class JsonAdapter(object):
+    def __init__(self, config):
+        self._config = config
+
+    def read(self, source, as_defaults=False):
+        if isinstance(source, six.string_types):
+            with open(source) as f:
+                self._config.read_dict(json.load(f), as_defaults=as_defaults)
+        elif isinstance(source, (list, tuple)):
+            for s in source:
+                with open(s) as f:
+                    self._config.read_dict(json.load(f), as_defaults=as_defaults)
+        else:
+            self._config.read_dict(json.load(source), as_defaults=as_defaults)
+
+    def write(self, destination, with_defaults=True):
+        if isinstance(destination, six.string_types):
+            with open(destination, 'w') as f:
+                json.dump(self._config.to_dict(with_defaults=with_defaults), f)
+        else:
+            json.dump(self._config.to_dict(with_defaults=with_defaults), destination)

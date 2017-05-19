@@ -3,26 +3,22 @@ configmanager
 
 *Self-conscious items of configuration in Python.*
 
+Project lives on github: https://github.com/jbasko/configmanager
+
 Features
 --------
 
 - Manager of configuration items when they have to be more than just key-value pairs.
 - Configuration is organised into sections which contain items and other sections.
-- Each configuration item is an object which knows and respects its type, default value, custom value,
+- Every configuration item is an object which knows its type, default value, custom value,
   the section it has been added to, whether it is required.
 - Configuration item and section classes are designed for extension: easy to implement things
   like value override via environment variables, command-line prompt message to ask for a missing value,
   custom type conversions, etc.
-- `ConfigParser` integration.
-- Easy to use with JSON, YAML, and any other format that can be easily converted to and from dictionaries.
+- INI format file support through `ConfigParser` integration
+- JSON format file support
+- Easy to add YAML and any other dictionary-like format support
 
-Interface Status
-----------------
-
-This is being actively tested before the public interface gets finalised.
-
-Public methods of classes :class:`.Config` and :class:`.Item` that don't start with ``cm__`` aren't expected
-to change much.
 
 Quick Start
 -----------

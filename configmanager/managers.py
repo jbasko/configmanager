@@ -7,7 +7,7 @@ import six
 from .base import BaseSection, is_config_item
 from .items import Item
 from .parsers import ConfigDeclarationParser
-from .persistence import ConfigParserAdapter
+from .persistence import ConfigParserAdapter, JsonAdapter
 from .utils import not_set
 
 
@@ -51,6 +51,7 @@ class Config(BaseSection):
         instance._cm__section = None
         instance._cm__configs = collections.OrderedDict()
         instance._cm__configparser_adapter = None
+        instance._cm__json_adapter = None
 
         if item_cls:
             instance.cm__item_cls = item_cls
@@ -143,7 +144,7 @@ class Config(BaseSection):
             if isinstance(item, self.__class__):
                 yield item_name, item
 
-    def to_dict(self):
+    def to_dict(self, with_defaults=True):
         """
         Export values of all items contained in this section to a dictionary.
         
@@ -157,12 +158,13 @@ class Config(BaseSection):
         values = {}
         for item_name, item in self._cm__configs.items():
             if isinstance(item, self.__class__):
-                section_values = item.to_dict()
+                section_values = item.to_dict(with_defaults=with_defaults)
                 if section_values:
                     values[item_name] = section_values
             else:
                 if item.has_value:
-                    values[item.name] = item.value
+                    if with_defaults or not item.is_default:
+                        values[item.name] = item.value
         return values
 
     def read_dict(self, dictionary, as_defaults=False):
@@ -249,6 +251,17 @@ class Config(BaseSection):
                 config_parser_factory=self.cm__configparser_factory,
             )
         return self._cm__configparser_adapter
+
+    @property
+    def json(self):
+        """
+        Persistence adapter for writing to and reading from JSON files.
+        """
+        if self._cm__json_adapter is None:
+            self._cm__json_adapter = JsonAdapter(
+                config=self,
+            )
+        return self._cm__json_adapter
 
     def cm__add_item(self, alias, item):
         """

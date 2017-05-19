@@ -7,6 +7,17 @@ configmanager
     :target: https://travis-ci.org/jbasko/configmanager
 
 
+Interface Status
+----------------
+
+This is being actively tested before the public interface gets finalised.
+
+Any code reviewers welcome!
+
+Public methods of classes :class:`.Config` and :class:`.Item` that don't start with ``cm__`` aren't expected
+to change.
+
+
 Features
 --------
 
@@ -17,8 +28,9 @@ Features
 - Configuration item and section classes are designed for extension: easy to implement things
   like value override via environment variables, command-line prompt message to ask for a missing value,
   custom type conversions, etc.
-- `ConfigParser` integration.
-- Easy to use with JSON, YAML, and any other format that can be easily converted to and from dictionaries.
+- INI format file support through `ConfigParser` integration
+- JSON format file support
+- Easy to add YAML and any other dictionary-like format support
 
 
 Quick Tour
