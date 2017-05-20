@@ -103,10 +103,10 @@ ConfigValueMissing Object
    :members:
 
 
-ConfigParserAdapter Object
+ConfigParserReaderWriter Object
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. autoclass:: ConfigParserAdapter
+.. autoclass:: ConfigParserReaderWriter
    :members:
    :inherited-members:
 

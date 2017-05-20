@@ -6,37 +6,36 @@ import six
 from .utils import not_set
 
 
-class ConfigParserAdapter(object):
-    def __init__(self, config, config_parser_factory=None):
+class ConfigReaderWriter(object):
+    def __init__(self, config):
         self.config = config
+
+    def write(self, destination, with_defaults=False):
+        raise NotImplementedError()
+
+    def read(self, source, as_defaults=False):
+        raise NotImplementedError()
+
+    def write_string(self, with_defaults=False):
+        raise NotImplementedError()
+
+    def read_string(self, config_str, as_defaults=False):
+        raise NotImplementedError()
+
+
+class ConfigParserReaderWriter(ConfigReaderWriter):
+    def __init__(self, config, config_parser_factory=None):
+        super(ConfigParserReaderWriter, self).__init__(config)
         self.config_parser_factory = config_parser_factory or configparser.ConfigParser
 
-    def read(self, *args, **kwargs):
-        as_defaults = kwargs.pop('as_defaults', False)
-
-        used_filenames = []
+    def read(self, source, as_defaults=False):
         cp = self.config_parser_factory()
-
-        def get_filenames():
-            for arg in args:
-                if isinstance(arg, six.string_types):
-                    yield arg
-                else:
-                    for filename in arg:
-                        yield filename
-
-        # Do it one file after another so that we can tell which file contains invalid configuration
-        for filename in get_filenames():
-            result = cp.read(filename, **kwargs)
-            if result:
-                self.load_from_config_parser(cp, as_defaults=as_defaults)
-                used_filenames.append(filename)
-
-        return used_filenames
-
-    def read_file(self, fileobj, as_defaults=False):
-        cp = self.config_parser_factory()
-        cp.read_file(fileobj)
+        if isinstance(source, six.string_types):
+            cp.read(source)
+        elif isinstance(source, (list, tuple)):
+            cp.read(source)
+        else:
+            cp.read_file(source)
         self.load_from_config_parser(cp, as_defaults=as_defaults)
 
     def read_string(self, string, source=not_set, as_defaults=False):
@@ -48,16 +47,7 @@ class ConfigParserAdapter(object):
         cp.read_string(*args)
         self.load_from_config_parser(cp, as_defaults=as_defaults)
 
-    def read_dict(self, dictionary, source=not_set, as_defaults=False):
-        cp = self.config_parser_factory()
-        if source is not not_set:
-            args = (dictionary, source)
-        else:
-            args = (dictionary,)
-        cp.read_dict(*args)
-        self.load_from_config_parser(cp, as_defaults=as_defaults)
-
-    def write(self, fileobj_or_path, with_defaults=False):
+    def write(self, destination, with_defaults=False):
         """
         Write configuration to a file object or a path.
 
@@ -66,11 +56,17 @@ class ConfigParserAdapter(object):
         cp = self.config_parser_factory()
         self.load_into_config_parser(cp, with_defaults=with_defaults)
 
-        if isinstance(fileobj_or_path, six.string_types):
-            with open(fileobj_or_path, 'w') as f:
+        if isinstance(destination, six.string_types):
+            with open(destination, 'w') as f:
                 cp.write(f)
         else:
-            cp.write(fileobj_or_path)
+            cp.write(destination)
+
+    def write_string(self, with_defaults=False):
+        from io import StringIO
+        f = StringIO()
+        self.write(f, with_defaults=with_defaults)
+        return f.getvalue()
 
     def load_from_config_parser(self, cp, as_defaults=False):
         for section in cp.sections():
@@ -111,24 +107,27 @@ class ConfigParserAdapter(object):
             cp.set(section, option, str(item))
 
 
-class JsonAdapter(object):
-    def __init__(self, config):
-        self._config = config
-
+class JsonReaderWriter(ConfigReaderWriter):
     def read(self, source, as_defaults=False):
         if isinstance(source, six.string_types):
             with open(source) as f:
-                self._config.read_dict(json.load(f), as_defaults=as_defaults)
+                self.config.read_dict(json.load(f), as_defaults=as_defaults)
         elif isinstance(source, (list, tuple)):
             for s in source:
                 with open(s) as f:
-                    self._config.read_dict(json.load(f), as_defaults=as_defaults)
+                    self.config.read_dict(json.load(f), as_defaults=as_defaults)
         else:
-            self._config.read_dict(json.load(source), as_defaults=as_defaults)
+            self.config.read_dict(json.load(source), as_defaults=as_defaults)
 
     def write(self, destination, with_defaults=False):
         if isinstance(destination, six.string_types):
             with open(destination, 'w') as f:
-                json.dump(self._config.to_dict(with_defaults=with_defaults), f)
+                json.dump(self.config.to_dict(with_defaults=with_defaults), f)
         else:
-            json.dump(self._config.to_dict(with_defaults=with_defaults), destination)
+            json.dump(self.config.to_dict(with_defaults=with_defaults), destination)
+
+    def read_string(self, config_str, as_defaults=False):
+        self.config.read_dict(json.loads(config_str), as_defaults=as_defaults)
+
+    def write_string(self, with_defaults=False):
+        return json.dumps(self.config.to_dict(with_defaults=with_defaults))

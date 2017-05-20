@@ -7,7 +7,7 @@ import six
 from .base import BaseSection, is_config_item
 from .items import Item
 from .parsers import ConfigDeclarationParser
-from .persistence import ConfigParserAdapter, JsonAdapter
+from .persistence import ConfigParserReaderWriter, JsonReaderWriter
 from .utils import not_set
 
 
@@ -296,10 +296,10 @@ class Config(BaseSection):
         to read and write INI format files. 
         
         Returns:
-            :class:`.ConfigParserAdapter`
+            :class:`.ConfigParserReaderWriter`
         """
         if self._cm__configparser_adapter is None:
-            self._cm__configparser_adapter = ConfigParserAdapter(
+            self._cm__configparser_adapter = ConfigParserReaderWriter(
                 config=self,
                 config_parser_factory=self.cm__configparser_factory,
             )
@@ -311,7 +311,7 @@ class Config(BaseSection):
         Persistence adapter for writing to and reading from JSON files.
         """
         if self._cm__json_adapter is None:
-            self._cm__json_adapter = JsonAdapter(
+            self._cm__json_adapter = JsonReaderWriter(
                 config=self,
             )
         return self._cm__json_adapter
