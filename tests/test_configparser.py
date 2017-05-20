@@ -41,7 +41,7 @@ def simple_config_file(tmpdir):
 
 def test_reads_empty_config_from_file_obj(simple_config, empty_config_file):
     with open(empty_config_file) as f:
-        simple_config.configparser.read_file(f)
+        simple_config.configparser.read(f)
 
     assert simple_config.to_dict() == {
         'simple': {
@@ -57,7 +57,7 @@ def test_reads_empty_config_from_file_obj(simple_config, empty_config_file):
 
 def test_reads_simple_config_from_file_obj(simple_config, simple_config_file):
     with open(simple_config_file) as f:
-        simple_config.configparser.read_file(f)
+        simple_config.configparser.read(f)
 
     assert simple_config.to_dict() == {
         'simple': {
@@ -108,7 +108,7 @@ def test_preserves_bool_notation(tmpdir):
         f.write('[flags]\nenabled = Yes\n\n')
 
     with open(config_path) as f:
-        m.configparser.read_file(f)
+        m.configparser.read(f)
 
     assert m.flags.enabled.value is True
 
@@ -190,12 +190,9 @@ def test_read_reads_multiple_files_in_order(tmpdir):
     assert m.b.m.raw_str_value == 'YES'
     assert m.b.n.value == 42
 
-    # Make sure multiple paths supported in non-list syntax.
-    m.reset()
-    m.configparser.read(path3, path2, path1)
-
-    assert m.a.x.value == 0.33
-    assert m.b.m.value is True
+    # Make sure multiple paths not supported in non-list syntax.
+    with pytest.raises(TypeError):
+        m.configparser.read(path3, path2, path1)
 
 
 def test_read_string():
@@ -211,27 +208,6 @@ def test_read_string():
     m.configparser.read_string(u'[a]\nx = haha\ny = yaya\n')
     assert m.a.x.value == 'haha'
     assert m.a.y.value == 'yaya'
-
-
-def test_read_dict():
-    m = Config({
-        'a': {
-            'x': Item(), 'y': Item(),
-        },
-        'b': {
-            'm': Item(), 'n': Item(),
-        },
-    })
-
-    m.configparser.read_dict({
-        'a': {'x': 'xoxo', 'y': 'yaya'},
-        'b': {'m': 'mama', 'n': 'nono'},
-    })
-
-    assert m.to_dict() == {
-        'a': {'x': 'xoxo', 'y': 'yaya'},
-        'b': {'m': 'mama', 'n': 'nono'},
-    }
 
 
 def test_read_as_defaults_treats_all_values_as_declarations(tmpdir):
@@ -281,3 +257,9 @@ def test_write_with_defaults_writes_defaults_too(tmpdir):
     assert n.a.b.value == '1'  # it is a string because n has no idea about types
     assert n.a.e.value == 'True'  # same
     assert n.a.c.value == 'd'
+
+
+def test_write_string_returns_valid_configparser_string():
+    config = Config({'db': {'user': 'root'}})
+    assert config.configparser.write_string() == ''
+    assert config.configparser.write_string(with_defaults=True) == '[db]\nuser = root\n\n'

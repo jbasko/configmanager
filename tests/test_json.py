@@ -112,3 +112,18 @@ def test_json_writes_with_defaults_false_by_default(user_json_path):
 
     d.json.read(user_json_path, as_defaults=True)
     assert d.greeting.value == 'Hey!'
+
+
+def test_json_reads_and_writes_strings():
+    c = Config({'greeting': 'Hello'})
+    assert c.json.write_string() == '{}'
+    assert c.json.write_string(with_defaults=True) == '{"greeting": "Hello"}'
+
+    c.json.read_string('{"something_nonexistent": 1}')
+    assert c.to_dict() == {'greeting': 'Hello'}
+
+    c.json.read_string('{"something_nonexistent": 1}', as_defaults=True)
+    assert c.to_dict() == {'greeting': 'Hello', 'something_nonexistent': 1}
+
+    c.json.read_string('{"greeting": "Hello, world!"}')
+    assert c.to_dict() == {'greeting': 'Hello, world!', 'something_nonexistent': 1}
