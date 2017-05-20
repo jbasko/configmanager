@@ -104,7 +104,7 @@ def test_nested_config():
         'greeting': 'Hello',  # and you can have plain config items next to sections
     })
 
-    # You can read values
+    # You can load values
     assert config.client.timeout.value == 10
     assert config.greeting.value == 'Hello'
 
@@ -175,8 +175,13 @@ def test_exceptions():
 
 
 def test_configparser_integration(tmpdir):
-    defaults_ini_path = tmpdir.join('defaults.ini').strpath
-    custom_ini_path = tmpdir.join('custom.ini').strpath
+    defaults_ini = tmpdir.join('defaults.ini')
+    defaults_ini.write('')
+    defaults_ini_path = defaults_ini.strpath
+
+    custom_ini = tmpdir.join('custom.ini')
+    custom_ini.write('')
+    custom_ini_path = custom_ini.strpath
 
     # Config sections expose ConfigParser adapter as configparser property:
     config = Config()
@@ -184,16 +189,16 @@ def test_configparser_integration(tmpdir):
     # assuming that defaults.ini exists, this would initialise Config
     # with all values mentioned in defaults.ini set as defaults.
     # Just like with ConfigParser, this won't fail if the file does not exist.
-    config.configparser.read(defaults_ini_path, as_defaults=True)
+    config.configparser.load(defaults_ini_path, as_defaults=True)
 
     # if you have already declared defaults, you can load custom
     # configuration without specifying as_defaults=True:
-    config.configparser.read(custom_ini_path)
+    config.configparser.load(custom_ini_path)
 
-    # other ConfigParser-like methods such as read_dict, read_string, read_file are provided too.
-    # when you are done setting config values, you can write them to file too.
-    config.configparser.write(custom_ini_path)
+    # other ConfigParser-like methods such as read_dict, loads, read_file are provided too.
+    # when you are done setting config values, you can dump them to file too.
+    config.configparser.dump(custom_ini_path)
 
     # Note that default values won't be written unless you explicitly request it
     # by passing with_defaults=True
-    config.configparser.write(custom_ini_path, with_defaults=True)
+    config.configparser.dump(custom_ini_path, with_defaults=True)

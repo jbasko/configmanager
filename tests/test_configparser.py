@@ -41,7 +41,7 @@ def simple_config_file(tmpdir):
 
 def test_reads_empty_config_from_file_obj(simple_config, empty_config_file):
     with open(empty_config_file) as f:
-        simple_config.configparser.read(f)
+        simple_config.configparser.load(f)
 
     assert simple_config.to_dict() == {
         'simple': {
@@ -57,7 +57,7 @@ def test_reads_empty_config_from_file_obj(simple_config, empty_config_file):
 
 def test_reads_simple_config_from_file_obj(simple_config, simple_config_file):
     with open(simple_config_file) as f:
-        simple_config.configparser.read(f)
+        simple_config.configparser.load(f)
 
     assert simple_config.to_dict() == {
         'simple': {
@@ -79,7 +79,7 @@ def test_writes_config_to_file(tmpdir):
     })
     config_path = tmpdir.join('config1.ini').strpath
     with open(config_path, 'w') as f:
-        m.configparser.write(f)
+        m.configparser.dump(f)
 
     # default value shouldn't be written
     with open(config_path) as f:
@@ -88,7 +88,7 @@ def test_writes_config_to_file(tmpdir):
     m['random']['name'].value = 'Harry'
 
     with open(config_path, 'w') as f:
-        m.configparser.write(f)
+        m.configparser.dump(f)
 
     with open(config_path) as f:
         assert f.read() == '[random]\nname = Harry\n\n'
@@ -108,12 +108,12 @@ def test_preserves_bool_notation(tmpdir):
         f.write('[flags]\nenabled = Yes\n\n')
 
     with open(config_path) as f:
-        m.configparser.read(f)
+        m.configparser.load(f)
 
     assert m.flags.enabled.value is True
 
     with open(config_path, 'w') as f:
-        m.configparser.write(f)
+        m.configparser.dump(f)
 
     with open(config_path) as f:
         assert f.read() == '[flags]\nenabled = Yes\n\n'
@@ -131,7 +131,7 @@ def test_configparser_writer_does_not_accept_three_deep_paths(tmpdir):
 
     with pytest.raises(RuntimeError):
         with open(config_path, 'w') as f:
-            m.configparser.write(f)
+            m.configparser.dump(f)
 
 
 def test_read_reads_multiple_files_in_order(tmpdir):
@@ -151,29 +151,29 @@ def test_read_reads_multiple_files_in_order(tmpdir):
     path3 = tmpdir.join('config3.ini').strpath
 
     # Empty file
-    m.configparser.write(path1)
+    m.configparser.dump(path1)
 
-    # Can read from one empty file
-    m.configparser.read(path1)
+    # Can load from one empty file
+    m.configparser.load(path1)
     assert m.is_default
 
     m.a.x.value = 0.33
     m.b.n.value = 42
-    m.configparser.write(path2)
+    m.configparser.dump(path2)
 
-    # Can read from one non-empty file
+    # Can load from one non-empty file
     m.reset()
-    m.configparser.read(path2)
+    m.configparser.load(path2)
     assert not m.is_default
     assert m.a.x.value == 0.33
 
     m.reset()
     m.a.x.value = 0.66
     m.b.m.value = 'YES'
-    m.configparser.write(path3)
+    m.configparser.dump(path3)
 
     m.reset()
-    m.configparser.read([path1, path2, path3])
+    m.configparser.load([path1, path2, path3])
 
     assert m.a.x.value == 0.66
     assert m.a.y.is_default
@@ -182,7 +182,7 @@ def test_read_reads_multiple_files_in_order(tmpdir):
     assert m.b.n.value == 42
 
     m.reset()
-    m.configparser.read([path3, path2, path1])
+    m.configparser.load([path3, path2, path1])
 
     assert m.a.x.value == 0.33  # this is the only difference with the above order
     assert m.a.y.is_default
@@ -192,7 +192,7 @@ def test_read_reads_multiple_files_in_order(tmpdir):
 
     # Make sure multiple paths not supported in non-list syntax.
     with pytest.raises(TypeError):
-        m.configparser.read(path3, path2, path1)
+        m.configparser.load(path3, path2, path1)
 
 
 def test_read_string():
@@ -205,7 +205,7 @@ def test_read_string():
         },
     })
 
-    m.configparser.read_string(u'[a]\nx = haha\ny = yaya\n')
+    m.configparser.loads(u'[a]\nx = haha\ny = yaya\n')
     assert m.a.x.value == 'haha'
     assert m.a.y.value == 'yaya'
 
@@ -217,7 +217,7 @@ def test_read_as_defaults_treats_all_values_as_declarations(tmpdir):
         f.write('[messages]\ngreeting = Hello, home!\n')
 
     m = Config()
-    m.configparser.read(path, as_defaults=True)
+    m.configparser.load(path, as_defaults=True)
 
     assert m.uploads
     assert m.uploads.threads.value == '5'
@@ -228,12 +228,12 @@ def test_read_as_defaults_treats_all_values_as_declarations(tmpdir):
 
     # Reading again with as_defaults=True should not change the values, only the defaults
     m.uploads.threads.value = '55'
-    m.configparser.read(path, as_defaults=True)
+    m.configparser.load(path, as_defaults=True)
     assert m.uploads.threads.value == '55'
     assert m.uploads.threads.default == '5'
 
     # But reading with as_defaults=False should change the value
-    m.configparser.read(path)
+    m.configparser.load(path)
     assert m.uploads.threads.value == '5'
     assert m.uploads.threads.default == '5'
 
@@ -243,16 +243,16 @@ def test_write_with_defaults_writes_defaults_too(tmpdir):
 
     m = Config({'a': {'b': 1, 'c': 'd', 'e': True}})
 
-    m.configparser.write(path)
+    m.configparser.dump(path)
     with open(path, 'r') as f:
         assert len(f.read()) == 0
 
-    m.configparser.write(path, with_defaults=True)
+    m.configparser.dump(path, with_defaults=True)
     with open(path, 'r') as f:
         assert len(f.read()) > 0
 
     n = Config()
-    n.configparser.read(path, as_defaults=True)
+    n.configparser.load(path, as_defaults=True)
 
     assert n.a.b.value == '1'  # it is a string because n has no idea about types
     assert n.a.e.value == 'True'  # same
@@ -261,5 +261,5 @@ def test_write_with_defaults_writes_defaults_too(tmpdir):
 
 def test_write_string_returns_valid_configparser_string():
     config = Config({'db': {'user': 'root'}})
-    assert config.configparser.write_string() == ''
-    assert config.configparser.write_string(with_defaults=True) == '[db]\nuser = root\n\n'
+    assert config.configparser.dumps() == ''
+    assert config.configparser.dumps(with_defaults=True) == '[db]\nuser = root\n\n'
