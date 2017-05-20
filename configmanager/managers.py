@@ -68,10 +68,41 @@ class Config(BaseSection):
     def __repr__(self):
         return '<{cls} at {id}>'.format(cls=self.__class__.__name__, id=id(self))
 
-    def __contains__(self, item):
-        return item in self._cm__configs
+    def _resolve_config_key(self, key):
+        if isinstance(key, six.string_types):
+            return self._cm__configs[key]
+        elif isinstance(key, (tuple, list)) and len(key) > 0:
+            if len(key) == 1:
+                return self[key[0]]
+            else:
+                return self[key[0]][key[1:]]
+        else:
+            raise TypeError('Expected either a string or a tuple as key, got {!r}'.format(key))
 
-    def __setitem__(self, name, value):
+    def __contains__(self, key):
+        try:
+            _ = self._resolve_config_key(key)
+            return True
+        except KeyError:
+            return False
+
+    def __setitem__(self, key, value):
+        if isinstance(key, six.string_types):
+            name = key
+            rest = None
+        elif isinstance(key, (tuple, list)) and len(key) > 0:
+            name = key[0]
+            if len(key) == 1:
+                rest = None
+            else:
+                rest = key[1:]
+        else:
+            raise TypeError('Expected either a string or a tuple as key, got {!r}'.format(key))
+
+        if rest:
+            self[name][rest] = value
+            return
+
         if is_config_item(value):
             self.cm__add_item(name, value)
         elif isinstance(value, self.__class__):
@@ -85,8 +116,8 @@ class Config(BaseSection):
                 )
             )
 
-    def __getitem__(self, name):
-        return self._cm__configs[name]
+    def __getitem__(self, key):
+        return self._resolve_config_key(key)
 
     def __getattr__(self, name):
         if name in self._cm__configs:
