@@ -110,6 +110,15 @@ class Config(BaseSection):
                 )
             )
 
+    def __len__(self):
+        return sum(1 for _ in self.iter_items())
+
+    def __nonzero__(self):
+        return True
+
+    def __bool__(self):
+        return True
+
     def iter_items(self):
         """
         Iterate over all items contained (recursively).

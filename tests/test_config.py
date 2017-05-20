@@ -380,3 +380,17 @@ def test_can_have_a_dict_as_a_config_value_if_wrapped_inside_item():
     config.aws.value['secret_key'] = 'NEW_SECRET'
 
     assert config.to_dict()['aws'] == {'access_key': '123', 'secret_key': 'secret'}
+
+
+def test_len_of_config_returns_number_of_items_in_it():
+    assert len(Config()) == 0
+
+    assert len(Config({'enabled': True})) == 1
+
+    assert len(Config({'uploads': Config()})) == 0
+    assert len(Config({'uploads': {}})) == 0
+
+    assert len(Config({'uploads': {'enabled': False}})) == 1
+    assert len(Config({'uploads': {'enabled': False, 'threads': 1}})) == 2
+
+    assert len(Config({'uploads': {'enabled': False, 'threads': 0}, 'greeting': 'Hi'})) == 3

@@ -2,6 +2,7 @@ six
 configparser
 
 pytest
+pytest-random-order
 coverage
 tox
 
