@@ -49,6 +49,7 @@ class Config(BaseSection):
         instance = super(Config, cls).__new__(cls)
 
         instance._cm__section = None
+        instance._cm__section_alias = None
         instance._cm__configs = collections.OrderedDict()
         instance._cm__configparser_adapter = None
         instance._cm__json_adapter = None
@@ -264,6 +265,17 @@ class Config(BaseSection):
         """
         return self._cm__section
 
+    @property
+    def alias(self):
+        """
+        Returns alias with which this section was added to another or ``None`` if it hasn't been added
+        to any.
+        
+        Returns:
+            (str)
+        """
+        return self._cm__section_alias
+
     def added_to_section(self, alias, section):
         """
         A hook that is called when this section is added to another.
@@ -274,6 +286,7 @@ class Config(BaseSection):
             section (:class:`.Config`): section to which this section has been added
         """
         self._cm__section = section
+        self._cm__section_alias = alias
 
     @property
     def configparser(self):

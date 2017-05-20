@@ -430,3 +430,15 @@ def test_can_use__setitem__to_create_new_deep_paths():
 
     config['uploads', 'db'] = Config({'user': 'root'})
     assert config.uploads.db
+
+
+def test_section_knows_its_alias():
+    config = Config()
+    config.uploads = Config({
+        'enabled': True
+    })
+    assert config.uploads.alias == 'uploads'
+
+    config.uploads.db = Config({'connection': {'user': 'root'}})
+    assert config.uploads.db.alias == 'db'
+    assert config.uploads.db.connection.alias == 'connection'
