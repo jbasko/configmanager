@@ -91,3 +91,24 @@ def test_json_read_and_write(defaults_json_path, user_json_path):
     c1.json.read(user_json_path)
 
     assert c1.to_dict() == c2.to_dict() == c3.to_dict()
+
+
+def test_json_writes_with_defaults_false_by_default(user_json_path):
+    c = Config({'greeting': 'Hello'})
+    c.json.write(user_json_path)
+
+    d = Config()
+    d.json.read(user_json_path, as_defaults=True)
+    assert len(d) == 0
+
+    c.json.write(user_json_path, with_defaults=True)
+
+    d.json.read(user_json_path, as_defaults=True)
+    assert len(d) == 1
+    assert d.greeting.value == 'Hello'
+
+    c.greeting.value = 'Hey!'
+    c.json.write(user_json_path)
+
+    d.json.read(user_json_path, as_defaults=True)
+    assert d.greeting.value == 'Hey!'

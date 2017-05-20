@@ -126,7 +126,7 @@ class JsonAdapter(object):
         else:
             self._config.read_dict(json.load(source), as_defaults=as_defaults)
 
-    def write(self, destination, with_defaults=True):
+    def write(self, destination, with_defaults=False):
         if isinstance(destination, six.string_types):
             with open(destination, 'w') as f:
                 json.dump(self._config.to_dict(with_defaults=with_defaults), f)

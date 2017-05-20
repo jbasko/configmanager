@@ -49,6 +49,7 @@ class Config(BaseSection):
         instance = super(Config, cls).__new__(cls)
 
         instance._cm__section = None
+        instance._cm__section_alias = None
         instance._cm__configs = collections.OrderedDict()
         instance._cm__configparser_adapter = None
         instance._cm__json_adapter = None
@@ -68,10 +69,41 @@ class Config(BaseSection):
     def __repr__(self):
         return '<{cls} at {id}>'.format(cls=self.__class__.__name__, id=id(self))
 
-    def __contains__(self, item):
-        return item in self._cm__configs
+    def _resolve_config_key(self, key):
+        if isinstance(key, six.string_types):
+            return self._cm__configs[key]
+        elif isinstance(key, (tuple, list)) and len(key) > 0:
+            if len(key) == 1:
+                return self[key[0]]
+            else:
+                return self[key[0]][key[1:]]
+        else:
+            raise TypeError('Expected either a string or a tuple as key, got {!r}'.format(key))
 
-    def __setitem__(self, name, value):
+    def __contains__(self, key):
+        try:
+            _ = self._resolve_config_key(key)
+            return True
+        except KeyError:
+            return False
+
+    def __setitem__(self, key, value):
+        if isinstance(key, six.string_types):
+            name = key
+            rest = None
+        elif isinstance(key, (tuple, list)) and len(key) > 0:
+            name = key[0]
+            if len(key) == 1:
+                rest = None
+            else:
+                rest = key[1:]
+        else:
+            raise TypeError('Expected either a string or a tuple as key, got {!r}'.format(key))
+
+        if rest:
+            self[name][rest] = value
+            return
+
         if is_config_item(value):
             self.cm__add_item(name, value)
         elif isinstance(value, self.__class__):
@@ -85,8 +117,8 @@ class Config(BaseSection):
                 )
             )
 
-    def __getitem__(self, name):
-        return self._cm__configs[name]
+    def __getitem__(self, key):
+        return self._resolve_config_key(key)
 
     def __getattr__(self, name):
         if name in self._cm__configs:
@@ -109,6 +141,15 @@ class Config(BaseSection):
                     name=name,
                 )
             )
+
+    def __len__(self):
+        return sum(1 for _ in self.iter_items())
+
+    def __nonzero__(self):
+        return True
+
+    def __bool__(self):
+        return True
 
     def iter_items(self):
         """
@@ -224,6 +265,17 @@ class Config(BaseSection):
         """
         return self._cm__section
 
+    @property
+    def alias(self):
+        """
+        Returns alias with which this section was added to another or ``None`` if it hasn't been added
+        to any.
+        
+        Returns:
+            (str)
+        """
+        return self._cm__section_alias
+
     def added_to_section(self, alias, section):
         """
         A hook that is called when this section is added to another.
@@ -234,6 +286,7 @@ class Config(BaseSection):
             section (:class:`.Config`): section to which this section has been added
         """
         self._cm__section = section
+        self._cm__section_alias = alias
 
     @property
     def configparser(self):

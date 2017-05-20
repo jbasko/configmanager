@@ -343,7 +343,6 @@ def test_can_inspect_config_contents(mixed_app_config):
 
     assert 'db' in config
     assert 'dbe' not in config
-    assert ('db',) not in config
 
     assert 'logging' in config
 
@@ -380,3 +379,66 @@ def test_can_have_a_dict_as_a_config_value_if_wrapped_inside_item():
     config.aws.value['secret_key'] = 'NEW_SECRET'
 
     assert config.to_dict()['aws'] == {'access_key': '123', 'secret_key': 'secret'}
+
+
+def test_len_of_config_returns_number_of_items_in_it():
+    assert len(Config()) == 0
+
+    assert len(Config({'enabled': True})) == 1
+
+    assert len(Config({'uploads': Config()})) == 0
+    assert len(Config({'uploads': {}})) == 0
+
+    assert len(Config({'uploads': {'enabled': False}})) == 1
+    assert len(Config({'uploads': {'enabled': False, 'threads': 1}})) == 2
+
+    assert len(Config({'uploads': {'enabled': False, 'threads': 0}, 'greeting': 'Hi'})) == 3
+
+
+def test__getitem__handles_paths_to_sections_and_items_and_so_does__contains__():
+    config = Config()
+    with pytest.raises(KeyError):
+        assert not config['uploads', 'enabled']
+    assert ('uploads',) not in config
+    assert ('uploads', 'enabled') not in config
+
+    config.uploads = Config({'enabled': True, 'db': {'user': 'root'}})
+    assert config['uploads', 'enabled'] is config.uploads.enabled
+    assert config['uploads', 'db'] is config.uploads.db
+
+    assert 'uploads' in config
+    assert ('uploads',) in config
+    assert ('uploads', 'enabled') in config
+    assert ('uploads', 'db') in config
+    assert ('uploads', 'db', 'user') in config
+
+    assert config.uploads.db.user.value == 'root'
+
+    config['uploads', 'db', 'user'].set('admin')
+    assert config.uploads.db.user.value == 'admin'
+
+
+def test_can_use__setitem__to_create_new_deep_paths():
+    config = Config()
+    config['uploads'] = Config({'enabled': True})
+
+    with pytest.raises(TypeError):
+        config['uploads', 'threads'] = 5
+
+    config['uploads', 'threads'] = Item(value=5)
+    assert config.uploads.threads.type is int
+
+    config['uploads', 'db'] = Config({'user': 'root'})
+    assert config.uploads.db
+
+
+def test_section_knows_its_alias():
+    config = Config()
+    config.uploads = Config({
+        'enabled': True
+    })
+    assert config.uploads.alias == 'uploads'
+
+    config.uploads.db = Config({'connection': {'user': 'root'}})
+    assert config.uploads.db.alias == 'db'
+    assert config.uploads.db.connection.alias == 'connection'
