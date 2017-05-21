@@ -25,7 +25,7 @@ setup(
     url='https://github.com/jbasko/configmanager',
     description='Self-conscious items of configuration in Python',
     long_description=read('README.rst'),
-    packages=find_packages(),
+    packages=['configmanager'],
     install_requires=['six', 'future', 'configparser'],
     classifiers=[
         'Development Status :: 4 - Beta',

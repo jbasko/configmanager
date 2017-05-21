@@ -1,6 +1,8 @@
 from builtins import str
 import configparser
 from io import open
+
+import collections
 import six
 
 
@@ -56,7 +58,6 @@ class ConfigPersistenceAdapter(object):
 class JsonReaderWriter(ConfigReaderWriter):
     def __init__(self, **options):
         super(JsonReaderWriter, self).__init__(**options)
-
         import json
         self.json = json
 
@@ -70,17 +71,28 @@ class JsonReaderWriter(ConfigReaderWriter):
         # and io.open which we use for file opening is very strict and fails if
         # the string we are trying to write is not unicode in Python 2
         # because we open files with encoding=utf-8.
-        result = self.json.dumps(config.to_dict(with_defaults=with_defaults), ensure_ascii=False, **kwargs)
+        result = self.json.dumps(
+            config.to_dict(with_defaults=with_defaults, dict_cls=collections.OrderedDict),
+            ensure_ascii=False,
+            indent=2,
+            **kwargs
+        )
         if not isinstance(result, str):
             return str(result)
         else:
             return result
 
     def load_config_from_file(self, config, file_obj, as_defaults=False, **kwargs):
-        config.read_dict(self.json.load(file_obj, **kwargs), as_defaults=as_defaults)
+        config.read_dict(
+            self.json.load(file_obj, object_pairs_hook=collections.OrderedDict, **kwargs),
+            as_defaults=as_defaults,
+        )
 
     def load_config_from_string(self, config, string, as_defaults=False, **kwargs):
-        config.read_dict(self.json.loads(string, **kwargs), as_defaults=as_defaults)
+        config.read_dict(
+            self.json.loads(string, object_pairs_hook=collections.OrderedDict, **kwargs),
+            as_defaults=as_defaults,
+        )
 
 
 class YamlReaderWriter(ConfigReaderWriter):

@@ -1,5 +1,6 @@
 import json
 
+import collections
 import pytest
 
 from configmanager import Config
@@ -117,7 +118,7 @@ def test_json_writes_with_defaults_false_by_default(user_json_path):
 def test_json_reads_and_writes_strings():
     c = Config({'greeting': 'Hello'})
     assert c.json.dumps() == '{}'
-    assert c.json.dumps(with_defaults=True) == '{"greeting": "Hello"}'
+    assert c.json.dumps(with_defaults=True) == '{\n  "greeting": "Hello"\n}'
 
     c.json.loads('{"something_nonexistent": 1}')
     assert c.to_dict() == {'greeting': 'Hello'}
@@ -127,3 +128,25 @@ def test_json_reads_and_writes_strings():
 
     c.json.loads('{"greeting": "Hello, world!"}')
     assert c.to_dict() == {'greeting': 'Hello, world!', 'something_nonexistent': 1}
+
+
+def test_json_reads_and_writes_preserve_order(tmpdir):
+    config = Config(collections.OrderedDict([
+        ('a', 'aaa'),
+        ('b', 'bbb'),
+        ('c', 'ccc'),
+        ('x', 'xxx'),
+        ('y', 'yyy'),
+        ('z', 'zzz'),
+        ('m', 'mmm'),
+        ('n', 'nnn'),
+    ]))
+    config_json = tmpdir.join('config.json').strpath
+
+    config.json.dump(config_json, with_defaults=True)
+
+    config2 = Config()
+    config2.json.load(config_json, as_defaults=True)
+
+    item_names = list(item.name for _, item in config2.iter_items())
+    assert item_names == ['a', 'b', 'c', 'x', 'y', 'z', 'm', 'n']

@@ -188,7 +188,7 @@ class Config(BaseSection):
             if isinstance(item, self.__class__):
                 yield item_name, item
 
-    def to_dict(self, with_defaults=True):
+    def to_dict(self, with_defaults=True, dict_cls=dict):
         """
         Export values of all items contained in this section to a dictionary.
         
@@ -199,10 +199,10 @@ class Config(BaseSection):
         See Also:
             :meth:`.read_dict` does the opposite.
         """
-        values = {}
+        values = dict_cls()
         for item_name, item in self._cm__configs.items():
             if isinstance(item, self.__class__):
-                section_values = item.to_dict(with_defaults=with_defaults)
+                section_values = item.to_dict(with_defaults=with_defaults, dict_cls=dict_cls)
                 if section_values:
                     values[item_name] = section_values
             else:
