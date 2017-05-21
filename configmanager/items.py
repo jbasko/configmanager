@@ -66,6 +66,7 @@ class Item(BaseItem):
                     self.type = type_
 
             # TODO default should also be stringified accordingly!
+            # TODO https://github.com/jbasko/configmanager/issues/101
 
         self._value = not_set
         for k, v in kwargs.items():
@@ -99,10 +100,10 @@ class Item(BaseItem):
     @property
     def value(self):
         """
-        The config value.
+        The property through which to read and set value of config item.
         
         See Also:
-            :meth:`.get(fallback=not_set)` and :meth:`.set(value)`
+            :meth:`.get` and :meth:`.set`
         """
         return self.get()
 

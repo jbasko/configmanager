@@ -16,30 +16,25 @@ class Config(BaseSection):
     Represents a section consisting of config items (instances of :class:`.Item`) and other sections
     (instances of :class:`.Config`).
     
-    Notes:
-        Members whose name starts with "cm__" are public, but should only be 
-        used to customise (extend) the behaviour of Config.
-        Members whose name starts with "_cm__" should not be accessed directly.
-    
     .. attribute:: Config(config_declaration=None, item_cls=None, configparser_factory=None)
         
         Creates a config section from a declaration, optionally specifies the class used to
         auto-create new config items, and the class used to create ``ConfigParser`` instances
         if needed.
     
-    .. attribute:: <config>[name]
+    .. attribute:: <config>[name_or_path]
     
-        Access a config item by its name.
+        Access a config item or section by its name or path. Name is a string, path is a tuple of strings.
         
         Returns:
-            :class:`.Item`
+            :class:`.Item` or :class:`.Config`
     
     .. attribute:: <config>.<name>
     
-        Access a config item by its name.
+        Access a config item or section by its name.
         
         Returns:
-            :class:`.Item`
+            :class:`.Item` or :class:`.Config`
     """
 
     cm__item_cls = Item
@@ -62,10 +57,10 @@ class Config(BaseSection):
         if configparser_factory:
             instance.cm__configparser_factory = configparser_factory
 
-        instance.cm__process_config_declaration = ConfigDeclarationParser(section=instance)
+        instance._cm__process_config_declaration = ConfigDeclarationParser(section=instance)
 
         if config_declaration:
-            instance.cm__process_config_declaration(config_declaration)
+            instance._cm__process_config_declaration(config_declaration)
 
         return instance
 
