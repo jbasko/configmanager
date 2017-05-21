@@ -1,5 +1,8 @@
+# -*- coding: utf-8 -*-
+
 import pytest
 import six
+from builtins import str
 
 from configmanager.utils import not_set
 from configmanager import Item, ConfigValueMissing
@@ -55,28 +58,28 @@ def test_int_value():
 
 def test_raw_str_value_is_reset_on_reset():
     c = Item('a', type=int, default=25)
-    assert str(c) == '25'
+    assert c.str_value == '25'
 
     c.value = '23'
-    assert str(c) == '23'
+    assert c.str_value == '23'
 
     c.reset()
-    assert str(c) == '25'
+    assert c.str_value == '25'
 
 
 def test_raw_str_value_is_reset_on_non_str_value_set():
     c = Item('a', type=int, default=25)
     c.value = '23'
-    assert str(c) == '23'
+    assert c.str_value == '23'
 
     c.value = 25
-    assert str(c) == '25'
+    assert c.str_value == '25'
 
     c.value = 24
-    assert str(c) == '24'
+    assert c.str_value == '24'
 
     c.value = '22'
-    assert str(c) == '22'
+    assert c.str_value == '22'
 
 
 def test_bool_of_value():
@@ -108,16 +111,16 @@ def test_repr_makes_clear_name_and_value():
 
 def test_str_and_repr_of_not_set_value_should_not_fail():
     c = Item('a')
-    assert str(c) == '<Item a <NotSet>>'
+    assert c.str_value == '<Item a <NotSet>>'
     assert repr(c) == '<Item a <NotSet>>'
 
 
 def test_bool_str_is_a_str():
     c = Item('a', type=bool)
-    assert isinstance(str(c), six.string_types)
+    assert isinstance(c.str_value, six.string_types)
 
     c.value = True
-    assert isinstance(str(c), six.string_types)
+    assert isinstance(c.str_value, six.string_types)
 
 
 def test_bool_config_preserves_raw_str_value_used_to_set_it():
@@ -125,27 +128,27 @@ def test_bool_config_preserves_raw_str_value_used_to_set_it():
     assert c.value is False
 
     assert not c.value
-    assert str(c) == 'False'
+    assert c.str_value == 'False'
     assert c.value is False
 
     c.value = 'False'
     assert not c.value
-    assert str(c) == 'False'
+    assert c.str_value == 'False'
     assert c.value is False
 
     c.value = 'no'
     assert not c.value
-    assert str(c) == 'no'
+    assert c.str_value == 'no'
     assert c.value is False
 
     c.value = '0'
     assert not c.value
-    assert str(c) == '0'
+    assert c.str_value == '0'
     assert c.value is False
 
     c.value = '1'
     assert c.value
-    assert str(c) == '1'
+    assert c.str_value == '1'
     assert c.value is True
 
     c.reset()
@@ -153,7 +156,7 @@ def test_bool_config_preserves_raw_str_value_used_to_set_it():
     assert c.value is False
 
     c.value = 'yes'
-    assert str(c) == 'yes'
+    assert c.str_value == 'yes'
     assert c.value is True
 
 
@@ -265,6 +268,20 @@ def test_type_is_guessed_either_from_default_or_value():
     c = Item()
     assert c.type is str
 
+    c = Item(value='haha')
+    assert c.type is str
+
+    c = Item(value=u'hāhā')
+    assert c.type is str
+    assert c.value == u'hāhā'
+    assert c.str_value == u'hāhā'
+
+    c = Item(default='haha')
+    assert c.type is str
+
+    c = Item(default=u'haha')
+    assert c.type is str
+
     d = Item(default=5)
     assert d.type is int
 
@@ -295,3 +312,12 @@ def test_item_value_is_not_deep_copied_on_value_request():
 
     assert c.value == ['c', 'd', 'e']
     assert c.default == ['a', 'b']
+
+
+def test_item_value_can_be_unicode_str():
+    c = Item(default=u'Jānis Bērziņš')
+    assert c.str_value == u'Jānis Bērziņš'
+
+    c.value = u'Pēteris Liepiņš'
+    assert c.str_value == u'Pēteris Liepiņš'
+    assert c.default == u'Jānis Bērziņš'

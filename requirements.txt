@@ -2,6 +2,7 @@
 # Real dependencies
 #
 six
+future
 
 #
 # Potentially optional dependencies

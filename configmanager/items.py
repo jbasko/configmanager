@@ -1,6 +1,7 @@
 import copy
 
 import six
+from builtins import str
 
 from .exceptions import ConfigValueMissing
 from .base import ItemAttribute, BaseItem
@@ -44,13 +45,27 @@ class Item(BaseItem):
         if 'type' in kwargs:
             self.type = kwargs.pop('type')
         else:
+            #
             # Type guessing
+            #
             value = kwargs.get('value', not_set)
             default = kwargs.get('default', not_set)
+
+            # 'str' is from builtins package which means that
+            # it is actually a unicode string in Python 2 too.
+            type_ = None
             if value is not not_set and value is not None:
-                self.type = type(value)
+                type_ = type(value)
             elif default is not not_set and default is not None:
-                self.type = type(default)
+                type_ = type(default)
+
+            if type_:
+                if issubclass(type_, six.string_types):
+                    self.type = str
+                else:
+                    self.type = type_
+
+            # TODO default should also be stringified accordingly!
 
         self._value = not_set
         for k, v in kwargs.items():
@@ -67,15 +82,19 @@ class Item(BaseItem):
         return '<{} {} {!r}>'.format(self.__class__.__name__, self.name, value)
 
     def __str__(self):
+        return self.str_value
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+    @property
+    def str_value(self):
         if self.raw_str_value is not not_set:
             return self.raw_str_value
         if self._value is not not_set or self.default is not not_set:
             return str(self.value)
         else:
             return repr(self)
-
-    def __eq__(self, other):
-        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
 
     @property
     def value(self):
