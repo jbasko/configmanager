@@ -145,7 +145,7 @@ class ConfigParserReaderWriter(ConfigReaderWriter):
         for option, value in cp.defaults().items():
             if as_defaults:
                 if option not in config:
-                    config.cm__add_item(option, config.cm__create_item(option, default=value))
+                    config.add_item(option, config.create_item(option, default=value))
                 else:
                     config[option].default = value
             else:
@@ -158,9 +158,9 @@ class ConfigParserReaderWriter(ConfigReaderWriter):
                 value = cp.get(section, option)
                 if as_defaults:
                     if section not in config:
-                        config.cm__add_section(section, config.cm__create_section())
+                        config.add_section(section, config.create_section())
                     if option not in config[section]:
-                        config[section].cm__add_item(option, config.cm__create_item(option, default=value))
+                        config[section].add_item(option, config.create_item(option, default=value))
                     else:
                         config[section][option].default = value
                 else:

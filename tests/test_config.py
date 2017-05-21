@@ -7,12 +7,12 @@ from builtins import str
 from configmanager import Config, Item
 
 
-def test_items_are_created_using_cm_create_item_method():
+def test_items_are_created_using_create_item_method():
     class CustomItem(Item):
         pass
 
     class CustomConfig(Config):
-        def cm__create_item(self, *args, **kwargs):
+        def create_item(self, *args, **kwargs):
             return CustomItem(*args, **kwargs)
 
     config = CustomConfig({

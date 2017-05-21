@@ -18,8 +18,8 @@ def is_config_declaration(obj):
 class ConfigDeclarationParser(object):
     def __init__(self, section):
         assert section
-        assert hasattr(section, 'cm__create_item')
-        assert hasattr(section, 'cm__create_section')
+        assert hasattr(section, 'create_item')
+        assert hasattr(section, 'create_section')
         self.section = section
 
     def __call__(self, config_decl, section=None):
@@ -41,12 +41,12 @@ class ConfigDeclarationParser(object):
             if k.startswith('_'):
                 continue
             elif is_config_section(v):
-                section.cm__add_section(k, v)
+                section.add_section(k, v)
             elif is_config_declaration(v):
-                section.cm__add_section(k, self.__call__(v, section=self.section.cm__create_section()))
+                section.add_section(k, self.__call__(v, section=self.section.create_section()))
             elif is_config_item(v):
-                section.cm__add_item(k, copy.deepcopy(v))
+                section.add_item(k, copy.deepcopy(v))
             else:
-                section.cm__add_item(k, self.section.cm__create_item(default=copy.deepcopy(v)))
+                section.add_item(k, self.section.create_item(default=copy.deepcopy(v)))
 
         return section

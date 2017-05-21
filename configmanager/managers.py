@@ -108,9 +108,9 @@ class Config(BaseSection):
             return
 
         if is_config_item(value):
-            self.cm__add_item(name, value)
+            self.add_item(name, value)
         elif isinstance(value, self.__class__):
-            self.cm__add_section(name, value)
+            self.add_section(name, value)
         else:
             raise TypeError(
                 'Config sections/items can only be replaced with sections/items, '
@@ -133,9 +133,9 @@ class Config(BaseSection):
         if name.startswith('cm__') or name.startswith('_cm__'):
             return super(Config, self).__setattr__(name, value)
         elif is_config_item(value):
-            self.cm__add_item(name, value)
+            self.add_item(name, value)
         elif isinstance(value, self.__class__):
-            self.cm__add_section(name, value)
+            self.add_section(name, value)
         else:
             raise TypeError(
                 'Config sections/items can only be replaced with sections/items, '
@@ -233,10 +233,10 @@ class Config(BaseSection):
             if name not in self:
                 if as_defaults:
                     if isinstance(value, dict):
-                        self[name] = self.cm__create_section()
+                        self[name] = self.create_section()
                         self[name].read_dict(value, as_defaults=as_defaults)
                     else:
-                        self[name] = self.cm__create_item(name, default=value)
+                        self[name] = self.create_item(name, default=value)
                 else:
                     # Skip unknown names if not interpreting dictionary as defaults
                     continue
@@ -342,7 +342,7 @@ class Config(BaseSection):
             )
         return self._cm__yaml_adapter
 
-    def cm__add_item(self, alias, item):
+    def add_item(self, alias, item):
         """
         Internal method used to add a config item to this section.
         Should only be called or overridden when extending *configmanager*'s functionality.
@@ -359,7 +359,7 @@ class Config(BaseSection):
         self._cm__configs[alias] = item
         item.added_to_section(alias, self)
 
-    def cm__add_section(self, alias, section):
+    def add_section(self, alias, section):
         """
         Internal method used to add a sub-section to this section.
         
