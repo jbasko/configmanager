@@ -14,7 +14,7 @@ install:
 
 script:
   - tox -e $TOX_ENV
-  - pushd docs; make clean html
+  - pushd docs; make clean html; popd
 
 before_cache:
 - rm -rf $HOME/.cache/pip/log
