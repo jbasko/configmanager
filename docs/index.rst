@@ -15,9 +15,10 @@ Features
 - Configuration item and section classes are designed for extension: easy to implement things
   like value override via environment variables, command-line prompt message to ask for a missing value,
   custom type conversions, etc.
-- INI format file support through `ConfigParser` integration
-- JSON format file support
-- Easy to add YAML and any other dictionary-like format support
+- INI format (`ConfigParser`) supported
+- JSON format supported
+- YAML format supported
+- Easy to add any other dictionary-like format support
 
 
 Quick Start
@@ -71,7 +72,7 @@ Quick Start
 
 6. Persist the configuration. ::
 
-    config.configparser.write('config.ini')
+    config.configparser.dump('config.ini')
 
 
 API Reference
@@ -101,14 +102,6 @@ ConfigValueMissing Object
 
 .. autoclass:: ConfigValueMissing
    :members:
-
-
-ConfigParserReaderWriter Object
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. autoclass:: ConfigParserReaderWriter
-   :members:
-   :inherited-members:
 
 
 ItemAttribute Object

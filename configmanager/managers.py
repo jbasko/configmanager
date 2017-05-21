@@ -4,10 +4,10 @@ import copy
 
 import six
 
+from .persistence import ConfigPersistenceAdapter, YamlReaderWriter, JsonReaderWriter, ConfigParserReaderWriter
 from .base import BaseSection, is_config_item
 from .items import Item
 from .parsers import ConfigDeclarationParser
-from .persistence import ConfigParserReaderWriter, JsonReaderWriter
 from .utils import not_set
 
 
@@ -53,6 +53,7 @@ class Config(BaseSection):
         instance._cm__configs = collections.OrderedDict()
         instance._cm__configparser_adapter = None
         instance._cm__json_adapter = None
+        instance._cm__yaml_adapter = None
 
         if item_cls:
             instance.cm__item_cls = item_cls
@@ -226,16 +227,24 @@ class Config(BaseSection):
         See Also:
             :meth:`to_dict` does the opposite.
         """
-        if as_defaults:
-            self.cm__process_config_declaration(dictionary)
-        else:
-            for name, value in dictionary.items():
-                if name not in self:
-                    continue
-                if is_config_item(self[name]):
-                    self[name].value = value
+        for name, value in dictionary.items():
+            if name not in self:
+                if as_defaults:
+                    if isinstance(value, dict):
+                        self[name] = self.cm__create_section()
+                        self[name].read_dict(value, as_defaults=as_defaults)
+                    else:
+                        self[name] = self.cm__create_item(name, default=value)
                 else:
-                    self[name].read_dict(value, as_defaults=as_defaults)
+                    # Skip unknown names if not interpreting dictionary as defaults
+                    continue
+            elif is_config_item(self[name]):
+                if as_defaults:
+                    self[name].default = value
+                else:
+                    self[name].value = value
+            else:
+                self[name].read_dict(value, as_defaults=as_defaults)
 
     def reset(self):
         """
@@ -293,28 +302,43 @@ class Config(BaseSection):
         """
         Adapter which exposes some of Python standard library's ``configparser.ConfigParser``
         (or ``ConfigParser.ConfigParser`` in Python 2) functionality
-        to read and write INI format files. 
+        to load and dump INI format files. 
         
         Returns:
-            :class:`.ConfigParserReaderWriter`
+            ConfigPersistenceAdapter
         """
         if self._cm__configparser_adapter is None:
-            self._cm__configparser_adapter = ConfigParserReaderWriter(
+            self._cm__configparser_adapter = ConfigPersistenceAdapter(
                 config=self,
-                config_parser_factory=self.cm__configparser_factory,
+                reader_writer=ConfigParserReaderWriter(
+                    config_parser_factory=self.cm__configparser_factory,
+                ),
             )
         return self._cm__configparser_adapter
 
     @property
     def json(self):
         """
-        Persistence adapter for writing to and reading from JSON files.
+        Adapter to dump/load JSON format strings and files.
         """
         if self._cm__json_adapter is None:
-            self._cm__json_adapter = JsonReaderWriter(
+            self._cm__json_adapter = ConfigPersistenceAdapter(
                 config=self,
+                reader_writer=JsonReaderWriter(),
             )
         return self._cm__json_adapter
+
+    @property
+    def yaml(self):
+        """
+        Adapter to dump/load YAML format strings and files.
+        """
+        if self._cm__yaml_adapter is None:
+            self._cm__yaml_adapter = ConfigPersistenceAdapter(
+                config=self,
+                reader_writer=YamlReaderWriter(),
+            )
+        return self._cm__yaml_adapter
 
     def cm__add_item(self, alias, item):
         """

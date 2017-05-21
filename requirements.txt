@@ -1,6 +1,22 @@
+#
+# Real dependencies
+#
 six
+
+#
+# Potentially optional dependencies
+#
 configparser
 
+#
+# Optional dependencies
+#
+
+PyYAML
+
+#
+# Development only
+#
 pytest
 pytest-random-order
 coverage
