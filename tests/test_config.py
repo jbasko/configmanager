@@ -460,3 +460,21 @@ def test_config_item_value_can_be_unicode_str(tmpdir):
     config2.configparser.load(path)
     assert config2.name.value == u'Jānis Bērziņš'
     assert config1.to_dict(with_defaults=True) == config2.to_dict(with_defaults=True)
+
+
+def test_config_of_config_is_a_deep_copy_of_original_config():
+    config1 = Config({'uploads': {'enabled': True, 'db': {'user': 'root'}}})
+    config1.uploads.enabled.value = False
+
+    config2 = Config(config1)
+    assert config1 is not config2
+    assert config1.to_dict() == config2.to_dict()
+    assert config1.to_dict(with_defaults=True) == config2.to_dict(with_defaults=True)
+
+    config1.uploads.enabled.value = True
+    config1.uploads.db.read_dict({'user': 'admin'})
+
+    assert config2.to_dict(with_defaults=True) == {'uploads': {'enabled': False, 'db': {'user': 'root'}}}
+
+    config2.uploads.db.user.default = 'default-user'
+    assert config1.uploads.db.user.default == 'root'
