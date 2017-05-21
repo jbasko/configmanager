@@ -34,9 +34,9 @@ def test_get_returns_default_value_when_available():
 
 def test_get_returns_value_when_value_and_default_available():
     assert Item(default='a', value=None).get() is None
-    assert Item(default='a', value='b').get() is 'b'
+    assert Item(default='a', value='b').get() == 'b'
     assert Item(default=None, value=None).get(True) is None
-    assert Item(default='a', value='b').get('c') is 'b'
+    assert Item(default='a', value='b').get('c') == 'b'
 
 
 def test_value_calls_get_so_users_can_extend_item_class_by_overriding_just_get():

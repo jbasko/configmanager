@@ -1,3 +1,4 @@
+import collections
 import pytest
 
 from configmanager import Config, Item
@@ -263,3 +264,22 @@ def test_write_string_returns_valid_configparser_string():
     config = Config({'db': {'user': 'root'}})
     assert config.configparser.dumps() == ''
     assert config.configparser.dumps(with_defaults=True) == '[db]\nuser = root\n\n'
+
+
+def test_writes_to_and_reads_from_default_section_transparently(tmpdir):
+    config_ini = tmpdir.join('config.ini').strpath
+
+    config1 = Config(collections.OrderedDict([('greeting', 'Hello'), ('name', 'World')]))
+    config1.configparser.dump(config_ini, with_defaults=True)
+
+    with open(config_ini) as f:
+        assert f.read() == (
+            '[DEFAULT]\n'
+            'greeting = Hello\n'
+            'name = World\n\n'
+        )
+
+    config2 = Config()
+    config2.configparser.load(config_ini, as_defaults=True)
+
+    assert config1.to_dict() == config2.to_dict() == {'greeting': 'Hello', 'name': 'World'}

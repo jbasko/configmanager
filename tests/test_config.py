@@ -1,4 +1,8 @@
+# -*- coding: utf-8 -*-
+
 import pytest
+
+from builtins import str
 
 from configmanager import Config, Item
 
@@ -442,3 +446,17 @@ def test_section_knows_its_alias():
     config.uploads.db = Config({'connection': {'user': 'root'}})
     assert config.uploads.db.alias == 'db'
     assert config.uploads.db.connection.alias == 'connection'
+
+
+def test_config_item_value_can_be_unicode_str(tmpdir):
+    config1 = Config({'greeting': u'Hello, {name}', 'name': u'Anonymous'})
+    config1.name.value = u'Jānis Bērziņš'
+    assert config1.name.type is str
+
+    path = tmpdir.join('config.ini').strpath
+    config1.configparser.dump(path, with_defaults=True)
+
+    config2 = Config({'greeting': '', 'name': ''})
+    config2.configparser.load(path)
+    assert config2.name.value == u'Jānis Bērziņš'
+    assert config1.to_dict(with_defaults=True) == config2.to_dict(with_defaults=True)

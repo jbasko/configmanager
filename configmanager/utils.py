@@ -1,3 +1,6 @@
+from builtins import str
+
+
 class _NotSet(object):
     instance = None
 

@@ -1,5 +1,6 @@
+from builtins import str
 import configparser
-
+from io import open
 import six
 
 
@@ -27,12 +28,12 @@ class ConfigPersistenceAdapter(object):
 
     def load(self, source, as_defaults=False):
         if isinstance(source, six.string_types):
-            with open(source) as f:
+            with open(source, encoding='utf-8') as f:
                 self._rw.load_config_from_file(self._config, f, as_defaults=as_defaults)
 
         elif isinstance(source, (list, tuple)):
             for s in source:
-                with open(s) as f:
+                with open(s, encoding='utf-8') as f:
                     self._rw.load_config_from_file(self._config, f, as_defaults=as_defaults)
 
         else:
@@ -43,7 +44,7 @@ class ConfigPersistenceAdapter(object):
 
     def dump(self, destination, with_defaults=False):
         if isinstance(destination, six.string_types):
-            with open(destination, 'w') as f:
+            with open(destination, 'w', encoding='utf-8') as f:
                 self._rw.dump_config_to_file(self._config, f, with_defaults=with_defaults)
         else:
             self._rw.dump_config_to_file(self._config, destination, with_defaults=with_defaults)
@@ -60,10 +61,20 @@ class JsonReaderWriter(ConfigReaderWriter):
         self.json = json
 
     def dump_config_to_file(self, config, file_obj, with_defaults=False, **kwargs):
-        self.json.dump(config.to_dict(with_defaults=with_defaults), file_obj, **kwargs)
+        # See comment in JsonReaderWriter.dump_config_to_string
+        file_obj.write(self.dump_config_to_string(config, with_defaults=with_defaults), **kwargs)
 
     def dump_config_to_string(self, config, with_defaults=False, **kwargs):
-        return self.json.dumps(config.to_dict(with_defaults=with_defaults), **kwargs)
+        # There is some inconsistent behaviour in Python 2's json.dump as described here:
+        # http://stackoverflow.com/a/36008538/38611
+        # and io.open which we use for file opening is very strict and fails if
+        # the string we are trying to write is not unicode in Python 2
+        # because we open files with encoding=utf-8.
+        result = self.json.dumps(config.to_dict(with_defaults=with_defaults), ensure_ascii=False, **kwargs)
+        if not isinstance(result, str):
+            return str(result)
+        else:
+            return result
 
     def load_config_from_file(self, config, file_obj, as_defaults=False, **kwargs):
         config.read_dict(self.json.load(file_obj, **kwargs), as_defaults=as_defaults)
@@ -119,6 +130,17 @@ class ConfigParserReaderWriter(ConfigReaderWriter):
         self._load_config_from_config_parser(config, cp, as_defaults=as_defaults)
 
     def _load_config_from_config_parser(self, config, cp, as_defaults=False):
+        for option, value in cp.defaults().items():
+            if as_defaults:
+                if option not in config:
+                    config.cm__add_item(option, config.cm__create_item(option, default=value))
+                else:
+                    config[option].default = value
+            else:
+                if option not in config:
+                    continue
+                config[option].value = value
+
         for section in cp.sections():
             for option in cp.options(section):
                 value = cp.get(section, option)
@@ -149,9 +171,9 @@ class ConfigParserReaderWriter(ConfigReaderWriter):
             if len(item_path) == 2:
                 section, option = item_path
             else:
-                section = 'DEFAULT'
+                section = cp.default_section
                 option = item_path[0]
 
-            if not cp.has_section(section):
+            if not cp.has_section(section) and section != cp.default_section:
                 cp.add_section(section)
-            cp.set(section, option, str(item))
+            cp.set(section, option, item.str_value)
