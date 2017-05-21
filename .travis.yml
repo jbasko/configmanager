@@ -4,7 +4,7 @@ language: python
 
 python:
   - 2.7
-  - 3.6
+  - 3.5
 
 install:
   - pip install tox
@@ -34,7 +34,7 @@ deploy:
     on:
       tags: true
       branch: master
-      python: 3.6
+      python: 3.5
 
   - provider: pages
     skip_cleanup: true
@@ -42,4 +42,4 @@ deploy:
     github_token: $GITHUB_TOKEN # Set in travis-ci.org dashboard
     on:
       branch: master
-      python: 3.6
+      python: 3.5
