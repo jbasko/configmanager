@@ -13,7 +13,7 @@ def is_config_item(obj):
 class BaseSection(object):
     cm__item_cls = BaseItem
 
-    def cm__create_item(self, *args, **kwargs):
+    def create_item(self, *args, **kwargs):
         """
         Internal method used to create a config item.
         
@@ -23,10 +23,10 @@ class BaseSection(object):
         """
         return self.cm__item_cls(*args, **kwargs)
 
-    def cm__add_item(self, alias, item):
+    def add_item(self, alias, item):
         raise NotImplementedError()
 
-    def cm__create_section(self, *args, **kwargs):
+    def create_section(self, *args, **kwargs):
         """
         Internal method used to create a config section.
         
@@ -36,7 +36,7 @@ class BaseSection(object):
         """
         return self.__class__(*args, **kwargs)
 
-    def cm__add_section(self, alias, section):
+    def add_section(self, alias, section):
         raise NotImplementedError()
 
     def added_to_section(self, alias, section):

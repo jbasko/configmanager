@@ -16,30 +16,25 @@ class Config(BaseSection):
     Represents a section consisting of config items (instances of :class:`.Item`) and other sections
     (instances of :class:`.Config`).
     
-    Notes:
-        Members whose name starts with "cm__" are public, but should only be 
-        used to customise (extend) the behaviour of Config.
-        Members whose name starts with "_cm__" should not be accessed directly.
-    
     .. attribute:: Config(config_declaration=None, item_cls=None, configparser_factory=None)
         
         Creates a config section from a declaration, optionally specifies the class used to
         auto-create new config items, and the class used to create ``ConfigParser`` instances
         if needed.
     
-    .. attribute:: <config>[name]
+    .. attribute:: <config>[name_or_path]
     
-        Access a config item by its name.
+        Access a config item or section by its name or path. Name is a string, path is a tuple of strings.
         
         Returns:
-            :class:`.Item`
+            :class:`.Item` or :class:`.Config`
     
     .. attribute:: <config>.<name>
     
-        Access a config item by its name.
+        Access a config item or section by its name.
         
         Returns:
-            :class:`.Item`
+            :class:`.Item` or :class:`.Config`
     """
 
     cm__item_cls = Item
@@ -62,10 +57,10 @@ class Config(BaseSection):
         if configparser_factory:
             instance.cm__configparser_factory = configparser_factory
 
-        instance.cm__process_config_declaration = ConfigDeclarationParser(section=instance)
+        instance._cm__process_config_declaration = ConfigDeclarationParser(section=instance)
 
         if config_declaration:
-            instance.cm__process_config_declaration(config_declaration)
+            instance._cm__process_config_declaration(config_declaration)
 
         return instance
 
@@ -108,9 +103,9 @@ class Config(BaseSection):
             return
 
         if is_config_item(value):
-            self.cm__add_item(name, value)
+            self.add_item(name, value)
         elif isinstance(value, self.__class__):
-            self.cm__add_section(name, value)
+            self.add_section(name, value)
         else:
             raise TypeError(
                 'Config sections/items can only be replaced with sections/items, '
@@ -133,9 +128,9 @@ class Config(BaseSection):
         if name.startswith('cm__') or name.startswith('_cm__'):
             return super(Config, self).__setattr__(name, value)
         elif is_config_item(value):
-            self.cm__add_item(name, value)
+            self.add_item(name, value)
         elif isinstance(value, self.__class__):
-            self.cm__add_section(name, value)
+            self.add_section(name, value)
         else:
             raise TypeError(
                 'Config sections/items can only be replaced with sections/items, '
@@ -233,10 +228,10 @@ class Config(BaseSection):
             if name not in self:
                 if as_defaults:
                     if isinstance(value, dict):
-                        self[name] = self.cm__create_section()
+                        self[name] = self.create_section()
                         self[name].read_dict(value, as_defaults=as_defaults)
                     else:
-                        self[name] = self.cm__create_item(name, default=value)
+                        self[name] = self.create_item(name, default=value)
                 else:
                     # Skip unknown names if not interpreting dictionary as defaults
                     continue
@@ -342,7 +337,7 @@ class Config(BaseSection):
             )
         return self._cm__yaml_adapter
 
-    def cm__add_item(self, alias, item):
+    def add_item(self, alias, item):
         """
         Internal method used to add a config item to this section.
         Should only be called or overridden when extending *configmanager*'s functionality.
@@ -359,7 +354,7 @@ class Config(BaseSection):
         self._cm__configs[alias] = item
         item.added_to_section(alias, self)
 
-    def cm__add_section(self, alias, section):
+    def add_section(self, alias, section):
         """
         Internal method used to add a sub-section to this section.
         
