@@ -1,22 +1,42 @@
 sudo: false
+
 language: python
+
 python:
-- '2.7'
-- '3.5'
+- 2.7
+- 3.6
+
 install:
 - pip install tox
 - TOX_ENV=${TRAVIS_PYTHON_VERSION/[0-9].[0-9]/py${TRAVIS_PYTHON_VERSION/.}}
-script: tox -e $TOX_ENV
+
+script:
+  - tox -e $TOX_ENV
+  - pushd docs; make clean html
+
 before_cache:
 - rm -rf $HOME/.cache/pip/log
+
 cache:
   directories:
   - $HOME/.cache/pip
+
+before_deploy:
+  - touch docs/_build/html/.nojekyll
+
 deploy:
-  provider: pypi
-  user: jbasko
-  password:
-    secure: pglM6urIiOg5JF8/WxETirv1sY9g9oNIuQfPR14AFmtf99IznT7HZ5zVFmTxBiprilwjwwxmoduB3/uVCQuzY+ezKuMCJlKJAM0uuPLTcr3jAQVpg5gRGwDnNDVviyYy+NMqdvbGqVeSB3n6CAX2+4qp+JnX/2UMJzCJtnSMHV5DnUlfuCkoi+TGzlxwHH5eEwEjo3YhQ+xyMLoG9gwkP0f0/Krw2YUyydxiC6HmQ8tIesQdAxuAG7ZNpXUdeWCb5GYC+e6KIXHjXFoXyh3ZOJpc5Re56EeVz4h8U5IbfuWXiNvYHFCmvKXIhx8t5+3dFOekFpuln2omELvIptPbe+OLgaDQ4YVRUBLenrAE5RtP47UpEdnCL5hkrfw+Hymqi++rgQ1VBnw/94/GEDn/Xz+qNWuWTHiHjiENeIAT3ej3bCBV1ZTwHSmZLsYFBfe42bM1UlZkOjWb83tZPm9eVPiTHSI3XwSrrzxke5AAPHyDxJNpHj6d8N7CHvb0CXMR8/C7LuIImCfho2c0fUtc4HvMTdM6EXO+LCHd/RjnssbmlDydxNNU8KBr0EviOjJPQcFnKvnw/Sk1Rfksxozptnlb9O1BGQVfTkeilQly+Kt0QJ2jbUqt+U7p3+bu4Dt813qhbzKSF3ssxPyaKbGH+NG8HygWEDJcceFoQzPlpu0=
-  on:
-    tags: true
-    branch: master
+  - provider: pypi
+    user: jbasko
+    password:
+      secure: pglM6urIiOg5JF8/WxETirv1sY9g9oNIuQfPR14AFmtf99IznT7HZ5zVFmTxBiprilwjwwxmoduB3/uVCQuzY+ezKuMCJlKJAM0uuPLTcr3jAQVpg5gRGwDnNDVviyYy+NMqdvbGqVeSB3n6CAX2+4qp+JnX/2UMJzCJtnSMHV5DnUlfuCkoi+TGzlxwHH5eEwEjo3YhQ+xyMLoG9gwkP0f0/Krw2YUyydxiC6HmQ8tIesQdAxuAG7ZNpXUdeWCb5GYC+e6KIXHjXFoXyh3ZOJpc5Re56EeVz4h8U5IbfuWXiNvYHFCmvKXIhx8t5+3dFOekFpuln2omELvIptPbe+OLgaDQ4YVRUBLenrAE5RtP47UpEdnCL5hkrfw+Hymqi++rgQ1VBnw/94/GEDn/Xz+qNWuWTHiHjiENeIAT3ej3bCBV1ZTwHSmZLsYFBfe42bM1UlZkOjWb83tZPm9eVPiTHSI3XwSrrzxke5AAPHyDxJNpHj6d8N7CHvb0CXMR8/C7LuIImCfho2c0fUtc4HvMTdM6EXO+LCHd/RjnssbmlDydxNNU8KBr0EviOjJPQcFnKvnw/Sk1Rfksxozptnlb9O1BGQVfTkeilQly+Kt0QJ2jbUqt+U7p3+bu4Dt813qhbzKSF3ssxPyaKbGH+NG8HygWEDJcceFoQzPlpu0=
+    on:
+      tags: true
+      branch: master
+      python: 3.6
+  - provider: pages
+    skip_cleanup: true
+    local_dir: docs/_build/html
+    github_token: $GITHUB_TOKEN # Set in travis-ci.org dashboard
+    on:
+      branch: master
+      python: 3.6
