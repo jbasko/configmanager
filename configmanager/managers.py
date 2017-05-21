@@ -46,8 +46,10 @@ class Config(BaseSection):
     cm__configparser_factory = configparser.ConfigParser
 
     def __new__(cls, config_declaration=None, item_cls=None, configparser_factory=None):
-        instance = super(Config, cls).__new__(cls)
+        if config_declaration and isinstance(config_declaration, cls):
+            return copy.deepcopy(config_declaration)
 
+        instance = super(Config, cls).__new__(cls)
         instance._cm__section = None
         instance._cm__section_alias = None
         instance._cm__configs = collections.OrderedDict()
