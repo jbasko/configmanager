@@ -1,8 +1,6 @@
 configmanager
 =============
 
-*Self-conscious items of configuration in Python.*
-
 .. image:: https://travis-ci.org/jbasko/configmanager.svg?branch=master
     :target: https://travis-ci.org/jbasko/configmanager
 
@@ -11,7 +9,7 @@ Interface Status
 ----------------
 
 This is being actively tested before the public interface gets finalised.
-Any code reviewers welcome!
+Code reviewers welcome!
 
 Public methods of ``Config`` and ``Item`` classes that don't start with ``cm__`` aren't expected
 to change.
@@ -36,7 +34,7 @@ Features
 Quick Tour
 ----------
 
-More documentation at http://pythonhosted.org/configmanager
+More documentation at https://jbasko.github.io/configmanager/
 
 .. code-block:: python
 
