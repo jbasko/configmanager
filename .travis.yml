@@ -23,9 +23,6 @@ cache:
   directories:
   - $HOME/.cache/pip
 
-before_deploy:
-  - touch docs/_build/html/.nojekyll
-
 deploy:
   - provider: pypi
     user: jbasko
