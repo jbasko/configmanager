@@ -9,6 +9,7 @@ python:
 install:
 - pip install tox
 - TOX_ENV=${TRAVIS_PYTHON_VERSION/[0-9].[0-9]/py${TRAVIS_PYTHON_VERSION/.}}
+- pip install sphinx
 
 script:
   - tox -e $TOX_ENV
