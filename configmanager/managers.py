@@ -186,7 +186,7 @@ class Config(BaseSection):
             if isinstance(item, self.__class__):
                 yield item_name, item
 
-    def to_dict(self, with_defaults=True, as_strings=False):
+    def to_dict(self, with_defaults=True):
         """
         Export values of all items contained in this section to a dictionary.
         
@@ -200,16 +200,13 @@ class Config(BaseSection):
         values = {}
         for item_name, item in self._cm__configs.items():
             if isinstance(item, self.__class__):
-                section_values = item.to_dict(with_defaults=with_defaults, as_strings=as_strings)
+                section_values = item.to_dict(with_defaults=with_defaults)
                 if section_values:
                     values[item_name] = section_values
             else:
                 if item.has_value:
                     if with_defaults or not item.is_default:
-                        if as_strings:
-                            values[item.name] = str(item.value)
-                        else:
-                            values[item.name] = item.value
+                        values[item.name] = item.value
         return values
 
     def read_dict(self, dictionary, as_defaults=False):
