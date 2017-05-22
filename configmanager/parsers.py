@@ -2,6 +2,7 @@ import copy
 import inspect
 import types
 
+import collections
 import six
 
 from .base import is_config_item, is_config_section
@@ -32,6 +33,14 @@ class ConfigDeclarationParser(object):
             keys_and_values = config_decl.__dict__.items()
         elif inspect.isclass(config_decl):
             keys_and_values = config_decl.__dict__.items()
+        elif isinstance(config_decl, (tuple, list)):
+            items = collections.OrderedDict()
+            for x in config_decl:
+                if is_config_item(x):
+                    items[x.name] = x
+                elif isinstance(x, tuple):
+                    items[x[0]] = x[1]
+            keys_and_values = items.items()
         else:
             raise TypeError('Unsupported config declaration type {!r}'.format(type(config_decl)))
 

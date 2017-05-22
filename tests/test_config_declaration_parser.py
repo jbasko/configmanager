@@ -142,3 +142,13 @@ def test_default_value_is_deep_copied():
 
     things.remove(2)
     assert config['items'].value == [1, 2, 3, 4]
+
+
+def test_config_declaration_can_be_a_list_of_items_or_two_tuples():
+    config = Config([
+        ('enabled', True),
+        ('threads', 5),
+        Item('greeting'),
+        ('db', Config({'user': 'root'}))
+    ])
+    assert list(path for path, _ in config.iter_items()) == [('enabled',), ('threads',), ('greeting',), ('db', 'user')]
