@@ -5,7 +5,7 @@ import copy
 import six
 
 from .persistence import ConfigPersistenceAdapter, YamlReaderWriter, JsonReaderWriter, ConfigParserReaderWriter
-from .base import BaseSection, is_config_item
+from .base import BaseSection, is_config_item, is_config_section
 from .items import Item
 from .parsers import ConfigDeclarationParser
 from .utils import not_set
@@ -149,17 +149,18 @@ class Config(BaseSection):
     def __bool__(self):
         return True
 
-    def iter_items(self):
+    def iter_items(self, recursive=True):
         """
-        Iterate over all items contained (recursively).
+        Iterate over items contained in this section.
         
         Returns:
-            iterator: iterator over all items contained in this config and its
-                sections recursively.
+            iterator: iterator over matching items.
         """
         names_yielded = set()
         for item_name, item in self._cm__configs.items():
-            if isinstance(item, self.__class__):
+            if is_config_section(item):
+                if not recursive:
+                    continue
                 for sub_item_path, sub_item in item.iter_items():
                     yield (item_name,) + sub_item_path, sub_item
             else:
@@ -180,7 +181,7 @@ class Config(BaseSection):
             iterator: iterator over direct sub-sections of this section.
         """
         for item_name, item in self._cm__configs.items():
-            if isinstance(item, self.__class__):
+            if is_config_section(item):
                 yield item_name, item
 
     def to_dict(self, with_defaults=True, dict_cls=dict):
@@ -196,7 +197,7 @@ class Config(BaseSection):
         """
         values = dict_cls()
         for item_name, item in self._cm__configs.items():
-            if isinstance(item, self.__class__):
+            if is_config_section(item):
                 section_values = item.to_dict(with_defaults=with_defaults, dict_cls=dict_cls)
                 if section_values:
                     values[item_name] = section_values
@@ -297,9 +298,8 @@ class Config(BaseSection):
     @property
     def configparser(self):
         """
-        Adapter which exposes some of Python standard library's ``configparser.ConfigParser``
-        (or ``ConfigParser.ConfigParser`` in Python 2) functionality
-        to load and dump INI format files. 
+        Adapter to dump/load INI format strings and files using standard library's
+        ``ConfigParser`` (or the backported configparser module in Python 2).
         
         Returns:
             ConfigPersistenceAdapter
@@ -317,6 +317,9 @@ class Config(BaseSection):
     def json(self):
         """
         Adapter to dump/load JSON format strings and files.
+        
+        Returns:
+            ConfigPersistenceAdapter
         """
         if self._cm__json_adapter is None:
             self._cm__json_adapter = ConfigPersistenceAdapter(
@@ -329,6 +332,9 @@ class Config(BaseSection):
     def yaml(self):
         """
         Adapter to dump/load YAML format strings and files.
+        
+        Returns:
+            ConfigPersistenceAdapter
         """
         if self._cm__yaml_adapter is None:
             self._cm__yaml_adapter = ConfigPersistenceAdapter(
@@ -339,11 +345,7 @@ class Config(BaseSection):
 
     def add_item(self, alias, item):
         """
-        Internal method used to add a config item to this section.
-        Should only be called or overridden when extending *configmanager*'s functionality.
-        
-        Warnings:
-            The name of the method may change.
+        Add a config item to this section.
         """
         if not isinstance(alias, six.string_types):
             raise TypeError('Item name must be a string, got a {!r}'.format(type(alias)))
@@ -356,12 +358,7 @@ class Config(BaseSection):
 
     def add_section(self, alias, section):
         """
-        Internal method used to add a sub-section to this section.
-        
-        Should only be called or overridden when extending *configmanager*'s functionality.
-
-        Warnings:
-            The name of the method may change.
+        Add a sub-section to this section.
         """
         if not isinstance(alias, six.string_types):
             raise TypeError('Section name must be a string, got a {!r}'.format(type(alias)))
