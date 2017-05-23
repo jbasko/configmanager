@@ -270,6 +270,14 @@ def test_allows_iteration_over_all_items(mixed_app_config):
     assert formatters['plain'] == {'format': '%(message)s'}
 
 
+def test_iter_items_with_recursive_false_iterates_only_over_current_section(mixed_app_config):
+    config = mixed_app_config
+    assert list(config.iter_items(recursive=False)) == []
+
+    assert len(list(config.logging.iter_items(recursive=False))) == 2
+    assert len(list(config.db.iter_items(recursive=False))) == 4
+
+
 def test_forbids_accidental_item_overwrite_via_setitem(mixed_app_config):
     config = mixed_app_config
 
