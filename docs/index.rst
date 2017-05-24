@@ -109,3 +109,10 @@ ItemAttribute Object
 
 .. autoclass:: ItemAttribute
    :members:
+
+
+ConfigValues Object
+^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: ConfigValues
+   :members:
