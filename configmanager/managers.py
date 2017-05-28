@@ -242,7 +242,7 @@ class Config(BaseSection):
         for path, _ in self.iter_all(recursive=recursive):
             yield path
 
-    def to_dict(self, with_defaults=True, dict_cls=dict):
+    def dump_values(self, with_defaults=True, dict_cls=dict):
         """
         Export values of all items contained in this section to a dictionary.
         
@@ -251,12 +251,12 @@ class Config(BaseSection):
             of their contents.
         
         See Also:
-            :meth:`.read_dict` does the opposite.
+            :meth:`.load_values` does the opposite.
         """
         values = dict_cls()
         for item_name, item in self._cm__configs.items():
             if is_config_section(item):
-                section_values = item.to_dict(with_defaults=with_defaults, dict_cls=dict_cls)
+                section_values = item.dump_values(with_defaults=with_defaults, dict_cls=dict_cls)
                 if section_values:
                     values[item_name] = section_values
             else:
@@ -265,7 +265,7 @@ class Config(BaseSection):
                         values[item.name] = item.value
         return values
 
-    def read_dict(self, dictionary, as_defaults=False):
+    def load_values(self, dictionary, as_defaults=False):
         """
         Import config values from a dictionary.
         
@@ -281,14 +281,14 @@ class Config(BaseSection):
             as_defaults: if ``True``, the imported values will be set as defaults.
         
         See Also:
-            :meth:`to_dict` does the opposite.
+            :meth:`dump_values` does the opposite.
         """
         for name, value in dictionary.items():
             if name not in self:
                 if as_defaults:
                     if isinstance(value, dict):
                         self[name] = self.create_section()
-                        self[name].read_dict(value, as_defaults=as_defaults)
+                        self[name].load_values(value, as_defaults=as_defaults)
                     else:
                         self[name] = self.create_item(name, default=value)
                 else:
@@ -300,7 +300,7 @@ class Config(BaseSection):
                 else:
                     self[name].value = value
             else:
-                self[name].read_dict(value, as_defaults=as_defaults)
+                self[name].load_values(value, as_defaults=as_defaults)
 
     def reset(self):
         """

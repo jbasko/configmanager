@@ -18,16 +18,16 @@ def test_config_written_to_and_read_from_yaml_file(yaml_path1):
             },
         },
     })
-    original_values = config.to_dict()
+    original_values = config.dump_values()
 
     config.yaml.dump(yaml_path1, with_defaults=True)
 
     config.yaml.load(yaml_path1)
-    assert config.to_dict() == original_values
+    assert config.dump_values() == original_values
 
     config2 = Config()
     config2.yaml.load(yaml_path1, as_defaults=True)
-    assert config2.to_dict() == original_values
+    assert config2.dump_values() == original_values
 
 
 def test_config_written_to_and_read_from_yaml_string():
@@ -42,7 +42,7 @@ def test_config_written_to_and_read_from_yaml_string():
     config = Config()
     config.yaml.loads(config_str, as_defaults=True)
 
-    assert config.to_dict() == {
+    assert config.dump_values() == {
         'uploads': {
             'enabled': True,
             'threads': 5,
@@ -56,4 +56,4 @@ def test_config_written_to_and_read_from_yaml_string():
 
     config2 = Config()
     config2.yaml.loads(config_str2, as_defaults=True)
-    assert config2.to_dict() == config.to_dict()
+    assert config2.dump_values() == config.dump_values()

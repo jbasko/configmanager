@@ -62,7 +62,7 @@ def test_assigning_nameless_item_directly_to_config_should_set_its_name():
     config.dummy['y'] = Item(default=True)
     assert config.dummy.y.name == 'y'
 
-    assert config.to_dict() == {'dummy': {'x': 5, 'y': True}}
+    assert config.dump_values() == {'dummy': {'x': 5, 'y': True}}
 
 
 def test_assigning_item_with_name_directly_to_config_should_preserve_its_name():
@@ -83,7 +83,7 @@ def test_assigning_item_with_name_directly_to_config_should_preserve_its_name():
     assert config.dummy.w.name == 'www'
     assert config.dummy.www.name == 'www'
 
-    assert config.to_dict() == {'dummy': {'a.b': 'AB', 'www': 6}}
+    assert config.dump_values() == {'dummy': {'a.b': 'AB', 'www': 6}}
 
     all_dummies = list(config.dummy.iter_items())
     assert len(all_dummies) == 2
@@ -117,18 +117,18 @@ def test_section_name_must_be_a_string():
 
 def test_to_dict_should_not_include_items_with_no_usable_value():
     config = Config()
-    assert config.to_dict() == {}
+    assert config.dump_values() == {}
 
     config.a = Item()
     config.b = Item()
     config.dummies = Config({'x': Item(), 'y': Item()})
-    assert config.to_dict() == {}
+    assert config.dump_values() == {}
 
     config.dummies.x.value = 'yes'
-    assert config.to_dict() == {'dummies': {'x': 'yes'}}
+    assert config.dump_values() == {'dummies': {'x': 'yes'}}
 
     config.b.value = 'no'
-    assert config.to_dict() == {'dummies': {'x': 'yes'}, 'b': 'no'}
+    assert config.dump_values() == {'dummies': {'x': 'yes'}, 'b': 'no'}
 
 
 def test_read_dict_recursively_loads_values_from_a_dictionary():
@@ -150,13 +150,13 @@ def test_read_dict_recursively_loads_values_from_a_dictionary():
     assert config.a.x.value == 0
     assert config.a.y.value is True
 
-    config.read_dict({
+    config.load_values({
         'a': {'x': '5', 'y': 'no'},
     })
     assert config.a.x.value == 5
     assert config.a.y.value is False
 
-    config.b.c.read_dict({
+    config.b.c.load_values({
         'e': 'haha',  # will be ignored
         'd': {'x': 'XXX'},
     })
@@ -168,7 +168,7 @@ def test_read_dict_as_defaults_loads_default_values_from_a_dictionary():
     config = Config()
 
     # both will be ignored
-    config.read_dict({
+    config.load_values({
         'a': 5,
         'b': True,
     })
@@ -177,7 +177,7 @@ def test_read_dict_as_defaults_loads_default_values_from_a_dictionary():
     assert 'b' not in config
 
     # both will be added
-    config.read_dict({
+    config.load_values({
         'a': 5,
         'b': True,
     }, as_defaults=True)
@@ -269,7 +269,7 @@ def test_allows_iteration_over_all_items(mixed_app_config):
     formatters_items = list(config['logging']['formatters'].iter_items(recursive=True))
     assert len(formatters_items) == 2
 
-    formatters = config['logging']['formatters'].to_dict()
+    formatters = config['logging']['formatters'].dump_values()
     assert formatters['plain'] == {'format': '%(message)s'}
 
 
@@ -356,7 +356,7 @@ def test_forbids_accidental_item_overwrite_via_setattr(mixed_app_config):
 def test_to_dict(mixed_app_config, raw_db_config, raw_logging_config):
     config = mixed_app_config
 
-    config_dict = config.to_dict()
+    config_dict = config.dump_values()
 
     assert isinstance(config_dict, dict)
 
@@ -405,7 +405,7 @@ def test_can_have_a_dict_as_a_config_value_if_wrapped_inside_item():
     # value, not the real thing.
     config.aws.value['secret_key'] = 'NEW_SECRET'
 
-    assert config.to_dict()['aws'] == {'access_key': '123', 'secret_key': 'secret'}
+    assert config.dump_values()['aws'] == {'access_key': '123', 'secret_key': 'secret'}
 
 
 def test_len_of_config_returns_number_of_items_and_sections_in_current_level():
@@ -482,7 +482,7 @@ def test_config_item_value_can_be_unicode_str(tmpdir):
     config2 = Config({'greeting': '', 'name': ''})
     config2.configparser.load(path)
     assert config2.name.value == u'Jānis Bērziņš'
-    assert config1.to_dict(with_defaults=True) == config2.to_dict(with_defaults=True)
+    assert config1.dump_values(with_defaults=True) == config2.dump_values(with_defaults=True)
 
 
 def test_config_of_config_is_a_deep_copy_of_original_config():
@@ -491,13 +491,13 @@ def test_config_of_config_is_a_deep_copy_of_original_config():
 
     config2 = Config(config1)
     assert config1 is not config2
-    assert config1.to_dict() == config2.to_dict()
-    assert config1.to_dict(with_defaults=True) == config2.to_dict(with_defaults=True)
+    assert config1.dump_values() == config2.dump_values()
+    assert config1.dump_values(with_defaults=True) == config2.dump_values(with_defaults=True)
 
     config1.uploads.enabled.value = True
-    config1.uploads.db.read_dict({'user': 'admin'})
+    config1.uploads.db.load_values({'user': 'admin'})
 
-    assert config2.to_dict(with_defaults=True) == {'uploads': {'enabled': False, 'db': {'user': 'root'}}}
+    assert config2.dump_values(with_defaults=True) == {'uploads': {'enabled': False, 'db': {'user': 'root'}}}
 
     config2.uploads.db.user.default = 'default-user'
     assert config1.uploads.db.user.default == 'root'
