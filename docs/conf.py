@@ -24,11 +24,9 @@ from configmanager import __version__
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc',
+extensions = [
+    'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
-    'sphinx.ext.todo',
-    'sphinx.ext.coverage',
-    'sphinx.ext.viewcode',
     'sphinx.ext.napoleon',
 ]
 
@@ -89,7 +87,7 @@ html_theme = 'alabaster'
 # documentation.
 #
 html_theme_options = {
-    'font_size': '14px'
+    'font_size': '15px'
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -98,12 +96,7 @@ html_theme_options = {
 html_static_path = ['_static']
 
 html_sidebars = {
-    'index': [
-    ],
-    '**': [
-        'localtoc.html',
-        'relations.html',
-    ],
+    '**': [],
 }
 
 # -- Options for HTMLHelp output ------------------------------------------
