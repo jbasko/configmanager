@@ -44,8 +44,8 @@ def test_json_read_and_write(defaults_json_path, user_json_path):
     with open(defaults_json_path) as f:
         c3.json.load(f, as_defaults=True)
 
-    assert c1.to_dict(with_defaults=False) == {}
-    assert c1.to_dict(with_defaults=True) == {
+    assert c1.dump_values(with_defaults=False) == {}
+    assert c1.dump_values(with_defaults=True) == {
         'uploads': {
             'threads': 1,
             'enabled': False,
@@ -53,20 +53,20 @@ def test_json_read_and_write(defaults_json_path, user_json_path):
         }
     }
 
-    assert c1.to_dict() == c2.to_dict() == c3.to_dict()
+    assert c1.dump_values() == c2.dump_values() == c3.dump_values()
 
     c1.json.load(user_json_path)
     c2.json.load([user_json_path])
     with open(user_json_path) as f:
         c3.json.load(f)
 
-    assert c1.to_dict(with_defaults=False) == {
+    assert c1.dump_values(with_defaults=False) == {
         'uploads': {
             'threads': 5,
             'enabled': True,
         }
     }
-    assert c1.to_dict() == c2.to_dict() == c3.to_dict()
+    assert c1.dump_values() == c2.dump_values() == c3.dump_values()
 
     updates = {
         'uploads': {
@@ -75,23 +75,23 @@ def test_json_read_and_write(defaults_json_path, user_json_path):
         }
     }
 
-    c1.read_dict(updates)
-    c2.read_dict(updates)
-    c3.read_dict(updates)
+    c1.load_values(updates)
+    c2.load_values(updates)
+    c3.load_values(updates)
 
-    assert c1.to_dict() == c2.to_dict() == c3.to_dict()
+    assert c1.dump_values() == c2.dump_values() == c3.dump_values()
 
     c1.json.dump(user_json_path)
     c2.json.load(user_json_path)
-    assert c1.to_dict() == c2.to_dict() == c3.to_dict()
+    assert c1.dump_values() == c2.dump_values() == c3.dump_values()
 
-    assert c1.to_dict() == c2.to_dict() == c3.to_dict()
+    assert c1.dump_values() == c2.dump_values() == c3.dump_values()
 
     with open(user_json_path, 'w') as f:
         c2.json.dump(f)
     c1.json.load(user_json_path)
 
-    assert c1.to_dict() == c2.to_dict() == c3.to_dict()
+    assert c1.dump_values() == c2.dump_values() == c3.dump_values()
 
 
 def test_json_writes_with_defaults_false_by_default(user_json_path):
@@ -121,13 +121,13 @@ def test_json_reads_and_writes_strings():
     assert c.json.dumps(with_defaults=True) == '{\n  "greeting": "Hello"\n}'
 
     c.json.loads('{"something_nonexistent": 1}')
-    assert c.to_dict() == {'greeting': 'Hello'}
+    assert c.dump_values() == {'greeting': 'Hello'}
 
     c.json.loads('{"something_nonexistent": 1}', as_defaults=True)
-    assert c.to_dict() == {'greeting': 'Hello', 'something_nonexistent': 1}
+    assert c.dump_values() == {'greeting': 'Hello', 'something_nonexistent': 1}
 
     c.json.loads('{"greeting": "Hello, world!"}')
-    assert c.to_dict() == {'greeting': 'Hello, world!', 'something_nonexistent': 1}
+    assert c.dump_values() == {'greeting': 'Hello, world!', 'something_nonexistent': 1}
 
 
 def test_json_reads_and_writes_preserve_order(tmpdir):

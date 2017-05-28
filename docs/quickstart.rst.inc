@@ -29,7 +29,7 @@ Quick Start
     >>> config.greeting.value
     'Hello, world!'
 
-    >>> config.to_dict()
+    >>> config.dump_values()
     {'greeting': 'Hello, world!'}
 
 5. Change config values. ::
@@ -42,11 +42,11 @@ Quick Start
      '_type': str,
      '_value': 'Hey!'}
 
-    >>> config.read_dict({'greeting': 'Good evening!'})
+    >>> config.load_values({'greeting': 'Good evening!'})
     >>> config.greeting.value
     'Good evening!'
 
-    >>> config.to_dict()
+    >>> config.dump_values()
     {'greeting': 'Good evening!'}
 
 6. Persist the configuration. ::

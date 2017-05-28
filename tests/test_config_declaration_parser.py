@@ -119,19 +119,19 @@ def test_class_based_config_declaration(app_config_cls_example):
 def test_dict_based_config_declaration(app_config_dict_example, app_config_cls_example):
     dict_tree = Config(app_config_dict_example)
     cls_tree = Config(app_config_cls_example)
-    assert dict_tree.to_dict() == cls_tree.to_dict()
+    assert dict_tree.dump_values() == cls_tree.dump_values()
 
 
 def test_module_based_config_declaration(app_config_module_example, app_config_cls_example):
     module_tree = Config(app_config_module_example)
     cls_tree = Config(app_config_cls_example)
-    assert module_tree.to_dict() == cls_tree.to_dict()
+    assert module_tree.dump_values() == cls_tree.dump_values()
 
 
 def test_mixed_config_declaration(app_config_mixed_example, app_config_cls_example):
     mixed_tree = Config(app_config_mixed_example)
     cls_tree = Config(app_config_cls_example)
-    assert mixed_tree.to_dict() == cls_tree.to_dict()
+    assert mixed_tree.dump_values() == cls_tree.dump_values()
 
 
 def test_default_value_is_deep_copied():

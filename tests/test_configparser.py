@@ -44,7 +44,7 @@ def test_reads_empty_config_from_file_obj(simple_config, empty_config_file):
     with open(empty_config_file) as f:
         simple_config.configparser.load(f)
 
-    assert simple_config.to_dict() == {
+    assert simple_config.dump_values() == {
         'simple': {
             'str': '',
             'int': 0,
@@ -60,7 +60,7 @@ def test_reads_simple_config_from_file_obj(simple_config, simple_config_file):
     with open(simple_config_file) as f:
         simple_config.configparser.load(f)
 
-    assert simple_config.to_dict() == {
+    assert simple_config.dump_values() == {
         'simple': {
             'str': 'hello',
             'int': 5,
@@ -282,4 +282,4 @@ def test_writes_to_and_reads_from_default_section_transparently(tmpdir):
     config2 = Config()
     config2.configparser.load(config_ini, as_defaults=True)
 
-    assert config1.to_dict() == config2.to_dict() == {'greeting': 'Hello', 'name': 'World'}
+    assert config1.dump_values() == config2.dump_values() == {'greeting': 'Hello', 'name': 'World'}

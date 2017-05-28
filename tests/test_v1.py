@@ -41,7 +41,7 @@ def test_simple_config():
     assert config.greeting.default == 'Hello, world!'
 
     # Can export all values to a dictionary
-    assert config.to_dict() == {
+    assert config.dump_values() == {
         'greeting': 'Good evening!',
         'threads': 1,
         'throttling_enabled': False,
@@ -120,7 +120,7 @@ def test_nested_config():
     # You can also change values by reading them from a dictionary.
     # Unknown names will be ignored unless you pass as_defaults=True
     # but in that case you will overwrite any previously existing items.
-    config.read_dict({'greeting': 'Good morning!', 'comments': {'enabled': False}})
+    config.load_values({'greeting': 'Good morning!', 'comments': {'enabled': False}})
     assert config.greeting.value == 'Good morning!'
     assert 'comments' not in config
 
@@ -137,11 +137,11 @@ def test_nested_config():
     assert all[('server', 'port')] is config.server.port
 
     # Export all values
-    config_dict = config.to_dict()
+    config_dict = config.dump_values()
     assert config_dict['db'] == {'host': 'localhost', 'user': 'root', 'password': 'secret'}
 
     # Each section is a Config instance too, so you can export those separately too:
-    assert config.server.to_dict() == config_dict['server']
+    assert config.server.dump_values() == config_dict['server']
 
     # You can reset individual items to their default values
     assert config.db.user.value == 'root'
@@ -190,8 +190,7 @@ def test_configparser_integration(tmpdir):
     # configuration without specifying as_defaults=True:
     config.configparser.load(custom_ini_path)
 
-    # other ConfigParser-like methods such as read_dict, loads, read_file are provided too.
-    # when you are done setting config values, you can dump them to file too.
+    # when you are done setting config values, you can write them to a file.
     config.configparser.dump(custom_ini_path)
 
     # Note that default values won't be written unless you explicitly request it

@@ -72,7 +72,7 @@ class JsonReaderWriter(ConfigReaderWriter):
         # the string we are trying to write is not unicode in Python 2
         # because we open files with encoding=utf-8.
         result = self.json.dumps(
-            config.to_dict(with_defaults=with_defaults, dict_cls=collections.OrderedDict),
+            config.dump_values(with_defaults=with_defaults, dict_cls=collections.OrderedDict),
             ensure_ascii=False,
             indent=2,
             **kwargs
@@ -83,13 +83,13 @@ class JsonReaderWriter(ConfigReaderWriter):
             return result
 
     def load_config_from_file(self, config, file_obj, as_defaults=False, **kwargs):
-        config.read_dict(
+        config.load_values(
             self.json.load(file_obj, object_pairs_hook=collections.OrderedDict, **kwargs),
             as_defaults=as_defaults,
         )
 
     def load_config_from_string(self, config, string, as_defaults=False, **kwargs):
-        config.read_dict(
+        config.load_values(
             self.json.loads(string, object_pairs_hook=collections.OrderedDict, **kwargs),
             as_defaults=as_defaults,
         )
@@ -103,16 +103,16 @@ class YamlReaderWriter(ConfigReaderWriter):
         self.yaml = yaml
 
     def dump_config_to_file(self, config, file_obj, with_defaults=False, **kwargs):
-        self.yaml.dump(config.to_dict(with_defaults=with_defaults), file_obj, **kwargs)
+        self.yaml.dump(config.dump_values(with_defaults=with_defaults), file_obj, **kwargs)
 
     def dump_config_to_string(self, config, with_defaults=False, **kwargs):
-        return self.yaml.dump(config.to_dict(with_defaults=with_defaults), **kwargs)
+        return self.yaml.dump(config.dump_values(with_defaults=with_defaults), **kwargs)
 
     def load_config_from_file(self, config, file_obj, as_defaults=False, **kwargs):
-        config.read_dict(self.yaml.load(file_obj, **kwargs), as_defaults=as_defaults)
+        config.load_values(self.yaml.load(file_obj, **kwargs), as_defaults=as_defaults)
 
     def load_config_from_string(self, config, string, as_defaults=False, **kwargs):
-        config.read_dict(self.yaml.load(string, **kwargs), as_defaults=as_defaults)
+        config.load_values(self.yaml.load(string, **kwargs), as_defaults=as_defaults)
 
 
 class ConfigParserReaderWriter(ConfigReaderWriter):
