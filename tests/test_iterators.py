@@ -82,25 +82,16 @@ def test_len_config_returns_number_of_children(c0, c1, c2, c3, c4, c5):
     assert len(c5) == 2
 
 
-def test_iter_item_names(c0, c1, c2, c3, c4, c5):
-    assert list(c0.iter_item_names()) == []
-    assert list(c1.iter_item_names()) == ['greeting']
-    assert list(c2.iter_item_names()) == []
-    assert list(c3.iter_item_names()) == []
+def test_iter_iterates_over_item_and_section_names(c0, c1, c2, c3, c4, c5):
+    assert list(c0) == []
+    assert list(c1) == ['greeting']
+    assert list(c2) == ['uploads']
+    assert list(c3) == ['uploads']
 
-    assert list(c4.iter_item_names()) == ['greeting']
-    assert list(c4.uploads.iter_item_names()) == ['enabled']
+    assert list(c4) == ['greeting', 'uploads', 'downloads']
+    assert list(c4.uploads) == ['enabled', 'db']
 
-    assert list(c5.iter_item_names()) == ['greeting', 'tmp_dir']
-
-
-def test_iter_section_names(c0, c1, c2, c3, c4, c5):
-    assert list(c0.iter_section_names()) == []
-    assert list(c1.iter_section_names()) == []
-    assert list(c2.iter_section_names()) == ['uploads']
-    assert list(c3.iter_section_names()) == ['uploads']
-    assert list(c4.iter_section_names()) == ['uploads', 'downloads']
-    assert list(c5.iter_section_names()) == []
+    assert list(c5) == ['greeting', 'tmp_dir']
 
 
 def test_iter_all(c0, c1, c2, c3, c4, c5, cx):
@@ -159,3 +150,21 @@ def test_iter_paths(c0, c1, c2, c3, c4, c5, cx, recursive):
 
     for c in [c0, c1, c2, c3, c4, c5, cx]:
         assert len(list(c.iter_all(recursive=recursive))) == len(list(c.iter_paths(recursive=recursive)))
+
+
+def test_iter_items_can_yield_names_as_keys(c4):
+    items = dict(c4.iter_items(key='name'))
+    assert len(items) == 1
+
+    assert 'greeting' in items
+    assert ('greeting',) not in items
+
+    assert items['greeting'] == c4.greeting
+
+    items2 = dict(c4.iter_items())
+    assert len(items2) == 1
+
+    assert 'greeting' not in items2
+    assert ('greeting',) in items2
+
+    assert items2[('greeting',)] == c4.greeting

@@ -47,7 +47,10 @@ def test_reset_resets_values_to_defaults():
 
 def test_repr_of_config():
     config = Config()
-    assert repr(config).startswith('<Config at ')
+    assert repr(config).startswith('<Config None at ')
+
+    config = Config({'uploads': Config()})
+    assert repr(config.uploads).startswith('<Config uploads at ')
 
 
 def test_assigning_nameless_item_directly_to_config_should_set_its_name():
@@ -295,10 +298,23 @@ def test_allows_iteration_over_sections(mixed_app_config):
 
     sections = dict(config.iter_sections())
     assert len(sections) == 2
+    assert sections[('db',)] is config.db
+    assert sections[('logging',)] is config.logging
+    assert 'db' not in sections
+    assert 'logging' not in sections
 
-    assert len(dict(sections['db'].iter_sections())) == 0
+    sections = dict(config.iter_sections(key='alias'))
+    assert len(sections) == 2
+    assert ('db',) not in sections
+    assert ('logging',) not in sections
+    assert sections['db'] is config.db
+    assert sections['logging'] is config.logging
 
-    assert len(dict(sections['logging'].iter_sections())) == 3
+    assert len(list(sections['db'].iter_sections())) == 0
+    assert len(list(sections['logging'].iter_sections())) == 3
+
+    assert len(list(config.iter_sections(recursive=True))) == 9
+    assert len(list(config.iter_sections(recursive=True, key='alias'))) == 9
 
 
 def test_attribute_read_access(mixed_app_config):
@@ -485,3 +501,9 @@ def test_config_of_config_is_a_deep_copy_of_original_config():
 
     config2.uploads.db.user.default = 'default-user'
     assert config1.uploads.db.user.default == 'root'
+
+
+def test_cofig_is_section_and_is_not_item():
+    config = Config()
+    assert config.is_section
+    assert not config.is_item

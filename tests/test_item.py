@@ -321,3 +321,9 @@ def test_item_value_can_be_unicode_str():
     c.value = u'Pēteris Liepiņš'
     assert c.str_value == u'Pēteris Liepiņš'
     assert c.default == u'Jānis Bērziņš'
+
+
+def test_item_is_item_and_is_not_section():
+    c = Item()
+    assert c.is_item
+    assert not c.is_section

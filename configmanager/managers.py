@@ -65,7 +65,7 @@ class Config(BaseSection):
         return instance
 
     def __repr__(self):
-        return '<{cls} at {id}>'.format(cls=self.__class__.__name__, id=id(self))
+        return '<{cls} {alias} at {id}>'.format(cls=self.__class__.__name__, alias=self.alias, id=id(self))
 
     def _resolve_config_key(self, key):
         if isinstance(key, six.string_types):
@@ -149,56 +149,50 @@ class Config(BaseSection):
     def __bool__(self):
         return True
 
-    def iter_items(self, recursive=False):
+    def __iter__(self):
+        for name in self._cm__configs.keys():
+            yield name
+
+    def iter_items(self, recursive=False, key='path'):
         """
 
         Args:
             recursive: if ``True``, recurse into sub-sections.
+            key: ``path`` (default) or ``name``
 
         Returns:
-            iterator: iterator over ``(path, item)`` pairs of all items
+            iterator: iterator over ``(path_or_name, item)`` pairs of all items
                 in this section (and sub-sections if ``recursive=True``).
 
         """
 
         for path, obj in self.iter_all(recursive=recursive):
-            if is_config_item(obj):
-                yield path, obj
+            if obj.is_item:
+                if key == 'path':
+                    yield path, obj
+                elif key == 'name':
+                    yield obj.name, obj
+                else:
+                    raise ValueError('Invalid iter_items key {!r}'.format(key))
 
-    def iter_item_names(self):
+    def iter_sections(self, recursive=False, key='path'):
         """
+        Args:
+            recursive: if ``True``, recurse into sub-sections.
+            key: ``path`` (default) or ``alias``
+
         Returns:
-            iterator: iterator over names of items in this section.
-
+            iterator: iterator over ``(path_or_alias, section)`` pairs of all sections
+                in this section (and sub-sections if ``recursive=True``).
         """
-        for _, obj in self.iter_all():
-            if is_config_item(obj):
-                yield obj.name
-
-    def iter_sections(self):
-        """
-        Returns:
-            iterator: iterator over ``(alias, section)`` pairs of direct
-                sub-sections of this section.
-
-        Notes:
-            By design, this does not allow recursive iteration into sub-sections
-            because section aliases are used as keys which means that nested sub-sections
-            aliases could clash with parent section aliases.
-        """
-        for _, obj in self.iter_all():
-            if is_config_section(obj):
-                yield obj.alias, obj
-
-    def iter_section_names(self):
-        """
-        Returns:
-            Iterator over names of sections in this section.
-
-        """
-        for _, obj in self.iter_all():
-            if is_config_section(obj):
-                yield obj.alias
+        for path, obj in self.iter_all(recursive=recursive):
+            if obj.is_section:
+                if key == 'path':
+                    yield path, obj
+                elif key in ('name', 'alias'):
+                    yield obj.alias, obj
+                else:
+                    raise ValueError('Invalid iter_sections key {!r}'.format(key))
 
     def iter_all(self, recursive=False):
         """
@@ -212,8 +206,7 @@ class Config(BaseSection):
         names_yielded = set()
 
         for obj_alias, obj in self._cm__configs.items():
-
-            if is_config_section(obj):
+            if obj.is_section:
                 if obj.alias in names_yielded:
                     continue
                 names_yielded.add(obj.alias)

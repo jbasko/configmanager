@@ -13,9 +13,9 @@ Quick Start
 
 3. Create your main config section and declare defaults. ::
 
-    config = Config({
-        'greeting': 'Hello, world!',
-    })
+    config = Config([
+        ('greeting', 'Hello, world!'),
+    ])
 
 4. Inspect config values. ::
 

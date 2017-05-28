@@ -136,11 +136,6 @@ def test_nested_config():
     assert all[('db', 'host')] is config.db.host
     assert all[('server', 'port')] is config.server.port
 
-    # Iterate over all sections (non-recursively)
-    sections = dict(config.iter_sections())
-    assert sections['db'] is config.db
-    assert sections['server'] is config['server']
-
     # Export all values
     config_dict = config.to_dict()
     assert config_dict['db'] == {'host': 'localhost', 'user': 'root', 'password': 'secret'}
