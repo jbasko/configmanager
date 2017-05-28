@@ -58,6 +58,16 @@ def c5():
     ])
 
 
+@pytest.fixture
+def cx():
+    return Config([
+        ('with_', Item(name='with')),
+        ('for', Config([
+            ('continue_', Item(name='continue')),
+        ])),
+    ])
+
+
 def test_len_config_returns_number_of_children(c0, c1, c2, c3, c4, c5):
     assert len(c0) == 0
     assert len(c1) == 1
@@ -93,7 +103,7 @@ def test_iter_section_names(c0, c1, c2, c3, c4, c5):
     assert list(c5.iter_section_names()) == []
 
 
-def test_iter_all(c0, c1, c2, c3, c4, c5):
+def test_iter_all(c0, c1, c2, c3, c4, c5, cx):
     assert list(c0.iter_all()) == []
     assert list(c0.iter_all(recursive=True)) == []
 
@@ -138,16 +148,14 @@ def test_iter_all(c0, c1, c2, c3, c4, c5):
     assert all5[1][0] == ('tmp_dir',)
     assert all5[1][1] == c5.tmp_dir
 
-
-def test_iter_all_over_aliased_names():
-    cx = Config([
-        ('with_', Item(name='with')),
-        ('for', Config([
-            ('continue_', Item(name='continue')),
-        ])),
-    ])
-
     assert len(list(cx.iter_all())) == 2
     assert len(list(cx.iter_all(recursive=True))) == 3
-
     assert set(dict(cx.iter_all(recursive=True)).keys()) == {('with',), ('for',), ('for', 'continue')}
+
+
+@pytest.mark.parametrize('recursive', [False, True])
+def test_iter_paths(c0, c1, c2, c3, c4, c5, cx, recursive):
+    assert list(cx.iter_paths(recursive=True)) == [('with',), ('for',), ('for', 'continue')]
+
+    for c in [c0, c1, c2, c3, c4, c5, cx]:
+        assert len(list(c.iter_all(recursive=recursive))) == len(list(c.iter_paths(recursive=recursive)))

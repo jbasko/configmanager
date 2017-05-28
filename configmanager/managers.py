@@ -239,6 +239,20 @@ class Config(BaseSection):
 
                 yield (obj.name,), obj
 
+    def iter_paths(self, recursive=False):
+        """
+
+        Args:
+            recursive: if ``True``, recurse into sub-sections
+
+        Returns:
+            iterator: iterator over paths of all items and sections
+            contained in this section.
+
+        """
+        for path, _ in self.iter_all(recursive=recursive):
+            yield path
+
     def to_dict(self, with_defaults=True, dict_cls=dict):
         """
         Export values of all items contained in this section to a dictionary.
