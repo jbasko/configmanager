@@ -151,7 +151,7 @@ def test_config_declaration_can_be_a_list_of_items_or_two_tuples():
         Item('greeting'),
         ('db', Config({'user': 'root'}))
     ])
-    assert list(path for path, _ in config.iter_items()) == [('enabled',), ('threads',), ('greeting',), ('db', 'user')]
+    assert list(path for path, _ in config.iter_items(recursive=True)) == [('enabled',), ('threads',), ('greeting',), ('db', 'user')]
 
 
 def test_declaration_can_be_a_list_of_field_names():

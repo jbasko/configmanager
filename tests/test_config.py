@@ -257,13 +257,13 @@ def test_declaration_parser_does_not_modify_config(raw_logging_config):
 def test_allows_iteration_over_all_items(mixed_app_config):
     config = mixed_app_config
 
-    all_items = list(config.iter_items())
+    all_items = list(config.iter_items(recursive=True))
     assert len(all_items) == 14
 
-    db_items = list(config['db'].iter_items())
+    db_items = list(config['db'].iter_items(recursive=True))
     assert len(db_items) == 4
 
-    formatters_items = list(config['logging']['formatters'].iter_items())
+    formatters_items = list(config['logging']['formatters'].iter_items(recursive=True))
     assert len(formatters_items) == 2
 
     formatters = config['logging']['formatters'].to_dict()
@@ -293,12 +293,12 @@ def test_forbids_accidental_item_overwrite_via_setitem(mixed_app_config):
 def test_allows_iteration_over_sections(mixed_app_config):
     config = mixed_app_config
 
-    sections = {s.alias: s for s in config.iter_sections()}
+    sections = dict(config.iter_sections())
     assert len(sections) == 2
 
-    assert len(list(sections['db'].iter_sections())) == 0
+    assert len(dict(sections['db'].iter_sections())) == 0
 
-    assert len(list(sections['logging'].iter_sections())) == 3
+    assert len(dict(sections['logging'].iter_sections())) == 3
 
 
 def test_attribute_read_access(mixed_app_config):

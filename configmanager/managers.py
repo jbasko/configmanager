@@ -149,28 +149,21 @@ class Config(BaseSection):
     def __bool__(self):
         return True
 
-    def iter_items(self, recursive=True):
+    def iter_items(self, recursive=False):
         """
-        Iterate over items contained in this section.
-        
-        Returns:
-            iterator: iterator over matching items.
-        """
-        names_yielded = set()
-        for item_name, item in self._cm__configs.items():
-            if is_config_section(item):
-                if not recursive:
-                    continue
-                for sub_item_path, sub_item in item.iter_items():
-                    yield (item_name,) + sub_item_path, sub_item
-            else:
-                # _cm__configs contains duplicates so that we can have multiple aliases point
-                # to the same item. We have to de-duplicate here.
-                if item.name in names_yielded:
-                    continue
-                names_yielded.add(item.name)
 
-                yield (item.name,), item
+        Args:
+            recursive: if ``True``, recurse into sub-sections.
+
+        Returns:
+            iterator: iterator over ``(path, item)`` pairs of all items
+                in this section (and sub-sections if ``recursive=True``).
+
+        """
+
+        for path, obj in self.iter_all(recursive=recursive):
+            if is_config_item(obj):
+                yield path, obj
 
     def iter_item_names(self):
         """
@@ -178,18 +171,24 @@ class Config(BaseSection):
             iterator: iterator over names of items in this section.
 
         """
-        for name, obj in self._cm__configs.items():
+        for _, obj in self.iter_all():
             if is_config_item(obj):
-                yield name
+                yield obj.name
 
     def iter_sections(self):
         """
         Returns:
-            iterator: iterator over direct sub-sections of this section.
+            iterator: iterator over ``(alias, section)`` pairs of direct
+                sub-sections of this section.
+
+        Notes:
+            By design, this does not allow recursive iteration into sub-sections
+            because section aliases are used as keys which means that nested sub-sections
+            aliases could clash with parent section aliases.
         """
         for _, obj in self.iter_all():
             if is_config_section(obj):
-                yield obj
+                yield obj.alias, obj
 
     def iter_section_names(self):
         """
@@ -197,9 +196,9 @@ class Config(BaseSection):
             Iterator over names of sections in this section.
 
         """
-        for name, obj in self._cm__configs.items():
+        for _, obj in self.iter_all():
             if is_config_section(obj):
-                yield name
+                yield obj.alias
 
     def iter_all(self, recursive=False):
         """
@@ -315,7 +314,7 @@ class Config(BaseSection):
         Recursively resets values of all items contained in this section
         and its subsections to their default values.
         """
-        for _, item in self.iter_items():
+        for _, item in self.iter_items(recursive=True):
             item.reset()
 
     @property
@@ -324,7 +323,7 @@ class Config(BaseSection):
         ``True`` if values of all config items in this section and its subsections
         have their values equal to defaults or have no value set.
         """
-        for _, item in self.iter_items():
+        for _, item in self.iter_items(recursive=True):
             if not item.is_default:
                 return False
         return True
