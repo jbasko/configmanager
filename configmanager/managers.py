@@ -184,15 +184,12 @@ class Config(BaseSection):
 
     def iter_sections(self):
         """
-        Iterate over sections of this config.
-        Does not recurse into sub-sections of sections.
-        
         Returns:
             iterator: iterator over direct sub-sections of this section.
         """
-        for item_name, item in self._cm__configs.items():
-            if is_config_section(item):
-                yield item_name, item
+        for _, obj in self.iter_all():
+            if is_config_section(obj):
+                yield obj
 
     def iter_section_names(self):
         """

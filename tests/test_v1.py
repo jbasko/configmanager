@@ -137,7 +137,7 @@ def test_nested_config():
     assert all[('server', 'port')] is config.server.port
 
     # Iterate over all sections (non-recursively)
-    sections = dict(config.iter_sections())
+    sections = {s.alias: s for s in config.iter_sections()}
     assert sections['db'] is config.db
     assert sections['server'] is config['server']
 

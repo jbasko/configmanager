@@ -293,13 +293,12 @@ def test_forbids_accidental_item_overwrite_via_setitem(mixed_app_config):
 def test_allows_iteration_over_sections(mixed_app_config):
     config = mixed_app_config
 
-    sections = dict(config.iter_sections())
+    sections = {s.alias: s for s in config.iter_sections()}
     assert len(sections) == 2
 
-    assert len(dict(sections['db'].iter_sections())) == 0
+    assert len(list(sections['db'].iter_sections())) == 0
 
-    logging_sections = dict(sections['logging'].iter_sections())
-    assert len(logging_sections) == 3
+    assert len(list(sections['logging'].iter_sections())) == 3
 
 
 def test_attribute_read_access(mixed_app_config):
