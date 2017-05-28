@@ -23,7 +23,7 @@ Why not just use ``ConfigParser``?
 format).
 
 It only starts to appear quite limited if you misuse it as a configuration manager.
-By configuration manager, we understand a party responsible for things like
+By configuration manager we mean a party responsible for things like
 managing a list of allowed configuration items and their defaults, loading custom configuration values from
 different sources (files, command-line arguments, environment variables etc.), casting values to their right types,
 providing interface to retrieve these values consistently.

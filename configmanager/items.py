@@ -101,9 +101,6 @@ class Item(BaseItem):
     def value(self):
         """
         The property through which to read and set value of config item.
-        
-        See Also:
-            :meth:`.get` and :meth:`.set`
         """
         return self.get()
 
@@ -132,9 +129,6 @@ class Item(BaseItem):
     def set(self, value):
         """
         Sets config value.
-        
-        See Also:
-            :meth:`.get` and :attr:`.value`
         """
         self._value = self._parse_str_value(value)
         if not issubclass(self.type, six.string_types):
@@ -184,8 +178,5 @@ class Item(BaseItem):
         """
         Hook to be used when extending *configmanager*. This is called
         when the item has been added to a section.
-        
-        See Also:
-            :meth:`.Config.added_to_section`
         """
         self._section = section
