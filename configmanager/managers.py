@@ -175,7 +175,7 @@ class Config(BaseSection):
     def iter_item_names(self):
         """
         Returns:
-            Iterator over names of items in this section.
+            iterator: iterator over names of items in this section.
 
         """
         for name, obj in self._cm__configs.items():
@@ -203,6 +203,41 @@ class Config(BaseSection):
         for name, obj in self._cm__configs.items():
             if is_config_section(obj):
                 yield name
+
+    def iter_all(self, recursive=False):
+        """
+        Args:
+            recursive: if ``True``, recurse into sub-sections
+
+        Returns:
+            iterator: iterator over ``(path, obj)`` pairs of all items and
+            sections contained in this section.
+        """
+        names_yielded = set()
+
+        for obj_alias, obj in self._cm__configs.items():
+
+            if is_config_section(obj):
+                if obj.alias in names_yielded:
+                    continue
+                names_yielded.add(obj.alias)
+
+                yield (obj.alias,), obj
+
+                if not recursive:
+                    continue
+
+                for sub_item_path, sub_item in obj.iter_all(recursive=recursive):
+                    yield (obj_alias,) + sub_item_path, sub_item
+
+            else:
+                # _cm__configs contains duplicates so that we can have multiple aliases point
+                # to the same item. We have to de-duplicate here.
+                if obj.name in names_yielded:
+                    continue
+                names_yielded.add(obj.name)
+
+                yield (obj.name,), obj
 
     def to_dict(self, with_defaults=True, dict_cls=dict):
         """
