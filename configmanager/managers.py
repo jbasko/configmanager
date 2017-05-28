@@ -141,7 +141,7 @@ class Config(BaseSection):
             )
 
     def __len__(self):
-        return sum(1 for _ in self.iter_items())
+        return len(self._cm__configs)
 
     def __nonzero__(self):
         return True
