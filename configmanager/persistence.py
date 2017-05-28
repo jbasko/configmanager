@@ -29,6 +29,14 @@ class ConfigPersistenceAdapter(object):
         self._rw = reader_writer
 
     def load(self, source, as_defaults=False):
+        """
+        Load configuration values from the specified source.
+
+        Args:
+            source:
+            as_defaults (bool): if ``True``, contents of ``source`` will be treated as declaration of configuration items.
+
+        """
         if isinstance(source, six.string_types):
             with open(source, encoding='utf-8') as f:
                 self._rw.load_config_from_file(self._config, f, as_defaults=as_defaults)
@@ -42,9 +50,25 @@ class ConfigPersistenceAdapter(object):
             self._rw.load_config_from_file(self._config, source, as_defaults=as_defaults)
 
     def loads(self, config_str, as_defaults=False):
+        """
+        Load configuration values from the specified source string.
+
+        Args:
+            config_str:
+            as_defaults (bool): if ``True``, contents of ``source`` will be treated as declaration of configuration items.
+
+        """
         self._rw.load_config_from_string(self._config, config_str, as_defaults=as_defaults)
 
     def dump(self, destination, with_defaults=False):
+        """
+        Write configuration values to the specified destination.
+
+        Args:
+            destination:
+            with_defaults (bool): if ``True``, values of items with no custom values will be included in the output
+                if they have a default value set.
+        """
         if isinstance(destination, six.string_types):
             with open(destination, 'w', encoding='utf-8') as f:
                 self._rw.dump_config_to_file(self._config, f, with_defaults=with_defaults)
@@ -52,6 +76,13 @@ class ConfigPersistenceAdapter(object):
             self._rw.dump_config_to_file(self._config, destination, with_defaults=with_defaults)
 
     def dumps(self, with_defaults=False):
+        """
+        Generate a string representing all the configuration values.
+
+        Args:
+            with_defaults (bool): if ``True``, values of items with no custom values will be included in the output
+                if they have a default value set.
+        """
         return self._rw.dump_config_to_string(self._config, with_defaults=with_defaults)
 
 

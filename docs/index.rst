@@ -2,7 +2,7 @@
 *configmanager*
 ###############
 
-Project on github: https://github.com/jbasko/configmanager
+*configmanager* on github: https://github.com/jbasko/configmanager
 
 .. contents::
 

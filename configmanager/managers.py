@@ -13,28 +13,91 @@ from .utils import not_set
 
 class Config(BaseSection):
     """
-    Represents a section consisting of config items (instances of :class:`.Item`) and other sections
+    Represents a section consisting of items (instances of :class:`.Item`) and other sections
     (instances of :class:`.Config`).
     
-    .. attribute:: Config(config_declaration=None, item_cls=None, configparser_factory=None)
+    .. attribute:: Config(config_declaration=None, **kwargs)
         
-        Creates a config section from a declaration, optionally specifies the class used to
-        auto-create new config items, and the class used to create ``ConfigParser`` instances
-        if needed.
+        Creates a section from a declaration.
+
+        Args:
+            ``config_declaration``: can be a dictionary, a list, a simple class, a module, another :class:`.Config`
+            instance, and a combination of these.
+
+        Keyword Args:
+
+            ``item_cls``:
+
+            ``config_parser_factory``:
+
+        Examples::
+
+            config = Config([
+                ('greeting', 'Hello!'),
+                ('uploads', Config({
+                    'enabled': True,
+                    'tmp_dir': '/tmp',
+                })),
+                ('db', {
+                    'host': 'localhost',
+                    'user': 'root',
+                    'password': 'secret',
+                    'name': 'test',
+                }),
+                ('api', Config([
+                    'host',
+                    'port',
+                    'default_user',
+                    ('enabled', Item(type=bool)),
+                ])),
+            ])
     
-    .. attribute:: <config>[name_or_path]
+    .. attribute:: <config>[<name_or_path>]
     
-        Access a config item or section by its name or path. Name is a string, path is a tuple of strings.
+        Access item by its name, section by its alias, or either by its path.
+
+        Args:
+            ``name`` (str): name of an item or alias of a section
+
+        Args:
+            ``path`` (tuple): path of an item or a section
         
         Returns:
             :class:`.Item` or :class:`.Config`
+
+        Examples::
+
+            >>> config['greeting']
+            <Item greeting 'Hello!'>
+
+            >>> config['uploads']
+            <Config uploads at 4436269600>
+
+            >>> config['uploads', 'enabled'].value
+            True
     
     .. attribute:: <config>.<name>
     
-        Access a config item or section by its name.
+        Access an item by its name or a section by its alias.
+
+        For names and aliases that break Python grammar rules, use ``config[name]`` notation instead.
         
         Returns:
             :class:`.Item` or :class:`.Config`
+
+    .. attribute:: <name_or_path> in <Config>
+
+        Returns ``True`` if an item or section with the specified name or path is to be found in this section.
+
+    .. attribute:: len(<Config>)
+
+        Returns the number of items and sections in this section (does not include sections and items in
+        sub-sections).
+
+    .. attribute:: __iter__()
+
+        Returns an iterator over all item names and section aliases in this section.
+
     """
 
     cm__item_cls = Item
@@ -245,13 +308,13 @@ class Config(BaseSection):
     def dump_values(self, with_defaults=True, dict_cls=dict):
         """
         Export values of all items contained in this section to a dictionary.
+
+        Items with no values set (and no defaults set if ``with_defaults=True``) will be excluded.
         
         Returns:
             dict: A dictionary of key-value pairs, where for sections values are dictionaries
             of their contents.
         
-        See Also:
-            :meth:`.load_values` does the opposite.
         """
         values = dict_cls()
         for item_name, item in self._cm__configs.items():
@@ -279,9 +342,6 @@ class Config(BaseSection):
         Args:
             dictionary: 
             as_defaults: if ``True``, the imported values will be set as defaults.
-        
-        See Also:
-            :meth:`dump_values` does the opposite.
         """
         for name, value in dictionary.items():
             if name not in self:
@@ -360,7 +420,7 @@ class Config(BaseSection):
         ``ConfigParser`` (or the backported configparser module in Python 2).
         
         Returns:
-            ConfigPersistenceAdapter
+            :class:`.ConfigPersistenceAdapter`
         """
         if self._cm__configparser_adapter is None:
             self._cm__configparser_adapter = ConfigPersistenceAdapter(
@@ -377,7 +437,7 @@ class Config(BaseSection):
         Adapter to dump/load JSON format strings and files.
         
         Returns:
-            ConfigPersistenceAdapter
+            :class:`.ConfigPersistenceAdapter`
         """
         if self._cm__json_adapter is None:
             self._cm__json_adapter = ConfigPersistenceAdapter(
@@ -392,7 +452,7 @@ class Config(BaseSection):
         Adapter to dump/load YAML format strings and files.
         
         Returns:
-            ConfigPersistenceAdapter
+            :class:`.ConfigPersistenceAdapter`
         """
         if self._cm__yaml_adapter is None:
             self._cm__yaml_adapter = ConfigPersistenceAdapter(

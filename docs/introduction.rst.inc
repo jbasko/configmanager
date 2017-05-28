@@ -19,14 +19,24 @@ Provide a clean, object-oriented interface to:
 Why not just use ``ConfigParser``?
 ----------------------------------
 
-Because in ``ConfigParser``:
+``ConfigParser`` does what its name suggests -- it parses configuration files (of one certain
+format).
 
-* without any additional work, you can't have configuration trees deeper than one section and one option
-* type and fallback value of an option is specified only when requested which means that on its own an option
-  is just a dummy string not knowing anything about itself.
+It only starts to appear quite limited if you misuse it as a configuration manager.
+By configuration manager we mean a party responsible for things like
+managing a list of allowed configuration items and their defaults, loading custom configuration values from
+different sources (files, command-line arguments, environment variables etc.), casting values to their right types,
+providing interface to retrieve these values consistently.
+Just because an instance of ``ConfigParser`` holds the data it has parsed doesn't mean it
+should be used in application code to look up configuration values.
 
-*configmanager* is the code that you usually write around ``ConfigParser`` to make it work for you. If you are happy
-with your own wrappers then you don't need *configmanager*.
+If ``ConfigParser`` is used as a configuration manager some of its limitations are:
+
+* a configuration value is just a string which is cast to the right type only if you specifically ask to
+  every time when you are looking it up.
+* a configuration item (called option in ``ConfigParser``) must belong to a section.
+* you can't have configuration trees deeper than one section + one option.
+* it only supports INI-format files.
 
 
 Key Terms and Principles
