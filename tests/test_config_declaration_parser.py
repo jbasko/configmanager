@@ -151,4 +151,33 @@ def test_config_declaration_can_be_a_list_of_items_or_two_tuples():
         Item('greeting'),
         ('db', Config({'user': 'root'}))
     ])
-    assert list(path for path, _ in config.iter_items()) == [('enabled',), ('threads',), ('greeting',), ('db', 'user')]
+    assert list(path for path, _ in config.iter_items(recursive=True)) == [('enabled',), ('threads',), ('greeting',), ('db', 'user')]
+
+
+def test_declaration_can_be_a_list_of_field_names():
+    config = Config([
+        'enabled', 'threads', 'greeting', 'tmp_dir',
+        ('db', Config(['user', 'host', 'password', 'name']))
+    ])
+
+    assert config.enabled
+    assert config.threads
+    assert config.greeting
+    assert config.tmp_dir
+    assert config.db.user
+    assert config.db.host
+    assert config.db.password
+    assert config.db.name
+
+    assert not config.enabled.has_value
+
+
+def test_declaration_cannot_be_a_list_of_other_things():
+    with pytest.raises(TypeError):
+        Config(['enabled', True])
+
+    with pytest.raises(TypeError):
+        Config([True, 5])
+
+    with pytest.raises(TypeError):
+        Config([True, 5, 0.0])

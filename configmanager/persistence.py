@@ -171,7 +171,7 @@ class ConfigParserReaderWriter(ConfigReaderWriter):
                     config[section][option].value = value
 
     def _load_config_into_config_parser(self, config, cp, with_defaults=False):
-        for item_path, item in config.iter_items():
+        for item_path, item in config.iter_items(recursive=True):
             if len(item_path) > 2:
                 raise RuntimeError(
                     '{cls} with more than 2 path segments cannot be loaded into ConfigParser'.format(

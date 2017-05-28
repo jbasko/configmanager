@@ -48,7 +48,7 @@ def test_simple_config():
     }
 
     # Can iterate over all items
-    items = dict(config.iter_items())
+    items = dict(config.iter_items(recursive=True))
     assert len(items) == 3
     assert items[('greeting',)] is config.greeting
     assert items[('threads',)] is config.threads
@@ -132,14 +132,9 @@ def test_nested_config():
     assert config.server.port.has_value
 
     # Iterate over all items (recursively)
-    all = dict(config.iter_items())
+    all = dict(config.iter_items(recursive=True))
     assert all[('db', 'host')] is config.db.host
     assert all[('server', 'port')] is config.server.port
-
-    # Iterate over all sections (non-recursively)
-    sections = dict(config.iter_sections())
-    assert sections['db'] is config.db
-    assert sections['server'] is config['server']
 
     # Export all values
     config_dict = config.to_dict()

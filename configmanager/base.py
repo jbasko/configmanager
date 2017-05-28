@@ -2,6 +2,9 @@ from .utils import not_set
 
 
 class BaseItem(object):
+    is_item = True
+    is_section = False
+
     def added_to_section(self, alias, section):
         pass
 
@@ -13,13 +16,13 @@ def is_config_item(obj):
 class BaseSection(object):
     cm__item_cls = BaseItem
 
+    is_item = False
+    is_section = True
+
     def create_item(self, *args, **kwargs):
         """
-        Internal method used to create a config item.
-        
-        Warnings:
-            Should only be called or overridden when extending *configmanager*'s functionality.
-            The name of the method may change.
+        Internal factory method used to create an instance of configuration item.
+        Should only be used to extend configmanager's functionality.
         """
         return self.cm__item_cls(*args, **kwargs)
 
@@ -28,11 +31,8 @@ class BaseSection(object):
 
     def create_section(self, *args, **kwargs):
         """
-        Internal method used to create a config section.
-        
-        Warnings:
-            Should only be called or overridden when extending *configmanager*'s functionality.
-            The name of the method may change.
+        Internal factory method used to create an instance of configuration section.
+        Should only be used to extend configmanager's functionality.
         """
         return self.__class__(*args, **kwargs)
 

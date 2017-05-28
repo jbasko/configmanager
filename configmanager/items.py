@@ -83,7 +83,7 @@ class Item(BaseItem):
         return '<{} {} {!r}>'.format(self.__class__.__name__, self.name, value)
 
     def __str__(self):
-        return self.str_value
+        return repr(self)
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
