@@ -70,3 +70,24 @@ def test_len_config_returns_number_of_children(c0, c1, c2, c3, c4, c5):
     assert len(c4.uploads.db) == 2
 
     assert len(c5) == 2
+
+
+def test_iter_item_names(c0, c1, c2, c3, c4, c5):
+    assert list(c0.iter_item_names()) == []
+    assert list(c1.iter_item_names()) == ['greeting']
+    assert list(c2.iter_item_names()) == []
+    assert list(c3.iter_item_names()) == []
+
+    assert list(c4.iter_item_names()) == ['greeting']
+    assert list(c4.uploads.iter_item_names()) == ['enabled']
+
+    assert list(c5.iter_item_names()) == ['greeting', 'tmp_dir']
+
+
+def test_iter_section_names(c0, c1, c2, c3, c4, c5):
+    assert list(c0.iter_section_names()) == []
+    assert list(c1.iter_section_names()) == []
+    assert list(c2.iter_section_names()) == ['uploads']
+    assert list(c3.iter_section_names()) == ['uploads']
+    assert list(c4.iter_section_names()) == ['uploads', 'downloads']
+    assert list(c5.iter_section_names()) == []

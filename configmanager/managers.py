@@ -172,6 +172,16 @@ class Config(BaseSection):
 
                 yield (item.name,), item
 
+    def iter_item_names(self):
+        """
+        Returns:
+            Iterator over names of items in this section.
+
+        """
+        for name, obj in self._cm__configs.items():
+            if is_config_item(obj):
+                yield name
+
     def iter_sections(self):
         """
         Iterate over sections of this config.
@@ -183,6 +193,16 @@ class Config(BaseSection):
         for item_name, item in self._cm__configs.items():
             if is_config_section(item):
                 yield item_name, item
+
+    def iter_section_names(self):
+        """
+        Returns:
+            Iterator over names of sections in this section.
+
+        """
+        for name, obj in self._cm__configs.items():
+            if is_config_section(obj):
+                yield name
 
     def to_dict(self, with_defaults=True, dict_cls=dict):
         """
