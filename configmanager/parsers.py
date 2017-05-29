@@ -1,5 +1,6 @@
 import copy
 import inspect
+import os.path
 import types
 
 import collections
@@ -14,6 +15,19 @@ def is_config_declaration(obj):
         or
         inspect.isclass(obj)
     )
+
+
+def get_file_adapter_name(filename):
+    adapter_lookup = {
+        '.json': 'json',
+        '.js': 'json',
+        '.ini': 'configparser',
+        '.yaml': 'yaml',
+        '.yml': 'yaml',
+    }
+
+    _, ext = os.path.splitext(filename)
+    return adapter_lookup.get(ext.lower(), 'configparser')
 
 
 class ConfigDeclarationParser(object):
@@ -45,6 +59,9 @@ class ConfigDeclarationParser(object):
                 else:
                     raise TypeError('Unexpected {!r} {!r} in list of items for config declaration'.format(type(x), x))
             keys_and_values = items.items()
+        elif isinstance(config_decl, six.string_types):
+            getattr(section, get_file_adapter_name(config_decl)).load(config_decl, as_defaults=True)
+            keys_and_values = ()
         else:
             raise TypeError('Unsupported config declaration type {!r}'.format(type(config_decl)))
 

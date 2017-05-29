@@ -181,3 +181,37 @@ def test_declaration_cannot_be_a_list_of_other_things():
 
     with pytest.raises(TypeError):
         Config([True, 5, 0.0])
+
+
+def test_declaration_can_be_a_filename(tmpdir):
+    config = Config([
+        ('uploads', Config([
+            ('enabled', True),
+            ('db', Config([
+                ('user', 'root'),
+                ('password', 'secret'),
+            ])),
+            ('threads', 5),
+        ]))
+    ])
+
+    json_path = tmpdir.join('uploads.json').strpath
+    ini_path = tmpdir.join('uploads.ini').strpath
+    yaml_path = tmpdir.join('uploads.yaml').strpath
+
+    config.json.dump(json_path, with_defaults=True)
+    config.yaml.dump(yaml_path, with_defaults=True)
+
+    c2 = Config(json_path)
+    assert c2.dump_values(with_defaults=True) == config.dump_values(with_defaults=True)
+
+    c3 = Config(yaml_path)
+    assert c3.dump_values(with_defaults=True) == config.dump_values(with_defaults=True)
+
+    # For configparser test 2 levels only:
+    config.uploads.configparser.dump(ini_path, with_defaults=True)
+
+    c4 = Config(ini_path)
+    print(c4.configparser.dumps(with_defaults=True))
+    print(config.uploads.configparser.dumps(with_defaults=True))
+    assert c4.configparser.dumps(with_defaults=True) == config.uploads.configparser.dumps(with_defaults=True)
