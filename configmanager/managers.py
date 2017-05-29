@@ -216,56 +216,29 @@ class Config(BaseSection):
         for name in self._cm__configs.keys():
             yield name
 
-    def iter_items(self, recursive=False, key='path'):
+    def _parse_path(self, path=None, separator='.'):
+        if not path:
+            return ()
+
+        clean_path = tuple(path.split(separator))
+        if clean_path not in self:
+            # TODO Use custom exceptions
+            raise AttributeError(path)
+
+        return clean_path
+
+    def _get_recursive_iterator(self, recursive=False):
+        """
+        Basic recursive iterator whose only purpose is to yield all items
+        and sections in order, with their full paths as keys.
+
+        Main challenge is to de-duplicate items and sections which
+        have aliases.
+
+        Do not add any new features to this iterator, instead
+        build others that extend this one.
         """
 
-        Args:
-            recursive: if ``True``, recurse into sub-sections.
-            key: ``path`` (default) or ``name``
-
-        Returns:
-            iterator: iterator over ``(path_or_name, item)`` pairs of all items
-                in this section (and sub-sections if ``recursive=True``).
-
-        """
-
-        for path, obj in self.iter_all(recursive=recursive):
-            if obj.is_item:
-                if key == 'path':
-                    yield path, obj
-                elif key == 'name':
-                    yield obj.name, obj
-                else:
-                    raise ValueError('Invalid iter_items key {!r}'.format(key))
-
-    def iter_sections(self, recursive=False, key='path'):
-        """
-        Args:
-            recursive: if ``True``, recurse into sub-sections.
-            key: ``path`` (default) or ``alias``
-
-        Returns:
-            iterator: iterator over ``(path_or_alias, section)`` pairs of all sections
-                in this section (and sub-sections if ``recursive=True``).
-        """
-        for path, obj in self.iter_all(recursive=recursive):
-            if obj.is_section:
-                if key == 'path':
-                    yield path, obj
-                elif key in ('name', 'alias'):
-                    yield obj.alias, obj
-                else:
-                    raise ValueError('Invalid iter_sections key {!r}'.format(key))
-
-    def iter_all(self, recursive=False):
-        """
-        Args:
-            recursive: if ``True``, recurse into sub-sections
-
-        Returns:
-            iterator: iterator over ``(path, obj)`` pairs of all items and
-            sections contained in this section.
-        """
         names_yielded = set()
 
         for obj_alias, obj in self._cm__configs.items():
@@ -279,7 +252,7 @@ class Config(BaseSection):
                 if not recursive:
                     continue
 
-                for sub_item_path, sub_item in obj.iter_all(recursive=recursive):
+                for sub_item_path, sub_item in obj._get_recursive_iterator(recursive=recursive):
                     yield (obj_alias,) + sub_item_path, sub_item
 
             else:
@@ -291,18 +264,109 @@ class Config(BaseSection):
 
                 yield (obj.name,), obj
 
-    def iter_paths(self, recursive=False):
+    def _get_path_iterator(self, path=None, separator='.', recursive=False):
+        clean_path = self._parse_path(path=path, separator=separator)
+
+        config = self[clean_path] if clean_path else self
+
+        if clean_path:
+            yield clean_path, config
+
+        if config.is_section:
+            for path, obj in config._get_recursive_iterator(recursive=recursive):
+                yield (clean_path + path), obj
+
+    def iter_items(self, recursive=False, path=None, key='path', separator='.'):
+        """
+
+        Args:
+            recursive: if ``True``, recurse into sub-sections.
+
+            path (tuple or string): optional path to limit iteration over.
+
+            key: ``path`` (default), ``str_path``, or ``name``.
+
+            separator (string): used both to interpret ``path=`` kwarg when it is a string,
+                and to generate ``str_path`` as the returned key.
+
+        Returns:
+            iterator: iterator over ``(key, item)`` pairs of all items
+                in this section (and sub-sections if ``recursive=True``).
+
+        """
+        for key, obj in self.iter_all(recursive=recursive, path=path, key=key, separator=separator):
+            if obj.is_item:
+                yield key, obj
+
+    def iter_sections(self, recursive=False, path=None, key='path', separator='.'):
+        """
+        Args:
+            recursive: if ``True``, recurse into sub-sections.
+
+            path (tuple or string): optional path to limit iteration over.
+
+            key: ``path`` (default), ``str_path``, or ``alias``.
+
+            separator (string): used both to interpret ``path=`` kwarg when it is a string,
+                and to generate ``str_path`` as the returned key.
+
+        Returns:
+            iterator: iterator over ``(key, section)`` pairs of all sections
+                in this section (and sub-sections if ``recursive=True``).
+
+        """
+        for key, obj in self.iter_all(recursive=recursive, path=path, key=key, separator=separator):
+            if obj.is_section:
+                yield key, obj
+
+    def iter_all(self, recursive=False, path=None, key='path', separator='.'):
+        """
+        Args:
+            recursive: if ``True``, recurse into sub-sections
+
+            path (tuple or string): optional path to limit iteration over.
+
+            key: ``path`` (default), ``str_path``, or ``name``.
+
+            separator (string): used both to interpret ``path=`` kwarg when it is a string,
+                and to generate ``str_path`` as the returned key.
+
+        Returns:
+            iterator: iterator over ``(path, obj)`` pairs of all items and
+            sections contained in this section.
+        """
+        for path, obj in self._get_path_iterator(recursive=recursive, path=path, separator=separator):
+            if key == 'path':
+                yield path, obj
+            elif key == 'name' or key == 'alias':
+                if obj.is_section:
+                    yield obj.alias, obj
+                else:
+                    yield obj.name, obj
+            elif key == 'str_path':
+                yield separator.join(path), obj
+            else:
+                raise ValueError('Invalid key {!r}'.format(key))
+
+    def iter_paths(self, recursive=False, path=None, key='path', separator='.'):
         """
 
         Args:
             recursive: if ``True``, recurse into sub-sections
+
+            path (tuple or string): optional path to limit iteration over.
+
+            key: ``path`` (default), ``str_path``, or ``name``.
+
+            separator (string): used both to interpret ``path=`` kwarg when it is a string,
+                and to generate ``str_path`` as the returned key.
 
         Returns:
             iterator: iterator over paths of all items and sections
             contained in this section.
 
         """
-        for path, _ in self.iter_all(recursive=recursive):
+        for path, _ in self.iter_all(recursive=recursive, path=path, key=key, separator=separator):
             yield path
 
     def dump_values(self, with_defaults=True, dict_cls=dict):
