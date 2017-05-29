@@ -42,6 +42,12 @@ def test_config_written_to_and_read_from_yaml_string():
     config = Config()
     config.yaml.loads(config_str, as_defaults=True)
 
+    # Make sure the order is preserved
+    assert list(config.iter_paths(recursive=True, key='str_path')) == [
+        'uploads', 'uploads.enabled', 'uploads.threads', 'uploads.db', 'uploads.db.user'
+    ]
+
+    # And the values
     assert config.dump_values() == {
         'uploads': {
             'enabled': True,
@@ -53,7 +59,17 @@ def test_config_written_to_and_read_from_yaml_string():
     }
 
     config_str2 = config.yaml.dumps(with_defaults=True)
+    assert config_str2 == (
+        'uploads:\n'
+        '  enabled: true\n'
+        '  threads: 5\n'
+        '  db:\n'
+        '    user: root\n'
+    )
 
     config2 = Config()
     config2.yaml.loads(config_str2, as_defaults=True)
+    assert list(config2.iter_paths(recursive=True, key='str_path')) == [
+        'uploads', 'uploads.enabled', 'uploads.threads', 'uploads.db', 'uploads.db.user'
+    ]
     assert config2.dump_values() == config.dump_values()

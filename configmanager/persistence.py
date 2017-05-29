@@ -131,13 +131,47 @@ class YamlReaderWriter(ConfigReaderWriter):
         super(YamlReaderWriter, self).__init__(**options)
 
         import yaml
+        import yaml.resolver
+
+        #
+        # The code to preserve order of items is taken from here:
+        # https://stackoverflow.com/a/21048064/38611
+        #
+
+        _mapping_tag = yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG
+
+        def dict_representer(dumper, data):
+            return dumper.represent_dict(data.items())
+
+        def dict_constructor(loader, node):
+            return collections.OrderedDict(loader.construct_pairs(node))
+
+        yaml.add_representer(collections.OrderedDict, dict_representer)
+        yaml.add_constructor(_mapping_tag, dict_constructor)
+
         self.yaml = yaml
 
+        self.default_dump_options = {
+            'indent': 2,
+            'default_flow_style': False,
+        }
+
     def dump_config_to_file(self, config, file_obj, with_defaults=False, **kwargs):
-        self.yaml.dump(config.dump_values(with_defaults=with_defaults), file_obj, **kwargs)
+        for k, v in self.default_dump_options.items():
+            kwargs.setdefault(k, v)
+        self.yaml.dump(
+            config.dump_values(with_defaults=with_defaults, dict_cls=collections.OrderedDict),
+            file_obj,
+            **kwargs
+        )
 
     def dump_config_to_string(self, config, with_defaults=False, **kwargs):
-        return self.yaml.dump(config.dump_values(with_defaults=with_defaults), **kwargs)
+        for k, v in self.default_dump_options.items():
+            kwargs.setdefault(k, v)
+        return self.yaml.dump(
+            config.dump_values(with_defaults=with_defaults, dict_cls=collections.OrderedDict),
+            **kwargs
+        )
 
     def load_config_from_file(self, config, file_obj, as_defaults=False, **kwargs):
         config.load_values(self.yaml.load(file_obj, **kwargs), as_defaults=as_defaults)
