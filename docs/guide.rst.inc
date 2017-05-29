@@ -7,3 +7,5 @@ User Guide
 .. include:: names.rst.inc
 
 .. include:: iterators.rst.inc
+
+.. include:: click.rst.inc

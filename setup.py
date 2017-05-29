@@ -27,6 +27,10 @@ setup(
     long_description=read('README.rst'),
     packages=['configmanager'],
     install_requires=['six', 'future', 'configparser'],
+    extras_require={
+        'yaml': ['PyYAML'],
+        'click': ['click'],
+    },
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',

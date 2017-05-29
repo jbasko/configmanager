@@ -114,6 +114,7 @@ class Config(BaseSection):
         instance._cm__configparser_adapter = None
         instance._cm__json_adapter = None
         instance._cm__yaml_adapter = None
+        instance._cm__click_extension = None
 
         if item_cls:
             instance.cm__item_cls = item_cls
@@ -524,6 +525,15 @@ class Config(BaseSection):
                 reader_writer=YamlReaderWriter(),
             )
         return self._cm__yaml_adapter
+
+    @property
+    def click(self):
+        if self._cm__click_extension is None:
+            from .click_ext import ClickExtension
+            self._cm__click_extension = ClickExtension(
+                config=self
+            )
+        return self._cm__click_extension
 
     def add_item(self, alias, item):
         """
