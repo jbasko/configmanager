@@ -3,7 +3,7 @@
 Quick Start
 ***********
 
-1. Install the latest version from pypi.org ::
+1. Install the latest version from pypi.python.org ::
 
     pip install configmanager
 
@@ -19,13 +19,6 @@ Quick Start
 
 4. Inspect config values. ::
 
-    >>> config.greeting.__dict__
-    {'_default': 'Hello, world!',
-     '_name': 'greeting',
-     '_section': <Config at 4415747688>,
-     '_type': str,
-     '_value': <NotSet>}
-
     >>> config.greeting.value
     'Hello, world!'
 
@@ -35,12 +28,10 @@ Quick Start
 5. Change config values. ::
 
     >>> config.greeting.value = 'Hey!'
-    >>> config.greeting.__dict__
-    {'_default': 'Hello, world!',
-     '_name': 'greeting',
-     '_section': <Config at 4415747688>,
-     '_type': str,
-     '_value': 'Hey!'}
+    >>> config.greeting.value
+    'Hey!'
+    >>> config.greeting.default
+    'Hello, world!'
 
     >>> config.load_values({'greeting': 'Good evening!'})
     >>> config.greeting.value
