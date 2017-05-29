@@ -168,3 +168,95 @@ def test_iter_items_can_yield_names_as_keys(c4):
     assert ('greeting',) in items2
 
     assert items2[('greeting',)] == c4.greeting
+
+
+def test_iter_items_accepts_path_and_separator_and_str_path_as_key(c4):
+    items = list(c4.iter_items(path='uploads.db', key='str_path'))
+    assert len(items) == 2
+
+    assert items[0][0] == 'uploads.db.host'
+    assert items[0][1] == c4.uploads.db.host
+
+    assert items[1][0] == 'uploads.db.user'
+    assert items[1][1] == c4.uploads.db.user
+
+    # Same as above with a different separator
+    items = list(c4.iter_items(path='uploads/db', key='str_path', separator='/'))
+    assert len(items) == 2
+
+    assert items[0][0] == 'uploads/db/host'
+    assert items[1][0] == 'uploads/db/user'
+
+    # Different level, different key type, not recursive
+    items = list(c4.iter_items(path='uploads', key='path'))
+    assert len(items) == 1
+    assert items[0][0] == ('uploads', 'enabled')
+
+    # Recursive now
+    items = list(c4.iter_items(path='uploads', key='path', recursive=True))
+    assert len(items) == 3
+    assert items[0][0] == ('uploads', 'enabled')
+    assert items[1][0] == ('uploads', 'db', 'host')
+    assert items[2][0] == ('uploads', 'db', 'user')
+
+
+def test_iter_sections_accepts_path_and_separator_and_str_path_as_key(c4):
+    sections = list(c4.iter_sections(path=(), key='str_path'))
+    assert len(sections) == 2
+    assert sections[0][0] == 'uploads'
+    assert sections[1][0] == 'downloads'
+
+    # Same path and key type, but recursive=True
+    sections = list(c4.iter_sections(key='str_path', recursive=True))
+    assert len(sections) == 3
+    assert sections[0][0] == 'uploads'
+    assert sections[1][0] == 'uploads.db'
+    assert sections[2][0] == 'downloads'
+
+    # Non-empty path.
+    # When path is specified, must return the section at that path too
+    # so as to be consistent with item behaviour.
+    # The root section is never returned though.
+    sections = list(c4.iter_sections(path='uploads', recursive=True))
+    assert len(sections) == 2
+    assert sections[0][0] == ('uploads',)
+    assert sections[1][0] == ('uploads', 'db')
+
+    # Non-empty path, str_path again, custom separator
+    sections = list(c4.iter_sections(path='uploads', separator='/', key='str_path', recursive=True))
+    assert len(sections) == 2
+    assert sections[0][0] == 'uploads'
+    assert sections[1][0] == 'uploads/db'
+
+
+def test_iter_all_accepts_path_and_separator_and_str_path_as_key(c4):
+    all = list(c4.iter_all(key='str_path', separator='/'))
+    assert len(all) == 3
+
+    all = list(c4.iter_all(recursive=True, key='str_path', separator='/'))
+    assert len(all) == 9
+
+    all = list(c4.iter_all(path='downloads'))
+    assert len(all) == 3
+    assert all[0][0] == ('downloads',)
+    assert all[1][0] == ('downloads', 'enabled')
+    assert all[2][0] == ('downloads', 'threads')
+
+
+def test_iter_paths_accepts_path_and_separator_and_str_path_as_key(c4):
+    all = list(c4.iter_paths(key='str_path'))
+    assert len(all) == 3
+    assert all == ['greeting', 'uploads', 'downloads']
+
+    all = list(c4.iter_paths(recursive=True, key='str_path', separator='/'))
+    assert len(all) == 9
+    assert all[0] == 'greeting'
+    assert all[-1] == 'downloads/threads'
+
+    all = list(c4.iter_paths(recursive=True, path='uploads', key='str_path', separator='.'))
+    assert len(all) == 5
+    assert all[0] == 'uploads'
+    assert all[1] == 'uploads.enabled'
+    assert all[2] == 'uploads.db'
+    assert all[3] == 'uploads.db.host'
+    assert all[4] == 'uploads.db.user'
