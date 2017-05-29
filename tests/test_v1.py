@@ -54,20 +54,15 @@ def test_simple_config():
     assert items[('threads',)] is config.threads
     assert items[('throttling_enabled',)] is config.throttling_enabled
 
-    # TODO clean up exceptions imports so we can use proper exception name here
     # Requesting unknown config raises Exception (unspecified yet)
-    with pytest.raises(Exception):
+    with pytest.raises(AttributeError):
         assert not config.other_things
 
-    with pytest.raises(Exception):
-        assert not config['greeting']
-
-    # TODO Exception type
     # Cannot change item value incorrectly
-    with pytest.raises(Exception):
+    with pytest.raises(TypeError):
         config.greeting = 'Bye!'
 
-    with pytest.raises(Exception):
+    with pytest.raises(TypeError):
         config['greeting'] = 'Bye!'
 
 

@@ -65,9 +65,6 @@ class Item(BaseItem):
                 else:
                     self.type = type_
 
-            # TODO default should also be stringified accordingly!
-            # TODO https://github.com/jbasko/configmanager/issues/101
-
         self._value = not_set
         for k, v in kwargs.items():
             setattr(self, k, v)
