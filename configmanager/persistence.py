@@ -181,6 +181,8 @@ class YamlReaderWriter(ConfigReaderWriter):
 
 
 class ConfigParserReaderWriter(ConfigReaderWriter):
+    no_section = 'NO_SECTION'
+
     def __init__(self, config_parser_factory=None, **options):
         super(ConfigParserReaderWriter, self).__init__(**options)
         self.config_parser_factory = config_parser_factory or configparser.ConfigParser
@@ -207,6 +209,9 @@ class ConfigParserReaderWriter(ConfigReaderWriter):
         self._load_config_from_config_parser(config, cp, as_defaults=as_defaults)
 
     def _load_config_from_config_parser(self, config, cp, as_defaults=False):
+
+        # TODO Clean up the repetition here!
+
         for option, value in cp.defaults().items():
             if as_defaults:
                 if option not in config:
@@ -219,6 +224,20 @@ class ConfigParserReaderWriter(ConfigReaderWriter):
                 config[option].value = value
 
         for section in cp.sections():
+            if section == self.no_section:
+                for option in cp.options(section):
+                    value = cp.get(section, option)
+                    if as_defaults:
+                        if option not in config:
+                            config.add_item(option, config.create_item(option, default=value))
+                        else:
+                            config[option].default = value
+                    else:
+                        if option not in config:
+                            continue
+                        config[option].value = value
+                continue
+
             for option in cp.options(section):
                 value = cp.get(section, option)
                 if as_defaults:
@@ -248,7 +267,7 @@ class ConfigParserReaderWriter(ConfigReaderWriter):
             if len(item_path) == 2:
                 section, option = item_path
             else:
-                section = cp.default_section
+                section = self.no_section
                 option = item_path[0]
 
             if not cp.has_section(section) and section != cp.default_section:

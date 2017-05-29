@@ -274,7 +274,7 @@ def test_writes_to_and_reads_from_default_section_transparently(tmpdir):
 
     with open(config_ini) as f:
         assert f.read() == (
-            '[DEFAULT]\n'
+            '[NO_SECTION]\n'
             'greeting = Hello\n'
             'name = World\n\n'
         )
