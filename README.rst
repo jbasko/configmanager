@@ -5,12 +5,6 @@ configmanager
     :target: https://travis-ci.org/jbasko/configmanager
 
 
-Interface Status
-----------------
-
-This is being actively tested before the public interface gets finalised.
-
-
 Documentation
 -------------
 
