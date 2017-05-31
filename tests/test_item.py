@@ -327,3 +327,46 @@ def test_item_is_item_and_is_not_section():
     c = Item()
     assert c.is_item
     assert not c.is_section
+
+
+def test_item_sets_unrecognised_kwargs_as_attributes():
+    c = Item(help='This is help', comment='This is comment', default=5, something_random=True)
+    c.value = 5
+
+    assert c.is_default
+    assert c.help == 'This is help'
+    assert c.comment == 'This is comment'
+    assert c.something_random
+
+    with pytest.raises(AttributeError):
+        assert c.something_too_random
+
+
+def test_item_treats_kwargs_with_at_symbol_prefix_as_normal_attributes():
+    c = Item(**{'@name': 'threads', '@default': 5, '@comment': 'This is comment', 'help': 'This is help'})
+    assert c.name == 'threads'
+    assert c.default == 5
+    assert c.value == 5
+    assert c.comment == 'This is comment'
+    assert c.help == 'This is help'
+
+
+def test_items_allows_special_attributes_to_be_prefixed_with_at_symbol_too():
+    s = Item(**{'@type': bool, '@value': 'no'})
+    assert s.type is bool
+    assert s.value is False
+
+    s.value = 'yes'
+    assert s.value is True
+
+    t = Item(**{'@default': True})
+    assert t.type is bool
+    assert t.value is True
+
+    t.value = 'no'
+    assert t.value is False
+
+
+def test_item_attribute_names_should_start_with_a_letter():
+    with pytest.raises(ValueError):
+        Item(**{'_comment': 'This must fail'})

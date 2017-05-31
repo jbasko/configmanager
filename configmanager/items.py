@@ -10,8 +10,28 @@ from .utils import not_set, parse_bool_str
 
 class Item(BaseItem):
     """
-    Represents a config item -- something that has a name, a type, a default value,
+    Represents a configuration item -- something that has a name, a type, a default value,
     a user- or environment-specific (custom) value, and other attributes.
+
+    Item attribute names should start with a letter.
+
+    When instantiating an item, you can pass *any* attributes, even ones not declared
+    in *configmanager* code::
+
+        >>> threads = Item(default=5, comment='I was here')
+        >>> threads.comment
+        'I was here'
+
+    If you pass attributes as *kwargs*, names prefixed with ``@`` symbol will have
+    ``@`` removed and will be treated like normal attributes::
+
+        >>> t = Item(**{'@name': 'threads', '@default': 5})
+        >>> t.name
+        'threads'
+        >>> t.default
+        5
+        >>> t.type
+        int
     """
 
     #: Name of the config item.
@@ -29,6 +49,23 @@ class Item(BaseItem):
     #: Note that if an item has a default value, marking it as ``required`` will have no effect.
     required = ItemAttribute('required', default=False)
 
+    def _get_kwarg(self, name, kwargs):
+        """
+        Helper to get value of a named attribute irrespective of whether it is passed
+        with or without "@" prefix.
+        """
+        at_name = '@{}'.format(name)
+
+        if name in kwargs:
+            if at_name in kwargs:
+                raise ValueError('Both {!r} and {!r} specified in kwargs'.format(name, at_name))
+            return kwargs[name]
+
+        if at_name in kwargs:
+            return kwargs[at_name]
+
+        return not_set
+
     def __init__(self, name=not_set, **kwargs):
         """
         Creates a config item with its attributes. 
@@ -42,14 +79,16 @@ class Item(BaseItem):
             self.name = name
 
         # Type must be set first because otherwise setting value below may fail.
-        if 'type' in kwargs:
-            self.type = kwargs.pop('type')
+        type_ = self._get_kwarg('type', kwargs)
+        if type_ is not not_set:
+            self.type = type_
+
         else:
             #
             # Type guessing
             #
-            value = kwargs.get('value', not_set)
-            default = kwargs.get('default', not_set)
+            value = self._get_kwarg('value', kwargs)
+            default = self._get_kwarg('default', kwargs)
 
             # 'str' is from builtins package which means that
             # it is actually a unicode string in Python 2 too.
@@ -66,8 +105,23 @@ class Item(BaseItem):
                     self.type = type_
 
         self._value = not_set
+
+        #
+        # Set all attributes except type which has already been set.
+        # Unknown extra attributes are OK.
+        #
         for k, v in kwargs.items():
-            setattr(self, k, v)
+            if k in ('type', '@type'):
+                continue
+
+            if k.startswith('_'):
+                raise ValueError('Item attribute names should start with a letter, got {!r}'.format(k))
+
+            # Allow user to pass meta information with @ prefixes
+            if k.startswith('@'):
+                setattr(self, k[1:], v)
+            else:
+                setattr(self, k, v)
 
     def __repr__(self):
         if self._value is not not_set:

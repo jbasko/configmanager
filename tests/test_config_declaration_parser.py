@@ -215,3 +215,40 @@ def test_declaration_can_be_a_filename(tmpdir):
     print(c4.configparser.dumps(with_defaults=True))
     print(config.uploads.configparser.dumps(with_defaults=True))
     assert c4.configparser.dumps(with_defaults=True) == config.uploads.configparser.dumps(with_defaults=True)
+
+
+def test_dict_with_all_keys_prefixed_with_at_symbol_is_treated_as_item_meta():
+    config = Config({
+        'enabled': {
+            '@default': False,
+        },
+        'db': {
+            'user': 'root',
+            'name': {
+                '@help': 'Name of the database'
+            },
+            '@help': 'db configuration',  # This should be ignored for now
+        },
+    })
+
+    paths = set(path for path, _ in config.iter_items(recursive=True, key='str_path'))
+    assert 'enabled' in paths
+    assert 'enabled.@default' not in paths
+    assert 'db' not in paths
+    assert 'db.@help' not in paths
+    assert 'db.user' in paths
+    assert 'db.name' in paths
+    assert 'db.name.@help' not in paths
+
+    assert config.enabled.default is False
+    assert config.db.name.help == 'Name of the database'
+
+    # Make sure it still behaves like a bool
+    config.enabled.value = 'yes'
+    assert config.enabled.value is True
+
+    # Name is excluded because it has no value
+    assert config.db.dump_values() == {'user': 'root'}
+
+    config.db.name.value = 'testdb'
+    assert config.db.dump_values() == {'user': 'root', 'name': 'testdb'}
