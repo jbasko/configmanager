@@ -68,7 +68,19 @@ class ConfigDeclarationParser(object):
         for k, v in keys_and_values:
             if not isinstance(k, six.string_types):
                 raise TypeError('Config section and item names must be strings, got {}: {!r}'.format(type(k), k))
+
+            # Detect dictionaries of just meta information
+            if isinstance(v, dict):
+                v_all_keys = v.keys()
+                v_meta_keys = {x for x in v.keys() if x.startswith('@')}
+                if v_all_keys and len(v_all_keys) == len(v_meta_keys):
+                    section.add_item(k, self.section.create_item(**v))
+                    continue
+
             if k.startswith('_'):
+                continue
+            elif k.startswith('@'):
+                # Meta attributes not supported on sections at the moment
                 continue
             elif is_config_section(v):
                 section.add_section(k, v)
