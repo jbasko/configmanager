@@ -285,7 +285,7 @@ class Config(BaseSection):
 
             path (tuple or string): optional path to limit iteration over.
 
-            key: ``path`` (default), ``str_path``, or ``name``.
+            key: ``path`` (default), ``str_path``, ``name``, or ``None``.
 
             separator (string): used both to interpret ``path=`` kwarg when it is a string,
                 and to generate ``str_path`` as the returned key.
@@ -295,9 +295,12 @@ class Config(BaseSection):
                 in this section (and sub-sections if ``recursive=True``).
 
         """
-        for key, obj in self.iter_all(recursive=recursive, path=path, key=key, separator=separator):
-            if obj.is_item:
-                yield key, obj
+        for x in self.iter_all(recursive=recursive, path=path, key=key, separator=separator):
+            if key is None:
+                if x.is_item:
+                    yield x
+            elif x[1].is_item:
+                yield x
 
     def iter_sections(self, recursive=False, path=None, key='path', separator='.'):
         """
@@ -306,7 +309,7 @@ class Config(BaseSection):
 
             path (tuple or string): optional path to limit iteration over.
 
-            key: ``path`` (default), ``str_path``, or ``alias``.
+            key: ``path`` (default), ``str_path``, ``alias``, or ``None``.
 
             separator (string): used both to interpret ``path=`` kwarg when it is a string,
                 and to generate ``str_path`` as the returned key.
@@ -316,9 +319,12 @@ class Config(BaseSection):
                 in this section (and sub-sections if ``recursive=True``).
 
         """
-        for key, obj in self.iter_all(recursive=recursive, path=path, key=key, separator=separator):
-            if obj.is_section:
-                yield key, obj
+        for x in self.iter_all(recursive=recursive, path=path, key=key, separator=separator):
+            if key is None:
+                if x.is_section:
+                    yield x
+            elif x[1].is_section:
+                yield x
 
     def iter_all(self, recursive=False, path=None, key='path', separator='.'):
         """
@@ -327,7 +333,7 @@ class Config(BaseSection):
 
             path (tuple or string): optional path to limit iteration over.
 
-            key: ``path`` (default), ``str_path``, or ``name``.
+            key: ``path`` (default), ``str_path``, ``name``, or ``None``.
 
             separator (string): used both to interpret ``path=`` kwarg when it is a string,
                 and to generate ``str_path`` as the returned key.
@@ -337,7 +343,9 @@ class Config(BaseSection):
             sections contained in this section.
         """
         for path, obj in self._get_path_iterator(recursive=recursive, path=path, separator=separator):
-            if key == 'path':
+            if key is None:
+                yield obj
+            elif key == 'path':
                 yield path, obj
             elif key == 'name' or key == 'alias':
                 if obj.is_section:
@@ -367,6 +375,7 @@ class Config(BaseSection):
             contained in this section.
 
         """
+        assert key is not None
         for path, _ in self.iter_all(recursive=recursive, path=path, key=key, separator=separator):
             yield path
 

@@ -370,3 +370,14 @@ def test_items_allows_special_attributes_to_be_prefixed_with_at_symbol_too():
 def test_item_attribute_names_should_start_with_a_letter():
     with pytest.raises(ValueError):
         Item(**{'_comment': 'This must fail'})
+
+
+def test_non_special_default_values_are_converted_to_items_declared_type():
+    i = Item(type=int, default='3')
+    assert i.default == 3
+
+    b = Item(type=bool, default='yes')
+    assert b.default is True
+
+    f = Item(type=float, default='0.23')
+    assert f.default == 0.23
