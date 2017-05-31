@@ -3,6 +3,7 @@ import copy
 import six
 from builtins import str
 
+from .item_types import ItemType
 from .exceptions import ConfigValueMissing
 from .base import ItemAttribute, BaseItem
 from .utils import not_set, parse_bool_str
@@ -36,9 +37,6 @@ class Item(BaseItem):
 
     #: Name of the config item.
     name = ItemAttribute('name')
-
-    #: Default value of the config item.
-    default = ItemAttribute('default')
 
     #: Type of the config item's value, a callable. Defaults to string.
     type = ItemAttribute('type', default=str)
@@ -105,6 +103,7 @@ class Item(BaseItem):
                     self.type = type_
 
         self._value = not_set
+        self._default = not_set
 
         #
         # Set all attributes except type which has already been set.
@@ -159,6 +158,17 @@ class Item(BaseItem):
     def value(self, value):
         self.set(value)
 
+    @property
+    def default(self):
+        return self._default
+
+    @default.setter
+    def default(self, value):
+        if value is not_set or value is None:
+            self._default = value
+            return
+        self._default = self.type(value)
+
     def get(self, fallback=not_set):
         """
         Returns config value.
@@ -181,6 +191,12 @@ class Item(BaseItem):
         """
         Sets config value.
         """
+        if isinstance(self.type, ItemType):
+            self._value = self.type.deserialize(value)
+            if isinstance(value, six.string_types):
+                self._raw_str_value = value
+            return
+
         self._value = self._parse_str_value(value)
         if not issubclass(self.type, six.string_types):
             if isinstance(value, six.string_types):
