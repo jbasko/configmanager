@@ -69,13 +69,27 @@ class ConfigDeclarationParser(object):
             if not isinstance(k, six.string_types):
                 raise TypeError('Config section and item names must be strings, got {}: {!r}'.format(type(k), k))
 
-            # Detect dictionaries of just meta information
             if isinstance(v, dict):
-                v_all_keys = v.keys()
+                #
+                # Detect dictionaries with meta information:
+                #   - could be items with partially data and partially meta information
+                #   - could be items with just meta information
+                #   - could be sections with meta information (not really supported yet)
+                #
+
                 v_meta_keys = {x for x in v.keys() if x.startswith('@')}
-                if v_all_keys and len(v_all_keys) == len(v_meta_keys):
-                    section.add_item(k, self.section.create_item(**v))
-                    continue
+
+                if v_meta_keys:
+                    # Remove meta information from v dictionary
+                    v_meta = {mk[1:]: v.pop(mk) for mk in v_meta_keys}
+
+                    # It is an item if it has @type specified or it consisted of just meta information
+                    if v_meta.get('type') or len(v) == 0:
+                        if len(v) > 0:
+                            # Use the dictionary of the rest of the keys as the definition of default value
+                            v_meta.setdefault('default', v)
+                        section.add_item(k, self.section.create_item(**v_meta))
+                        continue
 
             if k.startswith('_'):
                 continue

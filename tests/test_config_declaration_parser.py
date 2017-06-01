@@ -3,7 +3,7 @@ import types
 import pytest
 
 from configmanager.items import Item
-from configmanager import Config
+from configmanager import Config, Types
 
 
 @pytest.fixture
@@ -252,3 +252,29 @@ def test_dict_with_all_keys_prefixed_with_at_symbol_is_treated_as_item_meta():
 
     config.db.name.value = 'testdb'
     assert config.db.dump_values() == {'user': 'root', 'name': 'testdb'}
+
+
+def test_dictionary_with_type_meta_field_marks_an_item():
+    config = Config({
+        'db': {
+            '@type': 'dict',
+            'user': 'root',
+            'password': 'password',
+            'host': 'localhost',
+        }
+    })
+
+    assert isinstance(config.db, Item)
+    assert config.db.type == Types.dict
+    assert dict(**config.db.value) == {'user': 'root', 'password': 'password', 'host': 'localhost'}
+
+    config = Config({
+        'db': {
+            '@something': 'dict',  # intentionally non-sense
+            'user': 'root',
+            'password': 'password',
+            'host': 'localhost',
+        }
+    })
+
+    assert isinstance(config.db, Config)
