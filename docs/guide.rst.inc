@@ -8,4 +8,6 @@ User Guide
 
 .. include:: iterators.rst.inc
 
+.. include:: exceptions.rst.inc
+
 .. include:: click.rst.inc

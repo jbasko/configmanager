@@ -34,3 +34,26 @@ Public Interface
 .. autoclass:: ConfigPersistenceAdapter
    :members:
    :inherited-members:
+
+Exceptions
+----------
+
+``ConfigError``
+^^^^^^^^^^^^^^^
+
+.. autoclass:: ConfigError
+   :members:
+
+
+``NotFound``
+^^^^^^^^^^^^
+
+.. autoclass:: NotFound
+   :members:
+
+
+``RequiredValueMissing``
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autoclass:: RequiredValueMissing
+   :members:

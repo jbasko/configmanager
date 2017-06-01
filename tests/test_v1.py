@@ -1,6 +1,6 @@
 import pytest
 
-from configmanager import Config, Item, RequiredValueMissing, Types
+from configmanager import Config, Item, RequiredValueMissing, Types, NotFound
 
 
 def test_simple_config():
@@ -54,8 +54,8 @@ def test_simple_config():
     assert items[('threads',)] is config.threads
     assert items[('throttling_enabled',)] is config.throttling_enabled
 
-    # Requesting unknown config raises Exception (unspecified yet)
-    with pytest.raises(AttributeError):
+    # Requesting unknown config raises NotFound
+    with pytest.raises(NotFound):
         assert not config.other_things
 
     # Cannot change item value incorrectly

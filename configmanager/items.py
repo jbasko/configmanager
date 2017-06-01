@@ -175,7 +175,7 @@ class Item(BaseItem):
         elif fallback is not not_set:
             return fallback
         elif self.required:
-            raise RequiredValueMissing(self.name)
+            raise RequiredValueMissing(name=self.name, item=self)
         return fallback
 
     def set(self, value):
