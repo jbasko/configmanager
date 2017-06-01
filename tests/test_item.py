@@ -5,7 +5,7 @@ import six
 from builtins import str
 
 from configmanager.utils import not_set
-from configmanager import Item, ConfigValueMissing
+from configmanager import Item, ConfigValueMissing, Types
 
 
 def test_missing_required_value_raises_config_value_missing():
@@ -163,6 +163,7 @@ def test_bool_config_preserves_raw_str_value_used_to_set_it():
 def test_can_set_str_value_to_none():
     c = Item('a', default='haha')
     assert c.value == 'haha'
+    assert c.type is Types.str
 
     c.value = None
     assert c.value is None
@@ -266,30 +267,30 @@ def test_has_value_returns_true_if_value_or_default_is_set():
 
 def test_type_is_guessed_either_from_default_or_value():
     c = Item()
-    assert c.type is str
+    assert c.type is Types.str
 
     c = Item(value='haha')
-    assert c.type is str
+    assert c.type is Types.str
 
     c = Item(value=u'hāhā')
-    assert c.type is str
+    assert c.type is Types.str
     assert c.value == u'hāhā'
     assert c.str_value == u'hāhā'
 
     c = Item(default='haha')
-    assert c.type is str
+    assert c.type is Types.str
 
     c = Item(default=u'haha')
-    assert c.type is str
+    assert c.type is Types.str
 
     d = Item(default=5)
-    assert d.type is int
+    assert d.type is Types.int
 
     e = Item(value=5)
-    assert e.type is int
+    assert e.type is Types.int
 
     f = Item(default=None, value=5)
-    assert f.type is int
+    assert f.type is Types.int
 
 
 def test_item_default_value_is_deep_copied_on_value_request():
@@ -353,14 +354,14 @@ def test_item_treats_kwargs_with_at_symbol_prefix_as_normal_attributes():
 
 def test_items_allows_special_attributes_to_be_prefixed_with_at_symbol_too():
     s = Item(**{'@type': bool, '@value': 'no'})
-    assert s.type is bool
+    assert s.type is Types.bool
     assert s.value is False
 
     s.value = 'yes'
     assert s.value is True
 
     t = Item(**{'@default': True})
-    assert t.type is bool
+    assert t.type is Types.bool
     assert t.value is True
 
     t.value = 'no'
@@ -380,4 +381,15 @@ def test_non_special_default_values_are_converted_to_items_declared_type():
     assert b.default is True
 
     f = Item(type=float, default='0.23')
+    assert f.default == 0.23
+
+
+def test_item_type_can_be_specified_as_a_string():
+    i = Item(type='int', default='3')
+    assert i.default == 3
+
+    b = Item(type='boolean', default='yes')
+    assert b.default is True
+
+    f = Item(type='float', default='0.23')
     assert f.default == 0.23

@@ -3,10 +3,10 @@ import copy
 import six
 from builtins import str
 
-from .item_types import ItemType
+from .item_types import Types
 from .exceptions import ConfigValueMissing
 from .base import ItemAttribute, BaseItem
-from .utils import not_set, parse_bool_str
+from .utils import not_set
 
 
 class Item(BaseItem):
@@ -39,7 +39,7 @@ class Item(BaseItem):
     name = ItemAttribute('name')
 
     #: Type of the config item's value, a callable. Defaults to string.
-    type = ItemAttribute('type', default=str)
+    type = ItemAttribute('type', default=Types.str)
 
     raw_str_value = ItemAttribute('raw_str_value')
 
@@ -79,7 +79,7 @@ class Item(BaseItem):
         # Type must be set first because otherwise setting value below may fail.
         type_ = self._get_kwarg('type', kwargs)
         if type_ is not not_set:
-            self.type = type_
+            self.type = Types.translate(type_)
 
         else:
             #
@@ -88,19 +88,10 @@ class Item(BaseItem):
             value = self._get_kwarg('value', kwargs)
             default = self._get_kwarg('default', kwargs)
 
-            # 'str' is from builtins package which means that
-            # it is actually a unicode string in Python 2 too.
-            type_ = None
             if value is not not_set and value is not None:
-                type_ = type(value)
+                self.type = Types.guess(value)
             elif default is not not_set and default is not None:
-                type_ = type(default)
-
-            if type_:
-                if issubclass(type_, six.string_types):
-                    self.type = str
-                else:
-                    self.type = type_
+                self.type = Types.guess(default)
 
         self._value = not_set
         self._default = not_set
@@ -167,7 +158,7 @@ class Item(BaseItem):
         if value is not_set or value is None:
             self._default = value
             return
-        self._default = self.type(value)
+        self._default = self.type.deserialize(value)
 
     def get(self, fallback=not_set):
         """
@@ -191,26 +182,7 @@ class Item(BaseItem):
         """
         Sets config value.
         """
-        if isinstance(self.type, ItemType):
-            self._value = self.type.deserialize(value)
-            if isinstance(value, six.string_types):
-                self._raw_str_value = value
-            return
-
-        self._value = self._parse_str_value(value)
-        if not issubclass(self.type, six.string_types):
-            if isinstance(value, six.string_types):
-                self.raw_str_value = value
-            else:
-                self.raw_str_value = not_set
-
-    def _parse_str_value(self, str_value):
-        if str_value is None or str_value is not_set:
-            return str_value
-        elif self.type is bool:
-            return parse_bool_str(str_value)
-        else:
-            return self.type(str_value)
+        self.type.set_item_value(self, value)
 
     def reset(self):
         """

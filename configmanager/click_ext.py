@@ -19,7 +19,9 @@ def _config_parameter(args, kwargs):
         return value
 
     kwargs['callback'] = callback
-    kwargs.setdefault('type', config_item.type)
+
+    if config_item.type.builtin_types:
+        kwargs.setdefault('type', config_item.type.builtin_types[0])
 
     return args[:-1], kwargs
 
