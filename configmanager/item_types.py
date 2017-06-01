@@ -1,12 +1,11 @@
 import six
 
+from builtins import str as text
+
 from configmanager.utils import not_set
 
 
 class ItemType(object):
-    # Do not declare __init__ here -- this is so that you can have concrete types extend other classes
-    # too.
-
     aliases = ()
     builtin_types = ()
 
@@ -14,6 +13,8 @@ class ItemType(object):
         return instance
 
     def deserialize(self, payload, **kwargs):
+        if payload is None or payload is not_set:
+            return payload
         if self.builtin_types:
             return self.builtin_types[0](payload)
         else:
@@ -34,8 +35,19 @@ class ItemType(object):
         """
         return self.includes(obj)
 
-    def __call__(self, *args, **kwargs):
-        return self.deserialize(*args, **kwargs)
+    def set_item_value(self, item, raw_value):
+        value = self.deserialize(raw_value)
+        if isinstance(raw_value, six.string_types):
+            item._raw_str_value = raw_value
+        else:
+            item._raw_str_value = not_set
+        item._value = value
+
+    def __repr__(self):
+        return '<{} {}>'.format(self.__class__.__name__, self.aliases)
+
+    def __eq__(self, other):
+        return isinstance(other, self.__class__)
 
 
 class _NotSetType(ItemType):
@@ -44,7 +56,8 @@ class _NotSetType(ItemType):
 
 
 class _StrType(ItemType):
-    aliases = ('str', 'string')
+    aliases = ('str', 'string', 'unicode')
+    builtin_types = text,
 
     def includes(self, obj):
         return isinstance(obj, six.string_types)
@@ -128,6 +141,16 @@ class _Types(object):
     dict = _DictType()
     list = _ListType()
 
+    all_types = (
+        not_set,
+        str,
+        int,
+        bool,
+        float,
+        dict,
+        list,
+    )
+
     def __init__(self):
         self._includes_order = [
             self.not_set,
@@ -140,11 +163,35 @@ class _Types(object):
         ]
 
     def guess(self, obj):
-        for type_ in self._includes_order:
-            if type_.includes(obj):
-                return type_
+
+        for t in self._includes_order:
+            if t.includes(obj):
+                return t
 
         raise ValueError(obj)
+
+    def translate(self, type_):
+        """
+        Given a built-in, an otherwise known type, or a name of known type, return its corresponding wrapper type::
+
+            >>> Types.translate(int)
+            <_IntType ('int', 'integer')>
+
+            >>> Types.translate('string')
+            <_StrType ('str', 'string', 'unicode')>
+
+        """
+        if isinstance(type_, six.string_types):
+            for t in self.all_types:
+                if type_ in t.aliases:
+                    return t
+            raise ValueError('Failed to recognise type by name {!r}'.format(type_))
+
+        for t in self.all_types:
+            if type_ in t.builtin_types:
+                return t
+
+        return type_
 
 
 Types = _Types()

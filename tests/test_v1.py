@@ -1,6 +1,6 @@
 import pytest
 
-from configmanager import Config, Item, ConfigValueMissing
+from configmanager import Config, Item, ConfigValueMissing, Types
 
 
 def test_simple_config():
@@ -20,9 +20,9 @@ def test_simple_config():
     # Value and other attribute access on Item
     assert config.greeting.value == 'Hello, world!'
     assert config.threads.value == 1
-    assert config.threads.type is int
+    assert config.threads.type == Types.int
     assert config.throttling_enabled.value is False
-    assert config.throttling_enabled.type is bool
+    assert config.throttling_enabled.type == Types.bool
 
     # If you are working with items which don't have default values, you can use .get() method
     # which accepts fallback value:

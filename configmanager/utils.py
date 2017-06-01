@@ -1,6 +1,3 @@
-from builtins import str
-
-
 class _NotSet(object):
     instance = None
 
@@ -32,7 +29,3 @@ class _NotSet(object):
 
 
 not_set = _NotSet()
-
-
-def parse_bool_str(bool_str):
-    return str(bool_str).lower().strip() in ('yes', 'y', 'yeah', 't', 'true', '1', 'yup', 'on')

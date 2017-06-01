@@ -15,9 +15,9 @@ def test_int_type():
     number.value = '-555'
     assert number.value == -555
 
-    assert Types.guess(5) is Types.int
-    assert Types.guess(-5) is Types.int
-    assert Types.guess(0) is Types.int
+    assert Types.guess(5) == Types.int
+    assert Types.guess(-5) == Types.int
+    assert Types.guess(0) == Types.int
 
 
 def test_bool_type():
@@ -38,14 +38,14 @@ def test_bool_type():
     flag.value = '0'
     assert flag.value is False
 
-    assert Types.guess(True) is Types.bool
-    assert Types.guess(False) is Types.bool
-    assert Types.guess(None) is Types.not_set
+    assert Types.guess(True) == Types.bool
+    assert Types.guess(False) == Types.bool
+    assert Types.guess(None) == Types.not_set
 
-    assert Types.guess('yes') is Types.str
-    assert Types.guess('no') is Types.str
-    assert Types.guess('True') is Types.str
-    assert Types.guess('False') is Types.str
+    assert Types.guess('yes') == Types.str
+    assert Types.guess('no') == Types.str
+    assert Types.guess('True') == Types.str
+    assert Types.guess('False') == Types.str
 
 
 def test_float_type():
@@ -59,8 +59,8 @@ def test_float_type():
     rate.value = '-0.23'
     assert rate.value == -0.23
 
-    assert Types.guess(0.23) is Types.float
-    assert Types.guess(-0.23) is Types.float
+    assert Types.guess(0.23) == Types.float
+    assert Types.guess(-0.23) == Types.float
 
     assert Types.guess('-0.23') is not Types.float
     assert Types.guess('0.23') is not Types.float
@@ -90,8 +90,8 @@ def test_dict_type():
     assert db.default == {'user': 'root', 'password': 'root', 'host': 'localhost', 'db': 'test'}
     assert db.value == {'user': 'admin', 'password': '!!!!!', 'host': 'localhost', 'db': 'production'}
 
-    assert Types.guess({}) is Types.dict
-    assert Types.guess(collections.OrderedDict()) is Types.dict
+    assert Types.guess({}) == Types.dict
+    assert Types.guess(collections.OrderedDict()) == Types.dict
 
 
 def test_list_type():
@@ -112,7 +112,7 @@ def test_list_type():
     assert tags.default == ['untitled', 'new']
     assert tags.value == ['real', 'tags', 'now', '!!!!']
 
-    assert Types.guess([]) is Types.list
-    assert Types.guess(()) is Types.list
-    assert Types.guess([1, 2, 3]) is Types.list
-    assert Types.guess(['1', '2', '3']) is Types.list
+    assert Types.guess([]) == Types.list
+    assert Types.guess(()) == Types.list
+    assert Types.guess([1, 2, 3]) == Types.list
+    assert Types.guess(['1', '2', '3']) == Types.list

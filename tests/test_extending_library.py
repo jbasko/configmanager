@@ -36,7 +36,7 @@ def test_extending_item_class(monkeypatch):
 
         def get(self, fallback=not_set):
             if self.envvar and self.envvar in os.environ:
-                return self._parse_str_value(os.environ[self.envvar])
+                return self.type.deserialize(os.environ[self.envvar])
             return super(EnvvarBackedItem, self).get(fallback=fallback)
 
     config = Config({

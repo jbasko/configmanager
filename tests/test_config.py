@@ -4,7 +4,7 @@ import pytest
 
 from builtins import str
 
-from configmanager import Config, Item
+from configmanager import Config, Item, Types
 
 
 def test_items_are_created_using_create_item_method():
@@ -453,7 +453,7 @@ def test_can_use__setitem__to_create_new_deep_paths():
         config['uploads', 'threads'] = 5
 
     config['uploads', 'threads'] = Item(value=5)
-    assert config.uploads.threads.type is int
+    assert config.uploads.threads.type == Types.int
 
     config['uploads', 'db'] = Config({'user': 'root'})
     assert config.uploads.db
@@ -474,7 +474,7 @@ def test_section_knows_its_alias():
 def test_config_item_value_can_be_unicode_str(tmpdir):
     config1 = Config({'greeting': u'Hello, {name}', 'name': u'Anonymous'})
     config1.name.value = u'Jānis Bērziņš'
-    assert config1.name.type is str
+    assert config1.name.type == Types.str
 
     path = tmpdir.join('config.ini').strpath
     config1.configparser.dump(path, with_defaults=True)
