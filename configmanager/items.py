@@ -4,7 +4,7 @@ import six
 from builtins import str
 
 from .item_types import Types
-from .exceptions import ConfigValueMissing
+from .exceptions import RequiredValueMissing
 from .base import ItemAttribute, BaseItem
 from .utils import not_set
 
@@ -175,7 +175,7 @@ class Item(BaseItem):
         elif fallback is not not_set:
             return fallback
         elif self.required:
-            raise ConfigValueMissing(self.name)
+            raise RequiredValueMissing(name=self.name, item=self)
         return fallback
 
     def set(self, value):

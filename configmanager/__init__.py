@@ -1,10 +1,19 @@
-__version__ = '1.9.1'
+__version__ = '1.10.0'
 
 from .managers import Config
 from .items import Item
-from .exceptions import ConfigValueMissing
+from .exceptions import ConfigError, RequiredValueMissing, NotFound
 from .base import ItemAttribute
 from .persistence import ConfigPersistenceAdapter
 from .item_types import Types
 
-all = ['Item', 'Config', 'ItemAttribute', 'ConfigValueMissing', 'ConfigPersistenceAdapter', 'Types']
+all = [
+    'Item',
+    'Config',
+    'ItemAttribute',
+    'ConfigPersistenceAdapter',
+    'Types',
+    'ConfigError',
+    'RequiredValueMissing',
+    'NotFound',
+]

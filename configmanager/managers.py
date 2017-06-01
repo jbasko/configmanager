@@ -9,6 +9,7 @@ from .base import BaseSection, is_config_item, is_config_section
 from .items import Item
 from .parsers import ConfigDeclarationParser
 from .utils import not_set
+from .exceptions import NotFound
 
 
 class Config(BaseSection):
@@ -133,12 +134,16 @@ class Config(BaseSection):
 
     def _resolve_config_key(self, key):
         if isinstance(key, six.string_types):
-            return self._cm__configs[key]
-        elif isinstance(key, (tuple, list)) and len(key) > 0:
-            if len(key) == 1:
-                return self[key[0]]
+            if key in self._cm__configs:
+                return self._cm__configs[key]
             else:
-                return self[key[0]][key[1:]]
+                raise NotFound(key, section=self)
+
+        if isinstance(key, (tuple, list)) and len(key) > 0:
+            if len(key) == 1:
+                return self._resolve_config_key(key[0])
+            else:
+                return self._resolve_config_key(key[0])[key[1:]]
         else:
             raise TypeError('Expected either a string or a tuple as key, got {!r}'.format(key))
 
@@ -146,7 +151,7 @@ class Config(BaseSection):
         try:
             _ = self._resolve_config_key(key)
             return True
-        except KeyError:
+        except NotFound:
             return False
 
     def __setitem__(self, key, value):
@@ -183,10 +188,13 @@ class Config(BaseSection):
         return self._resolve_config_key(key)
 
     def __getattr__(self, name):
-        if name in self._cm__configs:
-            return self._cm__configs[name]
-        else:
+        if not isinstance(name, six.string_types):
+            raise TypeError('Expected a string, got a {!r}'.format(type(name)))
+
+        if name.startswith('_'):
             raise AttributeError(name)
+
+        return self._resolve_config_key(name)
 
     def __setattr__(self, name, value):
         if name.startswith('cm__') or name.startswith('_cm__'):

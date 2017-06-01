@@ -2,9 +2,7 @@
 
 import pytest
 
-from builtins import str
-
-from configmanager import Config, Item, Types
+from configmanager import Config, Item, Types, NotFound
 
 
 def test_items_are_created_using_create_item_method():
@@ -424,7 +422,7 @@ def test_len_of_config_returns_number_of_items_and_sections_in_current_level():
 
 def test__getitem__handles_paths_to_sections_and_items_and_so_does__contains__():
     config = Config()
-    with pytest.raises(KeyError):
+    with pytest.raises(NotFound):
         assert not config['uploads', 'enabled']
     assert ('uploads',) not in config
     assert ('uploads', 'enabled') not in config

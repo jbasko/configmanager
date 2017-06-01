@@ -1,7 +1,7 @@
 import collections
 import pytest
 
-from configmanager import Config, Item
+from configmanager import Config, Item, NotFound
 
 
 @pytest.fixture
@@ -223,7 +223,7 @@ def test_read_as_defaults_treats_all_values_as_declarations(tmpdir):
     assert m.uploads
     assert m.uploads.threads.value == '5'
     assert m.uploads.enabled.value == 'no'
-    with pytest.raises(AttributeError):
+    with pytest.raises(NotFound):
         assert m.uploads.something_else
     assert m.messages.greeting.value == 'Hello, home!'
 

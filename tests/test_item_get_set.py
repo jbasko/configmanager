@@ -1,7 +1,7 @@
 import pytest
 
 from configmanager.utils import not_set
-from configmanager import Item, ConfigValueMissing
+from configmanager import Item, RequiredValueMissing
 
 
 def test_get_returns_value_when_value_is_set():
@@ -22,7 +22,7 @@ def test_get_returns_fallback_when_no_value_and_no_default_is_set():
 def test_get_required_with_no_value_and_no_default_returns_fallback_if_available():
     assert Item(required=True).get('a') == 'a'
 
-    with pytest.raises(ConfigValueMissing):
+    with pytest.raises(RequiredValueMissing):
         Item(required=True).get()
 
 
