@@ -5,13 +5,13 @@ import six
 from builtins import str
 
 from configmanager.utils import not_set
-from configmanager import Item, ConfigValueMissing, Types
+from configmanager import Item, RequiredValueMissing, Types
 
 
-def test_missing_required_value_raises_config_value_missing():
+def test_required_value_missing_raised_when_required_value_missing():
     a = Item('a', required=True)
 
-    with pytest.raises(ConfigValueMissing):
+    with pytest.raises(RequiredValueMissing):
         assert a.value is not_set
 
 

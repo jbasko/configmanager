@@ -2,8 +2,6 @@
 
 import pytest
 
-from builtins import str
-
 from configmanager import Config, Item, Types
 
 

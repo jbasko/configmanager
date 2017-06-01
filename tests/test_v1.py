@@ -1,6 +1,6 @@
 import pytest
 
-from configmanager import Config, Item, ConfigValueMissing, Types
+from configmanager import Config, Item, RequiredValueMissing, Types
 
 
 def test_simple_config():
@@ -160,7 +160,7 @@ def test_nested_config():
 def test_exceptions():
     # Items marked as required raise ConfigValueMissing when their value is accessed
     password = Item('password', required=True)
-    with pytest.raises(ConfigValueMissing):
+    with pytest.raises(RequiredValueMissing):
         assert not password.value
 
 
