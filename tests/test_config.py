@@ -18,11 +18,33 @@ def test_items_are_created_using_create_item_method():
         'g': False,
     })
 
-    assert isinstance(config, CustomConfig)
     assert isinstance(config.g, CustomItem)
-    assert isinstance(config.a, CustomConfig)
-    assert isinstance(config.a.b.c, CustomConfig)
     assert isinstance(config.a.b.c.d, CustomItem)
+
+
+def test_config_create_section_creates_instance_of_own_class():
+    class ExtendedConfig(Config):
+        pass
+
+    config = ExtendedConfig({
+        'uploads': {
+            'db': {
+                'user': 'root'
+            },
+            'api': Config({
+                'port': 8000,
+                'extensions': {},
+            }),
+        }
+    })
+
+    assert isinstance(config, ExtendedConfig)
+    assert isinstance(config.uploads, ExtendedConfig)
+    assert isinstance(config.uploads.db, ExtendedConfig)
+    assert isinstance(config.uploads.db.user, Item)
+
+    assert not isinstance(config.uploads.api.extensions, ExtendedConfig)
+    assert isinstance(config.uploads.api.extensions, Config)
 
 
 def test_reset_resets_values_to_defaults():
@@ -501,7 +523,7 @@ def test_config_of_config_is_a_deep_copy_of_original_config():
     assert config1.uploads.db.user.default == 'root'
 
 
-def test_cofig_is_section_and_is_not_item():
+def test_config_is_section_and_is_not_item():
     config = Config()
     assert config.is_section
     assert not config.is_item

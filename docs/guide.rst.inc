@@ -10,4 +10,6 @@ User Guide
 
 .. include:: exceptions.rst.inc
 
+.. include:: hooks.rst.inc
+
 .. include:: click.rst.inc

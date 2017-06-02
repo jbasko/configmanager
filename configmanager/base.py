@@ -67,3 +67,37 @@ class ItemAttribute(object):
 
     def __get__(self, instance, owner):
         return getattr(instance, self.attr_name, self.default)
+
+
+class ConfigRootAttribute(object):
+    """
+    A descriptor that provides an attribute for Config which if not set is looked up
+    in root section.
+    Once root section is reached, if the attribute is not present, and factory method is set,
+    it is used to initialise the attribute.
+    """
+
+    def __init__(self, name, factory):
+        self.name = name
+        self.attr_name = '_{}'.format(name)
+        self.factory = factory
+
+    def _set_config_attr(self, instance, value):
+        # Can't use setattr() as Config.__setattr__ is guarding against this.
+        instance.__dict__[self.attr_name] = value
+
+    def __set__(self, instance, value):
+        self._set_config_attr(instance, value)
+
+    def __get__(self, instance, owner):
+        if not hasattr(instance, self.attr_name):
+            if instance.section:
+                return getattr(instance.section, self.name)
+            else:
+                # We are at the root, must use factory if available
+                if self.factory:
+                    attr_value = self.factory(config=instance)
+                    self._set_config_attr(instance, attr_value)
+                    return attr_value
+
+        return getattr(instance, self.attr_name)
