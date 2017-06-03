@@ -4,12 +4,14 @@ import collections
 class Hooks(object):
 
     NOT_FOUND = 'not_found'
-    ADDED_TO_SECTION = 'added_to_section'
+    ITEM_ADDED_TO_SECTION = 'item_added_to_section'
+    SECTION_ADDED_TO_SECTION = 'section_added_to_section'
     VALUE_CHANGED = 'value_changed'
 
     _names = (
         NOT_FOUND,
-        ADDED_TO_SECTION,
+        ITEM_ADDED_TO_SECTION,
+        SECTION_ADDED_TO_SECTION,
         VALUE_CHANGED,
     )
 
@@ -40,3 +42,7 @@ class Hooks(object):
             result = handler(*args, **kwargs)
             if result is not None:
                 return result
+
+        # Must also call callbacks in parent section hook registry
+        if self._config.section and self._config.section.hooks != self:
+            return self._config.section.hooks.handle(hook_name, *args, **kwargs)
