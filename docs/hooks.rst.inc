@@ -10,11 +10,15 @@ To hook into *configmanager*, you just have to write a function and register it 
 event by decorating it. Following hook events are defined:
 
 - ``not_found`` -- when a name is not found in a section
-- ``added_to_section`` -- *in development*
+- ``item_added_to_section`` -- when an item is added to a section
+- ``section_added_to_section`` -- when a section is added to a section
 - ``value_changed`` -- *in development*
 
-Callback functions should accept ``**kwargs`` and should return ``None`` unless they want to cancel
-other callback functions.
+You can register hooks on any section (instance of :class:`.Config`) and they will apply to all sub-sections.
+
+Callback functions should accept ``**kwargs`` and should return ``None``.
+If a callback returns non-``None`` result, subsequent callback execution will be
+cancelled. This also means that callbacks registered on parent section hooks will not be called.
 
 .. code-block:: python
 
@@ -32,27 +36,16 @@ other callback functions.
 
 ``not_found`` is the bit where you specify which hook you are registering the callback with.
 
-You can register hooks on instances of :class:`.Config` and they will apply to all sub-sections unless a
-sub-section has its own hooks registry. *This might change in future.*
 
-.. code-block:: python
-
-    >>> config.hooks is config.uploads.hooks
-    True
-
-    >>> config.hooks is config.uploads.db.hooks
-    True
-
-
-``<config>.hooks.not_found``
-----------------------------
+``Config.hooks.not_found``
+--------------------------
 
 ``not_found`` callbacks are called when user requests a non-existent item or section.
 
 Due to *configmanager*'s design it is impossible to tell whether user is requesting a section or an item.
 As a convention, it is fair to assume that user was requesting an item rather than a section.
 
-Callback is passed two **kwargs**:
+Callback is passed keyword arguments:
 
 - ``name=``, the name that was requested and was not found
 - ``section=``, the section in which the name was requested
@@ -87,3 +80,23 @@ This allows you to do the following now:
     >>> config.greeting.value = 'Good morning!'
     >>> config.greeting.get('Hello')
     'Good morning!
+
+
+``Config.hooks.item_added_to_section``
+--------------------------------------
+
+Callback is passed keyword arguments:
+
+- ``subject`` - item which was added
+- ``section`` - section to which the ``subject`` item was added
+- ``alias`` - name under which the ``subject`` item was added
+
+
+``Config.hooks.section_added_to_section``
+-----------------------------------------
+
+Callback is passed keyword arguments:
+
+- ``subject`` - subject which was added
+- ``section`` - parent section to which the ``subject`` section was added
+- ``alias`` - name under which the ``subject`` section was added

@@ -16,7 +16,6 @@ Public Interface
       reset,
       is_default,
       section, alias,
-      added_to_section,
       configparser, json, yaml
 
 

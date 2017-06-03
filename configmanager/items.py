@@ -212,10 +212,3 @@ class Item(BaseItem):
         it hasn't been added to a section yet.
         """
         return self._section
-
-    def added_to_section(self, alias, section):
-        """
-        Hook to be used when extending *configmanager*. This is called
-        when the item has been added to a section.
-        """
-        self._section = section

@@ -17,9 +17,6 @@ def test_hooks_is_a_config_root_attribute():
     assert isinstance(config.hooks, Hooks)
     assert isinstance(config.uploads.db.hooks, Hooks)
 
-    assert config.hooks is config.uploads.hooks
-    assert config.hooks is config.uploads.db.hooks
-
     with pytest.raises(AttributeError):
         _ = config.uploads.db.user.hooks
 
@@ -86,3 +83,131 @@ def test_not_found_hook():
     assert config.uploads.threads
 
     assert len(calls) == 7
+
+
+def test_item_added_to_section_hook():
+    calls = []
+
+    config = Config({
+        'uploads': {
+            'db': {
+                'user': 'root',
+            }
+        }
+    })
+
+    @config.hooks.item_added_to_section
+    def item_added_to_section(*args, **kwargs):
+        calls.append(('first', args, kwargs))
+
+    @config.hooks.item_added_to_section
+    def item_added_to_section2(*args, **kwargs):
+        calls.append(('second', args, kwargs))
+
+    assert calls == []
+
+    # Adding a section to a section is unrelated
+    config.add_section('downloads', config.create_section({'tmp_dir': '/tmp'}))
+
+    assert calls == []
+
+    password = config.create_item(name='password')
+    threads = config.create_item(name='threads', default=5)
+    assert calls == []
+
+    config.uploads.db.add_item(password.name, password)
+
+    # Note that the item added to Config is actually a different instance to the one that was passed to add_item.
+    # This is because we do deepcopy in add_item.
+    assert calls == [
+        ('first', (), {'section': config.uploads.db, 'subject': config.uploads.db.password, 'alias': 'password'}),
+        ('second', (), {'section': config.uploads.db, 'subject': config.uploads.db.password, 'alias': 'password'}),
+    ]
+
+    config.uploads.add_item('threads_alias', threads)
+    assert len(calls) == 4
+
+    assert calls[2:] == [
+        ('first', (), {'section': config.uploads, 'subject': config.uploads.threads, 'alias': 'threads_alias'}),
+        ('second', (), {'section': config.uploads, 'subject': config.uploads.threads, 'alias': 'threads_alias'}),
+    ]
+
+
+def test_callback_returning_something_cancels_parent_section_hook_handling():
+    config = Config({
+        'uploads': {
+            'db': {
+                'user': 'root',
+            }
+        }
+    })
+
+    calls = []
+
+    @config.hooks.item_added_to_section
+    def root_handler(**kwargs):
+        calls.append('root')
+
+    @config.uploads.hooks.item_added_to_section
+    def uploads_handler(**kwargs):
+        calls.append('uploads')
+
+    @config.uploads.db.hooks.item_added_to_section
+    def db_handler(**kwargs):
+        calls.append('db')
+
+    assert calls == []
+
+    config.uploads.db.add_item('password', config.create_item(name='password'))
+
+    assert calls == ['db', 'uploads', 'root']
+
+    @config.uploads.hooks.item_added_to_section
+    def another_uploads_handler(**kwargs):
+        calls.append('uploads2')
+        return True
+
+    # Root hooks are not handled because uploads2 returned something
+    config.uploads.db.add_item('host', config.create_item(name='host'))
+    assert len(calls) == 6
+    assert calls[-3:] == ['db', 'uploads', 'uploads2']
+
+    # Root hook is handled because the event happens on root level
+    config.add_item('greeting', config.create_item(name='greeting'))
+    assert len(calls) == 7
+    assert calls[-1:] == ['root']
+
+
+def test_section_added_to_section_hook():
+    calls = []
+
+    config = Config({
+        'uploads': {
+            'db': {
+                'user': 'root',
+            }
+        }
+    })
+
+    @config.hooks.section_added_to_section
+    def section_added_to_section1(*args, **kwargs):
+        calls.append(('on_root', args, kwargs))
+
+    @config.uploads.hooks.section_added_to_section
+    def section_added_to_section2(*args, **kwargs):
+        calls.append(('on_uploads', args, kwargs))
+
+    assert calls == []
+
+    config.add_section('downloads', config.create_section())
+    assert len(calls) == 1
+    assert calls[-1:] == [
+        ('on_root', (), {'subject': config.downloads, 'alias': 'downloads', 'section': config}),
+    ]
+
+    config.uploads.db.add_section('backups', config.create_section())
+    assert len(calls) == 3
+    assert calls[-2:] == [
+        ('on_uploads', (), {'subject': config.uploads.db.backups, 'alias': 'backups', 'section': config.uploads.db}),
+        ('on_root', (), {'subject': config.uploads.db.backups, 'alias': 'backups', 'section': config.uploads.db}),
+    ]

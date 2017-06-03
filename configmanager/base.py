@@ -5,9 +5,6 @@ class BaseItem(object):
     is_item = True
     is_section = False
 
-    def added_to_section(self, alias, section):
-        pass
-
 
 def is_config_item(obj):
     return isinstance(obj, BaseItem)
@@ -38,9 +35,6 @@ class BaseSection(object):
 
     def add_section(self, alias, section):
         raise NotImplementedError()
-
-    def added_to_section(self, alias, section):
-        pass
 
 
 def is_config_instance(obj):
