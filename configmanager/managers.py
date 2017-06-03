@@ -4,12 +4,13 @@ import copy
 
 import six
 
-from .persistence import ConfigPersistenceAdapter, YamlReaderWriter, JsonReaderWriter, ConfigParserReaderWriter
-from .base import BaseSection, is_config_item, is_config_section
+from .base import BaseSection, is_config_item, is_config_section, ConfigRootAttribute
+from .exceptions import NotFound
+from .hooks import Hooks
 from .items import Item
 from .parsers import ConfigDeclarationParser
+from .persistence import ConfigPersistenceAdapter, YamlReaderWriter, JsonReaderWriter, ConfigParserReaderWriter
 from .utils import not_set
-from .exceptions import NotFound
 
 
 class Config(BaseSection):
@@ -104,6 +105,8 @@ class Config(BaseSection):
     cm__item_cls = Item
     cm__configparser_factory = configparser.ConfigParser
 
+    hooks = ConfigRootAttribute('hooks', factory=Hooks)
+
     def __new__(cls, config_declaration=None, item_cls=None, configparser_factory=None):
         if config_declaration and isinstance(config_declaration, cls):
             return copy.deepcopy(config_declaration)
@@ -116,6 +119,7 @@ class Config(BaseSection):
         instance._cm__json_adapter = None
         instance._cm__yaml_adapter = None
         instance._cm__click_extension = None
+        instance._cm__hooks_extension = None
 
         if item_cls:
             instance.cm__item_cls = item_cls
@@ -137,6 +141,9 @@ class Config(BaseSection):
             if key in self._cm__configs:
                 return self._cm__configs[key]
             else:
+                result = self.hooks.handle(Hooks.NOT_FOUND, name=key, section=self)
+                if result is not None:
+                    return result
                 raise NotFound(key, section=self)
 
         if isinstance(key, (tuple, list)) and len(key) > 0:
