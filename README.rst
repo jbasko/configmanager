@@ -23,6 +23,11 @@ Documentation
 
 https://jbasko.github.io/configmanager/
 
+Source Code and Issue Tracking
+------------------------------
+
+https://github.com/jbasko/configmanager
+
 
 Quick Start
 -----------
