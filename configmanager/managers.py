@@ -4,16 +4,17 @@ import copy
 
 import six
 
-from .base import BaseSection, is_config_item, is_config_section
+from .base import is_config_item, is_config_section
 from .exceptions import NotFound
 from .hooks import Hooks
 from .items import Item
 from .parsers import ConfigDeclarationParser
 from .persistence import ConfigPersistenceAdapter, YamlReaderWriter, JsonReaderWriter, ConfigParserReaderWriter
+from .sections import SimpleSection
 from .utils import not_set
 
 
-class Config(BaseSection):
+class Config(SimpleSection):
     """
     Represents a section consisting of items (instances of :class:`.Item`) and other sections
     (instances of :class:`.Config`).

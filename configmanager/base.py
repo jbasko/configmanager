@@ -11,6 +11,11 @@ def is_config_item(obj):
 
 
 class BaseSection(object):
+    """
+    A base class to allow detection of section classes and instances.
+    No other functionality to be added here.
+    """
+
     cm__item_cls = BaseItem
 
     is_item = False
