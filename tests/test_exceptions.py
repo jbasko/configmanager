@@ -88,3 +88,19 @@ def test_required_value_missing_includes_item():
 
     assert exc2.value.name == 'greeting'
     assert exc2.value.item is item2
+
+
+def test_not_found_raised_by_iterators_on_first_not_found_name_in_path():
+    config = Config({'uploads': {'db': {'user': 'root'}}})
+
+    with pytest.raises(NotFound) as exc1:
+        list(config.iter_all(recursive=True, path=('downloads',)))
+    assert exc1.value.name == 'downloads'
+
+    with pytest.raises(NotFound) as exc2:
+        _ = config['uploads', 'enabled']
+    assert exc2.value.name == 'enabled'
+
+    with pytest.raises(NotFound) as exc3:
+        _ = config['uploads', 'something', 'deep']
+    assert exc3.value.name == 'something'

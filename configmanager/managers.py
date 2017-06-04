@@ -235,11 +235,16 @@ class Config(BaseSection):
         if not path:
             return ()
 
-        clean_path = tuple(path.split(separator))
-        if clean_path not in self:
-            # TODO Use custom exceptions
-            raise AttributeError(path)
+        if isinstance(path, six.string_types):
+            clean_path = tuple(path.split(separator))
+        else:
+            clean_path = path
 
+        if clean_path not in self:
+            for i, part in enumerate(clean_path):
+                if clean_path[:i + 1] not in self:
+                    raise NotFound(part)
+            assert False  # shouldn't reach this line
         return clean_path
 
     def _get_recursive_iterator(self, recursive=False):
