@@ -21,22 +21,8 @@ class BaseSection(object):
     is_item = False
     is_section = True
 
-    def create_item(self, *args, **kwargs):
-        """
-        Internal factory method used to create an instance of configuration item.
-        Should only be used to extend configmanager's functionality.
-        """
-        return self.cm__item_cls(*args, **kwargs)
-
     def add_item(self, alias, item):
         raise NotImplementedError()
-
-    def create_section(self, *args, **kwargs):
-        """
-        Internal factory method used to create an instance of configuration section.
-        Should only be used to extend configmanager's functionality.
-        """
-        return self.__class__(*args, **kwargs)
 
     def add_section(self, alias, section):
         raise NotImplementedError()

@@ -505,24 +505,6 @@ def test_config_item_value_can_be_unicode_str(tmpdir):
     assert config1.dump_values(with_defaults=True) == config2.dump_values(with_defaults=True)
 
 
-def test_config_of_config_is_a_deep_copy_of_original_config():
-    config1 = Config({'uploads': {'enabled': True, 'db': {'user': 'root'}}})
-    config1.uploads.enabled.value = False
-
-    config2 = Config(config1)
-    assert config1 is not config2
-    assert config1.dump_values() == config2.dump_values()
-    assert config1.dump_values(with_defaults=True) == config2.dump_values(with_defaults=True)
-
-    config1.uploads.enabled.value = True
-    config1.uploads.db.load_values({'user': 'admin'})
-
-    assert config2.dump_values(with_defaults=True) == {'uploads': {'enabled': False, 'db': {'user': 'root'}}}
-
-    config2.uploads.db.user.default = 'default-user'
-    assert config1.uploads.db.user.default == 'root'
-
-
 def test_config_is_section_and_is_not_item():
     config = Config()
     assert config.is_section
