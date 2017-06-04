@@ -260,3 +260,11 @@ def test_iter_paths_accepts_path_and_separator_and_str_path_as_key(c4):
     assert all[2] == 'uploads.db'
     assert all[3] == 'uploads.db.host'
     assert all[4] == 'uploads.db.user'
+
+
+def test_iterators_accept_path_tuples(c4):
+    uploads = list(c4.iter_paths(recursive=True, path=('uploads',)))
+    assert len(uploads) == 5
+
+    db = list(c4.iter_paths(recursive=True, path=('uploads', 'db')))
+    assert len(db) == 3
