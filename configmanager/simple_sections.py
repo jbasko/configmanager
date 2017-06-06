@@ -263,3 +263,93 @@ class SimpleSection(BaseSection):
                 yield separator.join(path), obj
             else:
                 raise ValueError('Invalid key {!r}'.format(key))
+
+    def iter_items(self, recursive=False, path=None, key='path', separator='.'):
+        """
+
+        Args:
+            recursive: if ``True``, recurse into sub-sections.
+
+            path (tuple or string): optional path to limit iteration over.
+
+            key: ``path`` (default), ``str_path``, ``name``, or ``None``.
+
+            separator (string): used both to interpret ``path=`` kwarg when it is a string,
+                and to generate ``str_path`` as the returned key.
+
+        Returns:
+            iterator: iterator over ``(key, item)`` pairs of all items
+                in this section (and sub-sections if ``recursive=True``).
+
+        """
+        for x in self.iter_all(recursive=recursive, path=path, key=key, separator=separator):
+            if key is None:
+                if x.is_item:
+                    yield x
+            elif x[1].is_item:
+                yield x
+
+    def iter_sections(self, recursive=False, path=None, key='path', separator='.'):
+        """
+        Args:
+            recursive: if ``True``, recurse into sub-sections.
+
+            path (tuple or string): optional path to limit iteration over.
+
+            key: ``path`` (default), ``str_path``, ``alias``, or ``None``.
+
+            separator (string): used both to interpret ``path=`` kwarg when it is a string,
+                and to generate ``str_path`` as the returned key.
+
+        Returns:
+            iterator: iterator over ``(key, section)`` pairs of all sections
+                in this section (and sub-sections if ``recursive=True``).
+
+        """
+        for x in self.iter_all(recursive=recursive, path=path, key=key, separator=separator):
+            if key is None:
+                if x.is_section:
+                    yield x
+            elif x[1].is_section:
+                yield x
+
+    def iter_paths(self, recursive=False, path=None, key='path', separator='.'):
+        """
+
+        Args:
+            recursive: if ``True``, recurse into sub-sections
+
+            path (tuple or string): optional path to limit iteration over.
+
+            key: ``path`` (default), ``str_path``, or ``name``.
+
+            separator (string): used both to interpret ``path=`` kwarg when it is a string,
+                and to generate ``str_path`` as the returned key.
+
+        Returns:
+            iterator: iterator over paths of all items and sections
+            contained in this section.
+
+        """
+        assert key is not None
+        for path, _ in self.iter_all(recursive=recursive, path=path, key=key, separator=separator):
+            yield path
+
+    def reset(self):
+        """
+        Recursively resets values of all items contained in this section
+        and its subsections to their default values.
+        """
+        for _, item in self.iter_items(recursive=True):
+            item.reset()
+
+    @property
+    def is_default(self):
+        """
+        ``True`` if values of all config items in this section and its subsections
+        have their values equal to defaults or have no value set.
+        """
+        for _, item in self.iter_items(recursive=True):
+            if not item.is_default:
+                return False
+        return True
