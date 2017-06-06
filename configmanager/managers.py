@@ -1,6 +1,4 @@
-import collections
 import configparser
-import copy
 
 import six
 
