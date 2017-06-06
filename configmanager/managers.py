@@ -293,26 +293,6 @@ class Config(SimpleSection):
         return True
 
     @property
-    def section(self):
-        """
-        Returns:
-            (:class:`.Config`): section to which this section belongs or ``None`` if this
-            hasn't been added to any section.
-        """
-        return self._cm__section
-
-    @property
-    def alias(self):
-        """
-        Returns alias with which this section was added to another or ``None`` if it hasn't been added
-        to any.
-        
-        Returns:
-            (str)
-        """
-        return self._cm__section_alias
-
-    @property
     def configparser(self):
         """
         Adapter to dump/load INI format strings and files using standard library's

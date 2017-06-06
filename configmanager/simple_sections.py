@@ -121,6 +121,26 @@ class SimpleSection(BaseSection):
                 )
             )
 
+    @property
+    def section(self):
+        """
+        Returns:
+            (:class:`.Config`): section to which this section belongs or ``None`` if this
+            hasn't been added to any section.
+        """
+        return self._cm__section
+
+    @property
+    def alias(self):
+        """
+        Returns alias with which this section was added to another or ``None`` if it hasn't been added
+        to any.
+
+        Returns:
+            (str)
+        """
+        return self._cm__section_alias
+
     def add_item(self, alias, item):
         """
         Add a config item to this section.
