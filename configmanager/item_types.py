@@ -5,7 +5,7 @@ from builtins import str as text
 from configmanager.utils import not_set
 
 
-class ItemType(object):
+class _ItemType(object):
     aliases = ()
     builtin_types = ()
 
@@ -50,12 +50,12 @@ class ItemType(object):
         return isinstance(other, self.__class__)
 
 
-class _NotSetType(ItemType):
+class _NotSetType(_ItemType):
     def includes(self, obj):
         return obj is None or obj is not_set
 
 
-class _StrType(ItemType):
+class _StrType(_ItemType):
     aliases = ('str', 'string', 'unicode')
     builtin_types = text,
 
@@ -63,7 +63,7 @@ class _StrType(ItemType):
         return isinstance(obj, six.string_types)
 
 
-class _IntType(ItemType):
+class _IntType(_ItemType):
     aliases = ('int', 'integer')
     builtin_types = int,
 
@@ -71,7 +71,7 @@ class _IntType(ItemType):
         return self.includes(obj) or isinstance(obj, six.string_types)
 
 
-class _BoolType(ItemType):
+class _BoolType(_ItemType):
     aliases = ('bool', 'boolean')
     builtin_types = bool,
 
@@ -107,12 +107,12 @@ class _BoolType(ItemType):
         raise ValueError(payload)
 
 
-class _FloatType(ItemType):
+class _FloatType(_ItemType):
     aliases = ('float', 'double')
     builtin_types = float,
 
 
-class _DictType(ItemType):
+class _DictType(_ItemType):
     aliases = ('dict', 'dictionary')
     builtin_types = dict,
 
@@ -127,7 +127,7 @@ class _DictType(ItemType):
         )
 
 
-class _ListType(ItemType):
+class _ListType(_ItemType):
     aliases = ('list',)
     builtin_types = list, tuple
 
