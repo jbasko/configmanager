@@ -8,16 +8,15 @@ from .utils import not_set
 from .base import BaseSection, is_config_item
 
 
-class SimpleSection(BaseSection):
+class Section(BaseSection):
     """
     Core section functionality.
 
     Keep as light as possible.
     No persistence, hooks or other fancy features here.
-    Add those on SimpleSection if at all.
+    Add those on Config if at all.
 
     No customisation (section classes, item classes etc.) allowed here.
-    An instance of SimpleSection is used internally to store customisation of configmanager itself.
     """
 
     def __init__(self):
@@ -86,7 +85,7 @@ class SimpleSection(BaseSection):
             self.add_section(name, value)
         else:
             raise TypeError(
-                'SimpleSection sections/items can only be replaced with sections/items, '
+                'Section sections/items can only be replaced with sections/items, '
                 'got {type}. To set value use ..[{name}].value = <new_value>'.format(
                     type=type(value),
                     name=name,
@@ -107,14 +106,14 @@ class SimpleSection(BaseSection):
 
     def __setattr__(self, name, value):
         if name.startswith('cm__') or name.startswith('_cm__'):
-            return super(SimpleSection, self).__setattr__(name, value)
+            return super(Section, self).__setattr__(name, value)
         elif is_config_item(value):
             self.add_item(name, value)
         elif isinstance(value, self.__class__):
             self.add_section(name, value)
         else:
             raise TypeError(
-                'SimpleSection sections/items can only be replaced with sections/items, '
+                'Section sections/items can only be replaced with sections/items, '
                 'got {type}. To set value use {name}.value = <new_value> notation.'.format(
                     type=type(value),
                     name=name,

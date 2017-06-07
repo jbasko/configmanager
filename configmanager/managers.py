@@ -8,10 +8,10 @@ from .hooks import Hooks
 from .items import Item
 from .parsers import ConfigDeclarationParser
 from .persistence import ConfigPersistenceAdapter, YamlReaderWriter, JsonReaderWriter, ConfigParserReaderWriter
-from .simple_sections import SimpleSection
+from .simple_sections import Section
 
 
-class Config(SimpleSection):
+class Config(Section):
     """
     Represents a section consisting of items (instances of :class:`.Item`) and other sections
     (instances of :class:`.Config`).
