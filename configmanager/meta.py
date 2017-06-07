@@ -1,13 +1,19 @@
+import os.path
+
 from .items import Item
 
 
 class ConfigManagerSettings(object):
     def __init__(self, **settings_and_factories):
 
+        # Some settings are declared as @properties and look
+        # into _settings or _factories just for overrides.
+
         # Use _settings when you want to initialise defaults for all Config instances.
         # Use _factories when you want to lazy-load defaults only when requested.
         self._settings = {
             'item_cls': Item,
+            'app_name': None,
         }
         self._factories = {
             'configparser_factory': self.create_configparser_factory,
@@ -43,3 +49,15 @@ class ConfigManagerSettings(object):
     def create_section_cls(self):
         from .sections import Section
         return Section
+
+    @property
+    def user_config_root(self):
+        if 'user_config_root' in self._settings:
+            return self._settings['user_config_root']
+        return os.path.expanduser('~/.config')
+
+    @property
+    def user_app_config(self):
+        if 'user_app_config' in self._settings:
+            return self._settings['user_app_config']
+        return os.path.join(self.user_config_root, self.app_name, 'config.json')

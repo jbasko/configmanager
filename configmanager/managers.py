@@ -112,6 +112,8 @@ class Config(Section):
         if config_declaration:
             self._configmanager_process_config_declaration(config_declaration)
 
+        self.load_user_app_config()
+
     def __repr__(self):
         return '<{cls} {alias} at {id}>'.format(cls=self.__class__.__name__, alias=self.alias, id=id(self))
 
@@ -171,3 +173,11 @@ class Config(Section):
                 config=self
             )
         return self._configmanager_click_extension
+
+    def load_user_app_config(self):
+        if not self._configmanager_settings.app_name:
+            return
+
+        import os.path
+        if os.path.exists(self._configmanager_settings.user_app_config):
+            self.json.load(self._configmanager_settings.user_app_config)
