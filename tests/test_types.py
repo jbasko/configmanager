@@ -1,6 +1,7 @@
 import collections
 
 from configmanager import Item, Types
+from configmanager.item_types import _ItemType
 
 
 def test_int_type():
@@ -18,6 +19,14 @@ def test_int_type():
     assert Types.guess(5) == Types.int
     assert Types.guess(-5) == Types.int
     assert Types.guess(0) == Types.int
+
+
+def test_type_equality():
+    assert Types.int == Types.int
+    assert Types.int != _ItemType()
+    assert _ItemType() != Types.int
+    assert Types.int != Types.float
+    assert Types.float != Types.int
 
 
 def test_bool_type():

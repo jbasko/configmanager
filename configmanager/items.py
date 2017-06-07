@@ -14,7 +14,7 @@ class Item(BaseItem):
     Represents a configuration item -- something that has a name, a type, a default value,
     a user- or environment-specific (custom) value, and other attributes.
 
-    Item attribute names should start with a letter.
+    Item attribute name should start with a letter.
 
     When instantiating an item, you can pass *any* attributes, even ones not declared
     in *configmanager* code::
