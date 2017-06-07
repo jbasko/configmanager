@@ -1,8 +1,8 @@
-from builtins import str
-import configparser
+import collections
 from io import open
 
-import collections
+from builtins import str
+import configparser
 import six
 
 

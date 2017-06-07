@@ -3,6 +3,7 @@ import copy
 
 import six
 
+from .hooks import Hooks
 from .meta import ConfigManagerSettings
 from .exceptions import NotFound
 from .utils import not_set
@@ -14,22 +15,26 @@ class Section(BaseSection):
     Core section functionality.
 
     Keep as light as possible.
-    No persistence, hooks or other fancy features here.
     """
 
     def __init__(self, configmanager_settings=None):
+
+        # It is Config's responsibility to initialise configmanager_settings.
         if configmanager_settings is None:
             configmanager_settings = ConfigManagerSettings()
         elif isinstance(configmanager_settings, dict):
-            configmanager_settings = ConfigManagerSettings(**configmanager_settings)
-        self.configmanager_settings = configmanager_settings
+            raise ValueError('configmanager_settings should be either None or an instance of ConfigManagerSettings')
 
-        self._cm__configs = collections.OrderedDict()
-        self._cm__section = None
-        self._cm__section_alias = None
+        self._configmanager_settings = configmanager_settings
+
+        self._configmanager_tree = collections.OrderedDict()
+        self._configmanager_section = None
+        self._configmanager_section_alias = None
+
+        self._configmanager_hooks = Hooks(self)
 
     def __len__(self):
-        return len(self._cm__configs)
+        return len(self._configmanager_tree)
 
     def __nonzero__(self):
         return True
@@ -38,7 +43,7 @@ class Section(BaseSection):
         return True
 
     def __iter__(self):
-        for name in self._cm__configs.keys():
+        for name in self._configmanager_tree.keys():
             yield name
 
     def __repr__(self):
@@ -46,9 +51,12 @@ class Section(BaseSection):
 
     def _resolve_config_key(self, key):
         if isinstance(key, six.string_types):
-            if key in self._cm__configs:
-                return self._cm__configs[key]
+            if key in self._configmanager_tree:
+                return self._configmanager_tree[key]
             else:
+                result = self.hooks.handle(Hooks.NOT_FOUND, name=key, section=self)
+                if result is not None:
+                    return result
                 raise NotFound(key, section=self)
 
         if isinstance(key, (tuple, list)) and len(key) > 0:
@@ -85,7 +93,7 @@ class Section(BaseSection):
 
         if is_config_item(value):
             self.add_item(name, value)
-        elif isinstance(value, self.__class__):
+        elif is_config_section(value):
             self.add_section(name, value)
         else:
             raise TypeError(
@@ -109,11 +117,11 @@ class Section(BaseSection):
         return self._resolve_config_key(name)
 
     def __setattr__(self, name, value):
-        if name.startswith('cm__') or name.startswith('_cm__') or name.startswith('configmanager_'):
+        if name.startswith('configmanager_') or name.startswith('_configmanager_'):
             return super(Section, self).__setattr__(name, value)
         elif is_config_item(value):
             self.add_item(name, value)
-        elif isinstance(value, self.__class__):
+        elif is_config_section(value):
             self.add_section(name, value)
         else:
             raise TypeError(
@@ -125,13 +133,17 @@ class Section(BaseSection):
             )
 
     @property
+    def hooks(self):
+        return self._configmanager_hooks
+
+    @property
     def section(self):
         """
         Returns:
             (:class:`.Config`): section to which this section belongs or ``None`` if this
             hasn't been added to any section.
         """
-        return self._cm__section
+        return self._configmanager_section
 
     @property
     def alias(self):
@@ -142,7 +154,7 @@ class Section(BaseSection):
         Returns:
             (str)
         """
-        return self._cm__section_alias
+        return self._configmanager_section_alias
 
     def add_item(self, alias, item):
         """
@@ -154,10 +166,12 @@ class Section(BaseSection):
         if item.name is not_set:
             item.name = alias
 
-        self._cm__configs[item.name] = item
-        self._cm__configs[alias] = item
+        self._configmanager_tree[item.name] = item
+        self._configmanager_tree[alias] = item
 
         item._section = self
+
+        self.hooks.handle(Hooks.ITEM_ADDED_TO_SECTION, alias=alias, section=self, subject=item)
 
     def add_section(self, alias, section):
         """
@@ -166,10 +180,12 @@ class Section(BaseSection):
         if not isinstance(alias, six.string_types):
             raise TypeError('Section name must be a string, got a {!r}'.format(type(alias)))
 
-        self._cm__configs[alias] = section
+        self._configmanager_tree[alias] = section
 
-        section._cm__section = self
-        section._cm__section_alias = alias
+        section._configmanager_section = self
+        section._configmanager_section_alias = alias
+
+        self.hooks.handle(Hooks.SECTION_ADDED_TO_SECTION, alias=alias, section=self, subject=section)
 
     def _parse_path(self, path=None, separator='.'):
         if not path:
@@ -201,7 +217,7 @@ class Section(BaseSection):
 
         names_yielded = set()
 
-        for obj_alias, obj in self._cm__configs.items():
+        for obj_alias, obj in self._configmanager_tree.items():
             if obj.is_section:
                 if obj.alias in names_yielded:
                     continue
@@ -216,7 +232,7 @@ class Section(BaseSection):
                     yield (obj_alias,) + sub_item_path, sub_item
 
             else:
-                # _cm__configs contains duplicates so that we can have multiple aliases point
+                # _configmanager_tree contains duplicates so that we can have multiple aliases point
                 # to the same item. We have to de-duplicate here.
                 if obj.name in names_yielded:
                     continue
@@ -369,7 +385,7 @@ class Section(BaseSection):
 
         """
         values = dict_cls()
-        for item_name, item in self._cm__configs.items():
+        for item_name, item in self._configmanager_tree.items():
             if is_config_section(item):
                 section_values = item.dump_values(with_defaults=with_defaults, dict_cls=dict_cls)
                 if section_values:
@@ -419,12 +435,12 @@ class Section(BaseSection):
         Internal factory method used to create an instance of configuration item.
         Should only be used to extend configmanager's functionality.
         """
-        return self.configmanager_settings.item_cls(*args, **kwargs)
+        return self._configmanager_settings.item_cls(*args, **kwargs)
 
     def create_section(self, *args, **kwargs):
         """
         Internal factory method used to create an instance of configuration section.
         Should only be used to extend configmanager's functionality.
         """
-        kwargs.setdefault('configmanager_settings', self.configmanager_settings)
-        return self.__class__(*args, **kwargs)
+        kwargs.setdefault('configmanager_settings', self._configmanager_settings)
+        return self._configmanager_settings.section_cls(*args, **kwargs)

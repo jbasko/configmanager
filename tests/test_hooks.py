@@ -107,7 +107,7 @@ def test_item_added_to_section_hook():
     assert calls == []
 
     # Adding a section to a section is unrelated
-    config.add_section('downloads', config.create_section({'tmp_dir': '/tmp'}))
+    config.add_section('downloads', config.create_section())
 
     assert calls == []
 

@@ -2,7 +2,7 @@
 
 import pytest
 
-from configmanager import Config, Item, Types, NotFound
+from configmanager import Config, Section, Item, Types, NotFound
 
 
 def test_items_are_created_using_create_item_method():
@@ -22,7 +22,7 @@ def test_items_are_created_using_create_item_method():
     assert isinstance(config.a.b.c.d, CustomItem)
 
 
-def test_config_create_section_creates_instance_of_own_class():
+def test_config_create_section_creates_instance_of_section_class():
     class ExtendedConfig(Config):
         pass
 
@@ -31,20 +31,18 @@ def test_config_create_section_creates_instance_of_own_class():
             'db': {
                 'user': 'root'
             },
-            'api': Config({
+            'api': {
                 'port': 8000,
                 'extensions': {},
-            }),
+            },
         }
     })
 
     assert isinstance(config, ExtendedConfig)
-    assert isinstance(config.uploads, ExtendedConfig)
-    assert isinstance(config.uploads.db, ExtendedConfig)
+    assert isinstance(config.uploads, Section)
+    assert isinstance(config.uploads.db, Section)
     assert isinstance(config.uploads.db.user, Item)
-
-    assert not isinstance(config.uploads.api.extensions, ExtendedConfig)
-    assert isinstance(config.uploads.api.extensions, Config)
+    assert isinstance(config.uploads.api.extensions, Section)
 
 
 def test_reset_resets_values_to_defaults():
@@ -340,10 +338,10 @@ def test_allows_iteration_over_sections(mixed_app_config):
 def test_attribute_read_access(mixed_app_config):
     config = mixed_app_config
 
-    assert isinstance(config.db, Config)
+    assert isinstance(config.db, Section)
     assert isinstance(config.db.username, Item)
-    assert isinstance(config.logging.handlers, Config)
-    assert isinstance(config.logging.handlers.default, Config)
+    assert isinstance(config.logging.handlers, Section)
+    assert isinstance(config.logging.handlers.default, Section)
     assert isinstance(config.logging.loggers[''].handlers, Item)
     assert isinstance(config.logging.loggers[''].level, Item)
 

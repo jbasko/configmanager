@@ -278,20 +278,36 @@ def test_dictionary_with_type_meta_field_marks_an_item():
         }
     })
 
-    assert isinstance(config.db, Config)
+    assert isinstance(config.db, Section)
+
+
+def test_subsections_are_instances_of_section_not_config():
+    config = Config({
+        'uploads': {
+            'db': {
+                'user': 'root',
+            }
+        }
+    })
+
+    assert isinstance(config, Config)
+    assert not isinstance(config.uploads, Config)
+    assert isinstance(config.uploads, Section)
+    assert isinstance(config.uploads.db, Section)
+
 
 def test_accepts_configmanager_settings_which_are_passed_to_all_subsections():
     configmanager_settings = {
         'message': 'everyone should know this',
     }
     config1 = Config({}, configmanager_settings=configmanager_settings)
-    assert config1.configmanager_settings.message == 'everyone should know this'
+    assert config1._configmanager_settings.message == 'everyone should know this'
 
     config2 = Config({'greeting': 'Hello'}, configmanager_settings=configmanager_settings)
-    assert config2.configmanager_settings.message == 'everyone should know this'
+    assert config2._configmanager_settings.message == 'everyone should know this'
 
     config3 = Config({'db': {'user': 'root'}}, configmanager_settings=configmanager_settings)
-    assert config3.configmanager_settings.message == 'everyone should know this'
-    assert config3.db.configmanager_settings.message == 'everyone should know this'
+    assert config3._configmanager_settings.message == 'everyone should know this'
+    assert config3.db._configmanager_settings.message == 'everyone should know this'
 
-    assert config3.db.configmanager_settings is config3.configmanager_settings
+    assert config3.db._configmanager_settings is config3._configmanager_settings

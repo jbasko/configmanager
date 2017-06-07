@@ -11,6 +11,7 @@ class ConfigManagerSettings(object):
         }
         self._factories = {
             'configparser_factory': self.create_configparser_factory,
+            'section_cls': self.create_section_cls,
         }
 
         for k, v in settings_and_factories.items():
@@ -38,3 +39,7 @@ class ConfigManagerSettings(object):
     def create_configparser_factory(self):
         import configparser
         return configparser.ConfigParser
+
+    def create_section_cls(self):
+        from .sections import Section
+        return Section
