@@ -16,8 +16,6 @@ class BaseSection(object):
     No other functionality to be added here.
     """
 
-    cm__item_cls = BaseItem
-
     is_item = False
     is_section = True
 

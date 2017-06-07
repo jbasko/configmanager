@@ -26,8 +26,6 @@ class Config(Section):
 
         Keyword Args:
 
-            ``item_cls``:
-
             ``config_parser_factory``:
 
         Examples::
@@ -100,10 +98,9 @@ class Config(Section):
 
     """
 
-    cm__item_cls = Item
     cm__configparser_factory = configparser.ConfigParser
 
-    def __init__(self, config_declaration=None, item_cls=None, configparser_factory=None, configmanager_settings=None):
+    def __init__(self, config_declaration=None, configparser_factory=None, configmanager_settings=None):
         super(Config, self).__init__(configmanager_settings=configmanager_settings)
         self._cm__configparser_adapter = None
         self._cm__json_adapter = None
@@ -112,8 +109,6 @@ class Config(Section):
 
         self.__dict__['hooks'] = Hooks(config=self)
 
-        if item_cls:
-            self.cm__item_cls = item_cls
         if configparser_factory:
             self.cm__configparser_factory = configparser_factory
 

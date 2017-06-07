@@ -55,7 +55,7 @@ class ConfigDeclarationParser(object):
                 elif isinstance(x, tuple):
                     items[x[0]] = x[1]
                 elif isinstance(x, six.string_types):
-                    items[x] = section.cm__item_cls()
+                    items[x] = section.create_item()
                 else:
                     raise TypeError('Unexpected {!r} {!r} in list of items for config declaration'.format(type(x), x))
             keys_and_values = items.items()
