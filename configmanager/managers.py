@@ -103,8 +103,8 @@ class Config(Section):
     cm__item_cls = Item
     cm__configparser_factory = configparser.ConfigParser
 
-    def __init__(self, config_declaration=None, item_cls=None, configparser_factory=None):
-        super(Config, self).__init__()
+    def __init__(self, config_declaration=None, item_cls=None, configparser_factory=None, configmanager_settings=None):
+        super(Config, self).__init__(configmanager_settings=configmanager_settings)
         self._cm__configparser_adapter = None
         self._cm__json_adapter = None
         self._cm__yaml_adapter = None
@@ -269,6 +269,7 @@ class Config(Section):
         Internal factory method used to create an instance of configuration section.
         Should only be used to extend configmanager's functionality.
         """
+        kwargs.setdefault('configmanager_settings', self.configmanager_settings)
         return self.__class__(*args, **kwargs)
 
     def add_item(self, alias, item):

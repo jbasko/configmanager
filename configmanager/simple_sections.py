@@ -19,7 +19,11 @@ class Section(BaseSection):
     No customisation (section classes, item classes etc.) allowed here.
     """
 
-    def __init__(self):
+    def __init__(self, configmanager_settings=None):
+        if configmanager_settings is None:
+            configmanager_settings = {}
+        self.configmanager_settings = configmanager_settings
+
         self._cm__configs = collections.OrderedDict()
         self._cm__section = None
         self._cm__section_alias = None
@@ -105,7 +109,7 @@ class Section(BaseSection):
         return self._resolve_config_key(name)
 
     def __setattr__(self, name, value):
-        if name.startswith('cm__') or name.startswith('_cm__'):
+        if name.startswith('cm__') or name.startswith('_cm__') or name.startswith('configmanager_'):
             return super(Section, self).__setattr__(name, value)
         elif is_config_item(value):
             self.add_item(name, value)
