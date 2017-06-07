@@ -8,7 +8,7 @@ from .hooks import Hooks
 from .items import Item
 from .parsers import ConfigDeclarationParser
 from .persistence import ConfigPersistenceAdapter, YamlReaderWriter, JsonReaderWriter, ConfigParserReaderWriter
-from .simple_sections import Section
+from .sections import Section
 
 
 class Config(Section):
@@ -143,63 +143,6 @@ class Config(Section):
         else:
             raise TypeError('Expected either a string or a tuple as key, got {!r}'.format(key))
 
-    def dump_values(self, with_defaults=True, dict_cls=dict):
-        """
-        Export values of all items contained in this section to a dictionary.
-
-        Items with no values set (and no defaults set if ``with_defaults=True``) will be excluded.
-        
-        Returns:
-            dict: A dictionary of key-value pairs, where for sections values are dictionaries
-            of their contents.
-        
-        """
-        values = dict_cls()
-        for item_name, item in self._cm__configs.items():
-            if is_config_section(item):
-                section_values = item.dump_values(with_defaults=with_defaults, dict_cls=dict_cls)
-                if section_values:
-                    values[item_name] = section_values
-            else:
-                if item.has_value:
-                    if with_defaults or not item.is_default:
-                        values[item.name] = item.value
-        return values
-
-    def load_values(self, dictionary, as_defaults=False):
-        """
-        Import config values from a dictionary.
-        
-        When ``as_defaults`` is set to ``True``, the values
-        imported will be set as defaults. This can be used to
-        declare the sections and items of configuration.
-        Values of sections and items in ``dictionary`` can be
-        dictionaries as well as instances of :class:`.Item` and
-        :class:`.Config`.
-        
-        Args:
-            dictionary: 
-            as_defaults: if ``True``, the imported values will be set as defaults.
-        """
-        for name, value in dictionary.items():
-            if name not in self:
-                if as_defaults:
-                    if isinstance(value, dict):
-                        self[name] = self.create_section()
-                        self[name].load_values(value, as_defaults=as_defaults)
-                    else:
-                        self[name] = self.create_item(name, default=value)
-                else:
-                    # Skip unknown names if not interpreting dictionary as defaults
-                    continue
-            elif is_config_item(self[name]):
-                if as_defaults:
-                    self[name].default = value
-                else:
-                    self[name].value = value
-            else:
-                self[name].load_values(value, as_defaults=as_defaults)
-
     @property
     def configparser(self):
         """
@@ -256,21 +199,6 @@ class Config(Section):
                 config=self
             )
         return self._cm__click_extension
-
-    def create_item(self, *args, **kwargs):
-        """
-        Internal factory method used to create an instance of configuration item.
-        Should only be used to extend configmanager's functionality.
-        """
-        return self.cm__item_cls(*args, **kwargs)
-
-    def create_section(self, *args, **kwargs):
-        """
-        Internal factory method used to create an instance of configuration section.
-        Should only be used to extend configmanager's functionality.
-        """
-        kwargs.setdefault('configmanager_settings', self.configmanager_settings)
-        return self.__class__(*args, **kwargs)
 
     def add_item(self, alias, item):
         """

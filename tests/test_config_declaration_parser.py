@@ -4,7 +4,7 @@ import pytest
 
 from configmanager.items import Item
 from configmanager import Config, Types
-from configmanager.simple_sections import Section
+from configmanager.sections import Section
 
 
 @pytest.fixture
