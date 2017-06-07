@@ -285,13 +285,13 @@ def test_accepts_configmanager_settings_which_are_passed_to_all_subsections():
         'message': 'everyone should know this',
     }
     config1 = Config({}, configmanager_settings=configmanager_settings)
-    assert config1.configmanager_settings['message'] == 'everyone should know this'
+    assert config1.configmanager_settings.message == 'everyone should know this'
 
     config2 = Config({'greeting': 'Hello'}, configmanager_settings=configmanager_settings)
-    assert config2.configmanager_settings['message'] == 'everyone should know this'
+    assert config2.configmanager_settings.message == 'everyone should know this'
 
     config3 = Config({'db': {'user': 'root'}}, configmanager_settings=configmanager_settings)
-    assert config3.configmanager_settings['message'] == 'everyone should know this'
-    assert config3.db.configmanager_settings['message'] == 'everyone should know this'
+    assert config3.configmanager_settings.message == 'everyone should know this'
+    assert config3.db.configmanager_settings.message == 'everyone should know this'
 
     assert config3.db.configmanager_settings is config3.configmanager_settings

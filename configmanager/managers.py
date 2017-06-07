@@ -98,7 +98,11 @@ class Config(Section):
 
     """
 
-    def __init__(self, config_declaration=None, configmanager_settings=None):
+    def __init__(self, config_declaration=None, **configmanager_settings):
+        if 'configmanager_settings' in configmanager_settings:
+            if len(configmanager_settings) > 1:
+                raise ValueError('Dubious configmanager_settings specification: {}'.format(configmanager_settings))
+            configmanager_settings = configmanager_settings['configmanager_settings']
         super(Config, self).__init__(configmanager_settings=configmanager_settings)
         self._cm__configparser_adapter = None
         self._cm__json_adapter = None
@@ -145,7 +149,7 @@ class Config(Section):
             self._cm__configparser_adapter = ConfigPersistenceAdapter(
                 config=self,
                 reader_writer=ConfigParserReaderWriter(
-                    config_parser_factory=self.configmanager_settings['configparser_factory'],
+                    config_parser_factory=self.configmanager_settings.configparser_factory,
                 ),
             )
         return self._cm__configparser_adapter

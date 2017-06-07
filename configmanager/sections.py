@@ -1,10 +1,9 @@
 import collections
 import copy
 
-import configparser
 import six
 
-from .items import Item
+from .meta import ConfigManagerSettings
 from .exceptions import NotFound
 from .utils import not_set
 from .base import BaseSection, is_config_item, is_config_section
@@ -18,17 +17,11 @@ class Section(BaseSection):
     No persistence, hooks or other fancy features here.
     """
 
-    configmanager_settings_defaults = {
-        'item_cls': Item,
-        'configparser_factory': configparser.ConfigParser,
-    }
-
     def __init__(self, configmanager_settings=None):
         if configmanager_settings is None:
-            configmanager_settings = copy.deepcopy(self.configmanager_settings_defaults)
-        else:
-            for k, v in self.configmanager_settings_defaults.items():
-                configmanager_settings.setdefault(k, v)
+            configmanager_settings = ConfigManagerSettings()
+        elif isinstance(configmanager_settings, dict):
+            configmanager_settings = ConfigManagerSettings(**configmanager_settings)
         self.configmanager_settings = configmanager_settings
 
         self._cm__configs = collections.OrderedDict()
@@ -426,7 +419,7 @@ class Section(BaseSection):
         Internal factory method used to create an instance of configuration item.
         Should only be used to extend configmanager's functionality.
         """
-        return self.configmanager_settings['item_cls'](*args, **kwargs)
+        return self.configmanager_settings.item_cls(*args, **kwargs)
 
     def create_section(self, *args, **kwargs):
         """
