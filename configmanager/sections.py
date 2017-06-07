@@ -1,6 +1,7 @@
 import collections
 import copy
 
+import configparser
 import six
 
 from .items import Item
@@ -19,6 +20,7 @@ class Section(BaseSection):
 
     configmanager_settings_defaults = {
         'item_cls': Item,
+        'configparser_factory': configparser.ConfigParser,
     }
 
     def __init__(self, configmanager_settings=None):

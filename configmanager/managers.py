@@ -98,9 +98,7 @@ class Config(Section):
 
     """
 
-    cm__configparser_factory = configparser.ConfigParser
-
-    def __init__(self, config_declaration=None, configparser_factory=None, configmanager_settings=None):
+    def __init__(self, config_declaration=None, configmanager_settings=None):
         super(Config, self).__init__(configmanager_settings=configmanager_settings)
         self._cm__configparser_adapter = None
         self._cm__json_adapter = None
@@ -108,10 +106,6 @@ class Config(Section):
         self._cm__click_extension = None
 
         self.__dict__['hooks'] = Hooks(config=self)
-
-        if configparser_factory:
-            self.cm__configparser_factory = configparser_factory
-
         self._cm__process_config_declaration = ConfigDeclarationParser(section=self)
 
         if config_declaration:
@@ -151,7 +145,7 @@ class Config(Section):
             self._cm__configparser_adapter = ConfigPersistenceAdapter(
                 config=self,
                 reader_writer=ConfigParserReaderWriter(
-                    config_parser_factory=self.cm__configparser_factory,
+                    config_parser_factory=self.configmanager_settings['configparser_factory'],
                 ),
             )
         return self._cm__configparser_adapter
