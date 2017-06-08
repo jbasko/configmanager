@@ -14,6 +14,7 @@ class ConfigManagerSettings(object):
         self._settings = {
             'item_cls': Item,
             'app_name': None,
+            'hooks_enabled': None,  # None means that when a hook is registered, hooks will be enabled automatically
         }
         self._factories = {
             'configparser_factory': self.create_configparser_factory,

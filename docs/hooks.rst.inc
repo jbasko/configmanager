@@ -6,8 +6,8 @@ on certain events.
 This is the recommended way to extend *configmanager*, and is much simpler than creating new classes that inherit from
 :class:`.Config` or :class:`.Item`.
 
-To hook into *configmanager*, you just have to write a function and register it on a section with the appropriate hook
-event by decorating it. Following hook events are defined:
+To hook into *configmanager*, you just have to write a callback function and register it on a section with the
+appropriate hook event by decorating it. Following hook events are defined:
 
 - ``not_found`` -- a name is not found in a section
 - ``item_added_to_section`` -- an item is added to a section
@@ -110,3 +110,13 @@ Callback is passed keyword arguments:
 - ``item``
 - ``old_value``
 - ``new_value``
+
+
+How to disable hooks?
+---------------------
+
+Hooks are enabled by default whenever a first hook is registered, but can be manually disabled
+by passing ``hooks_enabled=False`` when initialising :class:`.Config`.
+
+*configmanager* does not use hooks internally, so you are safe
+to disable them temporarily if you need to.

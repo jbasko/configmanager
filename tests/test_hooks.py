@@ -215,8 +215,6 @@ def test_section_added_to_section_hook():
 
 
 def test_item_value_changed_hook():
-    calls = []
-
     config = Config({
         'uploads': {
             'db': {
@@ -224,6 +222,8 @@ def test_item_value_changed_hook():
             }
         }
     })
+
+    calls = []
 
     @config.hooks.item_value_changed
     def item_value_changed(old_value=None, new_value=None, item=None, **kwargs):
@@ -244,3 +244,47 @@ def test_item_value_changed_hook():
 
     assert len(calls) == 2
     assert calls[-1] == (config.uploads.db.user, 'admin', 'Administrator')
+
+    config.load_values({'uploads': {'something_nonexistent': True}})
+    assert len(calls) == 2
+
+    config.load_values({'uploads': {'db': {'user': 'NEW DEFAULT'}}}, as_defaults=True)
+    assert len(calls) == 2
+
+    config.load_values({'uploads': {'db': {'user': 'NEW VALUE'}}})
+    assert len(calls) == 3
+    assert calls[-1] == (config.uploads.db.user, 'Administrator', 'NEW VALUE')
+
+
+def test_hooks_arent_handled_if_hooks_enabled_setting_is_set_to_falsey_value():
+    config = Config({
+        'uploads': {
+            'db': {
+                'user': 'root'
+            }
+        }
+    })
+
+    calls = []
+
+    @config.hooks.item_value_changed
+    def item_value_changed(**kwargs):
+        calls.append(1)
+
+    config.uploads.db.user.value = 'admin1'
+    assert len(calls) == 1
+
+    config.uploads.db.user.value = 'admin2'
+    assert len(calls) == 2
+
+    config._configmanager_settings.hooks_enabled = False
+    config.uploads.db.user.value = 'admin3'
+    assert len(calls) == 2
+
+    config._configmanager_settings.hooks_enabled = None
+    config.uploads.db.user.value = 'admin4'
+    assert len(calls) == 2
+
+    config._configmanager_settings.hooks_enabled = True
+    config.uploads.db.user.value = 'admin5'
+    assert len(calls) == 3
