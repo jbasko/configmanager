@@ -1,3 +1,4 @@
+import collections
 import pytest
 
 from configmanager import Config
@@ -5,13 +6,13 @@ from configmanager import Config
 
 @pytest.fixture
 def simple_config():
-    return Config({
-        'uploads': {
-            'threads': 1,
-            'enabled': False,
-            'db': {
-                'user': 'root',
-                'password': 'secret',
-            }
-        }
-    })
+    return Config([
+        ('uploads', collections.OrderedDict([
+            ('enabled', False),
+            ('threads', 1),
+            ('db', collections.OrderedDict([
+                ('user', 'root'),
+                ('password', 'secret'),
+            ]))
+        ]))
+    ])

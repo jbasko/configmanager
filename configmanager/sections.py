@@ -196,12 +196,17 @@ class Section(BaseSection):
 
         self.hooks.handle(Hooks.SECTION_ADDED_TO_SECTION, alias=alias, section=self, subject=section)
 
-    def _parse_path(self, path=None, separator='.'):
+    def _get_str_path_separator(self, override=not_set):
+        if override is not not_set:
+            return override
+        return self._configmanager_settings.str_path_separator
+
+    def _parse_path(self, path=None, separator=not_set):
         if not path:
             return ()
 
         if isinstance(path, six.string_types):
-            clean_path = tuple(path.split(separator))
+            clean_path = tuple(path.split(self._get_str_path_separator(separator)))
         else:
             clean_path = path
 
@@ -249,7 +254,7 @@ class Section(BaseSection):
 
                 yield (obj.name,), obj
 
-    def _get_path_iterator(self, path=None, separator='.', recursive=False):
+    def _get_path_iterator(self, path=None, separator=not_set, recursive=False):
         clean_path = self._parse_path(path=path, separator=separator)
 
         config = self[clean_path] if clean_path else self
@@ -261,7 +266,7 @@ class Section(BaseSection):
             for path, obj in config._get_recursive_iterator(recursive=recursive):
                 yield (clean_path + path), obj
 
-    def iter_all(self, recursive=False, path=None, key='path', separator='.'):
+    def iter_all(self, recursive=False, path=None, key='path', separator=not_set):
         """
         Args:
             recursive: if ``True``, recurse into sub-sections
@@ -286,10 +291,12 @@ class Section(BaseSection):
         else:
             emitter = lambda k, v, _, f=key: (f(k, v), v)
 
+        separator = self._get_str_path_separator(separator)
+
         for path, obj in self._get_path_iterator(recursive=recursive, path=path, separator=separator):
             yield emitter(path, obj, separator)
 
-    def iter_items(self, recursive=False, path=None, key='path', separator='.'):
+    def iter_items(self, recursive=False, path=None, key='path', separator=not_set):
         """
 
         See :meth:`.iter_all` for standard iterator argument descriptions.
@@ -306,7 +313,7 @@ class Section(BaseSection):
             elif x[1].is_item:
                 yield x
 
-    def iter_sections(self, recursive=False, path=None, key='path', separator='.'):
+    def iter_sections(self, recursive=False, path=None, key='path', separator=not_set):
         """
         See :meth:`.iter_all` for standard iterator argument descriptions.
 
@@ -322,7 +329,7 @@ class Section(BaseSection):
             elif x[1].is_section:
                 yield x
 
-    def iter_paths(self, recursive=False, path=None, key='path', separator='.'):
+    def iter_paths(self, recursive=False, path=None, key='path', separator=not_set):
         """
 
         See :meth:`.iter_all` for standard iterator argument descriptions.
@@ -355,7 +362,7 @@ class Section(BaseSection):
                 return False
         return True
 
-    def dump_values(self, with_defaults=True, dict_cls=dict, flat=False, separator='.'):
+    def dump_values(self, with_defaults=True, dict_cls=dict, flat=False, separator=not_set):
         """
         Export values of all items contained in this section to a dictionary.
 
@@ -385,7 +392,7 @@ class Section(BaseSection):
                             values[item.name] = item.value
         return values
 
-    def load_values(self, dictionary, as_defaults=False, flat=False, separator='.'):
+    def load_values(self, dictionary, as_defaults=False, flat=False, separator=not_set):
         """
         Import config values from a dictionary.
 
@@ -400,6 +407,8 @@ class Section(BaseSection):
             dictionary:
             as_defaults: if ``True``, the imported values will be set as defaults.
         """
+        separator = self._get_str_path_separator(separator)
+
         if flat:
             # Deflatten the dictionary and then pass on to the normal case.
             flat_dictionary = dictionary

@@ -550,3 +550,26 @@ def test_load_values_with_flat_true_accepts_separator(simple_config):
     assert simple_config.uploads.db.user.value == 'root'
     assert simple_config.uploads.threads.value == 23
     assert simple_config.uploads.db.password.value == 'NEW_PASSWORD'
+
+
+def test_config_accepts_and_respects_str_path_separator_setting(simple_config):
+    assert list(simple_config.iter_paths(recursive=True, key='str_path')) == [
+        'uploads', 'uploads.enabled', 'uploads.threads', 'uploads.db', 'uploads.db.user', 'uploads.db.password',
+    ]
+
+    simple_config._configmanager_settings.str_path_separator = '/'
+
+    assert list(simple_config.iter_paths(recursive=True, key='str_path')) == [
+        'uploads', 'uploads/enabled', 'uploads/threads', 'uploads/db', 'uploads/db/user', 'uploads/db/password',
+    ]
+
+    assert list(simple_config.iter_paths(recursive=True, key='str_path', separator=':')) == [
+        'uploads', 'uploads:enabled', 'uploads:threads', 'uploads:db', 'uploads:db:user', 'uploads:db:password',
+    ]
+
+    assert simple_config.dump_values(with_defaults=True, flat=True) == {
+        'uploads/enabled': False,
+        'uploads/threads': 1,
+        'uploads/db/user': 'root',
+        'uploads/db/password': 'secret',
+    }
