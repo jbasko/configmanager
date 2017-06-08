@@ -9,10 +9,10 @@ This is the recommended way to extend *configmanager*, and is much simpler than 
 To hook into *configmanager*, you just have to write a function and register it on a section with the appropriate hook
 event by decorating it. Following hook events are defined:
 
-- ``not_found`` -- when a name is not found in a section
-- ``item_added_to_section`` -- when an item is added to a section
-- ``section_added_to_section`` -- when a section is added to a section
-- ``value_changed`` -- *in development*
+- ``not_found`` -- a name is not found in a section
+- ``item_added_to_section`` -- an item is added to a section
+- ``section_added_to_section`` -- a section is added to a section
+- ``item_value_changed`` -- an item's value has been changed
 
 You can register hooks on any section (instance of :class:`.Config`) and they will apply to all sub-sections.
 
@@ -100,3 +100,13 @@ Callback is passed keyword arguments:
 - ``subject`` - subject which was added
 - ``section`` - parent section to which the ``subject`` section was added
 - ``alias`` - name under which the ``subject`` section was added
+
+
+``Config.hooks.item_value_changed``
+-----------------------------------
+
+Callback is passed keyword arguments:
+
+- ``item``
+- ``old_value``
+- ``new_value``

@@ -6,13 +6,13 @@ class Hooks(object):
     NOT_FOUND = 'not_found'
     ITEM_ADDED_TO_SECTION = 'item_added_to_section'
     SECTION_ADDED_TO_SECTION = 'section_added_to_section'
-    VALUE_CHANGED = 'value_changed'
+    ITEM_VALUE_CHANGED = 'item_value_changed'
 
     _names = (
         NOT_FOUND,
         ITEM_ADDED_TO_SECTION,
         SECTION_ADDED_TO_SECTION,
-        VALUE_CHANGED,
+        ITEM_VALUE_CHANGED,
     )
 
     def __init__(self, config):

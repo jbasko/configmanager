@@ -3,6 +3,7 @@ import copy
 import six
 from builtins import str
 
+from .hooks import Hooks
 from .item_types import Types
 from .exceptions import RequiredValueMissing
 from .base import ItemAttribute, BaseItem
@@ -182,7 +183,11 @@ class Item(BaseItem):
         """
         Sets config value.
         """
+        old_value = self._value
         self.type.set_item_value(self, value)
+        new_value = self._value
+        if self.section:
+            self.section.hooks.handle(Hooks.ITEM_VALUE_CHANGED, item=self, old_value=old_value, new_value=new_value)
 
     def reset(self):
         """

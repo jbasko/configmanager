@@ -2,6 +2,7 @@ import pytest
 
 from configmanager import Config, NotFound
 from configmanager.hooks import Hooks
+from configmanager.utils import not_set
 
 
 def test_hooks_is_a_config_root_attribute():
@@ -211,3 +212,35 @@ def test_section_added_to_section_hook():
         ('on_uploads', (), {'subject': config.uploads.db.backups, 'alias': 'backups', 'section': config.uploads.db}),
         ('on_root', (), {'subject': config.uploads.db.backups, 'alias': 'backups', 'section': config.uploads.db}),
     ]
+
+
+def test_item_value_changed_hook():
+    calls = []
+
+    config = Config({
+        'uploads': {
+            'db': {
+                'user': 'root',
+            }
+        }
+    })
+
+    @config.hooks.item_value_changed
+    def item_value_changed(old_value=None, new_value=None, item=None, **kwargs):
+        calls.append((item, old_value, new_value))
+
+    assert calls == []
+
+    config.reset()
+
+    assert calls == []
+
+    config.uploads.db.user.set('admin')
+
+    assert len(calls) == 1
+    assert calls[-1] == (config.uploads.db.user, not_set, 'admin')
+
+    config.uploads.db.user.value = 'Administrator'
+
+    assert len(calls) == 2
+    assert calls[-1] == (config.uploads.db.user, 'admin', 'Administrator')
