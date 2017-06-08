@@ -507,3 +507,46 @@ def test_config_is_section_and_is_not_item():
     config = Config()
     assert config.is_section
     assert not config.is_item
+
+
+def test_dump_values_with_flat_true_accepts_separator(simple_config):
+    assert simple_config.dump_values(with_defaults=True, flat=True) == {
+        'uploads.enabled': False,
+        'uploads.threads': 1,
+        'uploads.db.user': 'root',
+        'uploads.db.password': 'secret',
+    }
+
+    assert simple_config.dump_values(with_defaults=True, flat=True, separator='/') == {
+        'uploads/enabled': False,
+        'uploads/threads': 1,
+        'uploads/db/user': 'root',
+        'uploads/db/password': 'secret',
+    }
+
+
+def test_load_values_with_flat_true_accepts_separator(simple_config):
+    new_values = {
+        'uploads.enabled': True,
+        'uploads.db.user': 'NEW_USER',
+        'uploads/threads': 23,
+        'uploads/db/password': 'NEW_PASSWORD',
+    }
+
+    # default separator is '.' so '/'-separated values are ignored
+    simple_config.load_values(new_values, flat=True)
+
+    assert simple_config.uploads.enabled.value is True
+    assert simple_config.uploads.db.user.value == 'NEW_USER'
+    assert simple_config.uploads.threads.value == 1
+    assert simple_config.uploads.db.password.value == 'secret'
+
+    simple_config.reset()
+
+    # Now the '.'-separated values are ignored
+    simple_config.load_values(new_values, flat=True, separator='/')
+
+    assert simple_config.uploads.enabled.value is False
+    assert simple_config.uploads.db.user.value == 'root'
+    assert simple_config.uploads.threads.value == 23
+    assert simple_config.uploads.db.password.value == 'NEW_PASSWORD'

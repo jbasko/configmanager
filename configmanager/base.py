@@ -26,10 +26,6 @@ class BaseSection(object):
         raise NotImplementedError()
 
 
-def is_config_instance(obj):
-    return isinstance(obj, BaseSection)
-
-
 def is_config_section(obj):
     return isinstance(obj, BaseSection)
 

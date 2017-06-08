@@ -355,7 +355,7 @@ class Section(BaseSection):
                 return False
         return True
 
-    def dump_values(self, with_defaults=True, dict_cls=dict):
+    def dump_values(self, with_defaults=True, dict_cls=dict, flat=False, separator='.'):
         """
         Export values of all items contained in this section to a dictionary.
 
@@ -367,18 +367,25 @@ class Section(BaseSection):
 
         """
         values = dict_cls()
-        for item_name, item in self._configmanager_tree.items():
-            if is_config_section(item):
-                section_values = item.dump_values(with_defaults=with_defaults, dict_cls=dict_cls)
-                if section_values:
-                    values[item_name] = section_values
-            else:
+
+        if flat:
+            for str_path, item in self.iter_items(recursive=True, separator=separator, key='str_path'):
                 if item.has_value:
                     if with_defaults or not item.is_default:
-                        values[item.name] = item.value
+                        values[str_path] = item.value
+        else:
+            for item_name, item in self._configmanager_tree.items():
+                if is_config_section(item):
+                    section_values = item.dump_values(with_defaults=with_defaults, dict_cls=dict_cls)
+                    if section_values:
+                        values[item_name] = section_values
+                else:
+                    if item.has_value:
+                        if with_defaults or not item.is_default:
+                            values[item.name] = item.value
         return values
 
-    def load_values(self, dictionary, as_defaults=False):
+    def load_values(self, dictionary, as_defaults=False, flat=False, separator='.'):
         """
         Import config values from a dictionary.
 
@@ -393,6 +400,21 @@ class Section(BaseSection):
             dictionary:
             as_defaults: if ``True``, the imported values will be set as defaults.
         """
+        if flat:
+            # Deflatten the dictionary and then pass on to the normal case.
+            flat_dictionary = dictionary
+            dictionary = collections.OrderedDict()
+            for k, v in flat_dictionary.items():
+                k_parts = k.split(separator)
+                c = dictionary
+                for i, kp in enumerate(k_parts):
+                    if i >= len(k_parts) - 1:
+                        c[kp] = v
+                    else:
+                        if kp not in c:
+                            c[kp] = collections.OrderedDict()
+                        c = c[kp]
+
         for name, value in dictionary.items():
             if name not in self:
                 if as_defaults:
