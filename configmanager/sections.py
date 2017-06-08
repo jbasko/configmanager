@@ -10,6 +10,15 @@ from .utils import not_set
 from .base import BaseSection, is_config_item, is_config_section
 
 
+_iter_emitters = {
+    'path': lambda k, v, _: (k, v),
+    'name': lambda k, v, _: (v.alias, v) if v.is_section else (v.name, v),
+    'alias': lambda k, v, _: (v.alias, v) if v.is_section else (v.name, v),
+    'str_path': lambda k, v, sep: (sep.join(k), v),
+    None: lambda k, v: v,
+}
+
+
 class Section(BaseSection):
     """
     Core section functionality.
@@ -259,7 +268,8 @@ class Section(BaseSection):
 
             path (tuple or string): optional path to limit iteration over.
 
-            key: ``path`` (default), ``str_path``, ``name``, or ``None``.
+            key: ``path`` (default), ``str_path``, ``name``, ``None``, or a function to calculate the key from
+                ``(k, v)`` tuple.
 
             separator (string): used both to interpret ``path=`` kwarg when it is a string,
                 and to generate ``str_path`` as the returned key.
@@ -268,33 +278,21 @@ class Section(BaseSection):
             iterator: iterator over ``(path, obj)`` pairs of all items and
             sections contained in this section.
         """
-        for path, obj in self._get_path_iterator(recursive=recursive, path=path, separator=separator):
-            if key is None:
-                yield obj
-            elif key == 'path':
-                yield path, obj
-            elif key == 'name' or key == 'alias':
-                if obj.is_section:
-                    yield obj.alias, obj
-                else:
-                    yield obj.name, obj
-            elif key == 'str_path':
-                yield separator.join(path), obj
+        if isinstance(key, six.string_types):
+            if key in _iter_emitters:
+                emitter = _iter_emitters[key]
             else:
                 raise ValueError('Invalid key {!r}'.format(key))
+        else:
+            emitter = lambda k, v, _, f=key: (f(k, v), v)
+
+        for path, obj in self._get_path_iterator(recursive=recursive, path=path, separator=separator):
+            yield emitter(path, obj, separator)
 
     def iter_items(self, recursive=False, path=None, key='path', separator='.'):
         """
 
-        Args:
-            recursive: if ``True``, recurse into sub-sections.
-
-            path (tuple or string): optional path to limit iteration over.
-
-            key: ``path`` (default), ``str_path``, ``name``, or ``None``.
-
-            separator (string): used both to interpret ``path=`` kwarg when it is a string,
-                and to generate ``str_path`` as the returned key.
+        See :meth:`.iter_all` for standard iterator argument descriptions.
 
         Returns:
             iterator: iterator over ``(key, item)`` pairs of all items
@@ -310,15 +308,7 @@ class Section(BaseSection):
 
     def iter_sections(self, recursive=False, path=None, key='path', separator='.'):
         """
-        Args:
-            recursive: if ``True``, recurse into sub-sections.
-
-            path (tuple or string): optional path to limit iteration over.
-
-            key: ``path`` (default), ``str_path``, ``alias``, or ``None``.
-
-            separator (string): used both to interpret ``path=`` kwarg when it is a string,
-                and to generate ``str_path`` as the returned key.
+        See :meth:`.iter_all` for standard iterator argument descriptions.
 
         Returns:
             iterator: iterator over ``(key, section)`` pairs of all sections
@@ -335,15 +325,7 @@ class Section(BaseSection):
     def iter_paths(self, recursive=False, path=None, key='path', separator='.'):
         """
 
-        Args:
-            recursive: if ``True``, recurse into sub-sections
-
-            path (tuple or string): optional path to limit iteration over.
-
-            key: ``path`` (default), ``str_path``, or ``name``.
-
-            separator (string): used both to interpret ``path=`` kwarg when it is a string,
-                and to generate ``str_path`` as the returned key.
+        See :meth:`.iter_all` for standard iterator argument descriptions.
 
         Returns:
             iterator: iterator over paths of all items and sections

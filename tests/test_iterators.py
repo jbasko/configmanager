@@ -268,3 +268,9 @@ def test_iterators_accept_path_tuples(c4):
 
     db = list(c4.iter_paths(recursive=True, path=('uploads', 'db')))
     assert len(db) == 3
+
+
+def test_iterators_accept_key_function(c4):
+    all = list(c4.iter_all(recursive=True, key=lambda k, v: (v.name if v.is_item else v.alias)))
+    all_names = list(k for k, v in all)
+    assert all_names == ['greeting', 'uploads', 'enabled', 'db', 'host', 'user', 'downloads', 'enabled', 'threads']
