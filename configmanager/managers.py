@@ -1,5 +1,5 @@
+from .config_declaration_parser import parse_config_declaration
 from .meta import ConfigManagerSettings
-from .parsers import ConfigDeclarationParser
 from .persistence import ConfigPersistenceAdapter, YamlReaderWriter, JsonReaderWriter, ConfigParserReaderWriter
 from .sections import Section
 
@@ -91,6 +91,8 @@ class Config(Section):
 
     """
 
+    is_config = True
+
     def __init__(self, config_declaration=None, **configmanager_settings):
         if 'configmanager_settings' in configmanager_settings:
             if len(configmanager_settings) > 1:
@@ -107,10 +109,8 @@ class Config(Section):
         self._configmanager_yaml_adapter = None
         self._configmanager_click_extension = None
 
-        self._configmanager_process_config_declaration = ConfigDeclarationParser(section=self)
-
-        if config_declaration:
-            self._configmanager_process_config_declaration(config_declaration)
+        if config_declaration is not None:
+            parse_config_declaration(config_declaration, root=self)
 
         self.load_user_app_config()
 

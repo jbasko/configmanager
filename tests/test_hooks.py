@@ -1,6 +1,6 @@
 import pytest
 
-from configmanager import Config, NotFound
+from configmanager import Config, NotFound, Section
 from configmanager.hooks import Hooks
 from configmanager.utils import not_set
 
@@ -26,7 +26,7 @@ def test_not_found_hook():
     calls = []
 
     config = Config({
-        'uploads': {}
+        'uploads': Section()
     })
 
     @config.hooks.not_found

@@ -53,8 +53,8 @@ def c4():
 @pytest.fixture
 def c5():
     return Config([
-        'greeting',
-        'tmp_dir',
+        ('greeting', ''),
+        ('tmp_dir', ''),
     ])
 
 
