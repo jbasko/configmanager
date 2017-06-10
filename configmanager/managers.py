@@ -6,12 +6,11 @@ from .sections import Section
 
 class Config(Section):
     """
-    Represents a section consisting of items (instances of :class:`.Item`) and other sections
-    (instances of :class:`.Config`).
+    Represents a configuration tree.
     
     .. attribute:: Config(config_declaration=None, **kwargs)
         
-        Creates a section from a declaration.
+        Creates a configuration tree from a declaration.
 
         Args:
             ``config_declaration``: can be a dictionary, a list, a simple class, a module, another :class:`.Config`
@@ -130,7 +129,7 @@ class Config(Section):
             self._configmanager_configparser_adapter = ConfigPersistenceAdapter(
                 config=self,
                 reader_writer=ConfigParserReaderWriter(
-                    config_parser_factory=self._configmanager_settings.configparser_factory,
+                    config_parser_factory=self._settings.configparser_factory,
                 ),
             )
         return self._configmanager_configparser_adapter
@@ -175,9 +174,9 @@ class Config(Section):
         return self._configmanager_click_extension
 
     def load_user_app_config(self):
-        if not self._configmanager_settings.app_name:
+        if not self._settings.app_name:
             return
 
         import os.path
-        if os.path.exists(self._configmanager_settings.user_app_config):
-            self.json.load(self._configmanager_settings.user_app_config)
+        if os.path.exists(self._settings.user_app_config):
+            self.json.load(self._settings.user_app_config)

@@ -7,13 +7,6 @@ from configmanager.base import BaseItem, BaseSection
 
 
 def parse_config_declaration(declaration, parent_section=None, root=None):
-
-    # Pass _configmanager_settings through so we know how to create new items/sections
-    # Process declaration recursively (unlike the old parser)
-    # Don't allow much freedom into what is accepted
-    # Sequences (excluding strings) and mappings (excluding our base types) have special meaning and
-    # cannot be used as default values unless wrapped inside Item.
-
     if root:
         parent_section = root
 

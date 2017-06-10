@@ -517,7 +517,7 @@ def test_config_accepts_and_respects_str_path_separator_setting(simple_config):
         'uploads', 'uploads.enabled', 'uploads.threads', 'uploads.db', 'uploads.db.user', 'uploads.db.password',
     ]
 
-    simple_config._configmanager_settings.str_path_separator = '/'
+    simple_config._settings.str_path_separator = '/'
 
     assert list(simple_config.iter_paths(recursive=True, key='str_path')) == [
         'uploads', 'uploads/enabled', 'uploads/threads', 'uploads/db', 'uploads/db/user', 'uploads/db/password',

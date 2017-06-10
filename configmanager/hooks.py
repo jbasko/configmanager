@@ -24,8 +24,8 @@ class Hooks(object):
         if name not in self._decorators:
             def decorator(f):
                 self._registry[name].append(f)
-                if self._config._configmanager_settings.hooks_enabled is None:
-                    self._config._configmanager_settings.hooks_enabled = True
+                if self._config._settings.hooks_enabled is None:
+                    self._config._settings.hooks_enabled = True
                 return f
             decorator.__name__ = name
             self._decorators[name] = decorator
@@ -40,7 +40,7 @@ class Hooks(object):
             ))
 
     def handle(self, hook_name, *args, **kwargs):
-        if not self._config._configmanager_settings.hooks_enabled:
+        if not self._config._settings.hooks_enabled:
             return
 
         for handler in self._registry[hook_name]:
