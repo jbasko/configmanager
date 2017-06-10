@@ -103,10 +103,10 @@ class Config(Section):
 
         super(Config, self).__init__(configmanager_settings=configmanager_settings)
 
-        self._configmanager_configparser_adapter = None
-        self._configmanager_json_adapter = None
-        self._configmanager_yaml_adapter = None
-        self._configmanager_click_extension = None
+        self._configparser_adapter = None
+        self._json_adapter = None
+        self._yaml_adapter = None
+        self._click_extension = None
 
         if config_declaration is not None:
             parse_config_declaration(config_declaration, root=self)
@@ -125,14 +125,14 @@ class Config(Section):
         Returns:
             :class:`.ConfigPersistenceAdapter`
         """
-        if self._configmanager_configparser_adapter is None:
-            self._configmanager_configparser_adapter = ConfigPersistenceAdapter(
+        if self._configparser_adapter is None:
+            self._configparser_adapter = ConfigPersistenceAdapter(
                 config=self,
                 reader_writer=ConfigParserReaderWriter(
                     config_parser_factory=self._settings.configparser_factory,
                 ),
             )
-        return self._configmanager_configparser_adapter
+        return self._configparser_adapter
 
     @property
     def json(self):
@@ -142,12 +142,12 @@ class Config(Section):
         Returns:
             :class:`.ConfigPersistenceAdapter`
         """
-        if self._configmanager_json_adapter is None:
-            self._configmanager_json_adapter = ConfigPersistenceAdapter(
+        if self._json_adapter is None:
+            self._json_adapter = ConfigPersistenceAdapter(
                 config=self,
                 reader_writer=JsonReaderWriter(),
             )
-        return self._configmanager_json_adapter
+        return self._json_adapter
 
     @property
     def yaml(self):
@@ -157,21 +157,21 @@ class Config(Section):
         Returns:
             :class:`.ConfigPersistenceAdapter`
         """
-        if self._configmanager_yaml_adapter is None:
-            self._configmanager_yaml_adapter = ConfigPersistenceAdapter(
+        if self._yaml_adapter is None:
+            self._yaml_adapter = ConfigPersistenceAdapter(
                 config=self,
                 reader_writer=YamlReaderWriter(),
             )
-        return self._configmanager_yaml_adapter
+        return self._yaml_adapter
 
     @property
     def click(self):
-        if self._configmanager_click_extension is None:
+        if self._click_extension is None:
             from .click_ext import ClickExtension
-            self._configmanager_click_extension = ClickExtension(
+            self._click_extension = ClickExtension(
                 config=self
             )
-        return self._configmanager_click_extension
+        return self._click_extension
 
     def load_user_app_config(self):
         if not self._settings.app_name:
