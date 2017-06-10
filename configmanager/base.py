@@ -4,6 +4,7 @@ from .utils import not_set
 class BaseItem(object):
     is_item = True
     is_section = False
+    is_config = False
 
 
 def is_config_item(obj):
@@ -18,6 +19,7 @@ class BaseSection(object):
 
     is_item = False
     is_section = True
+    is_config = False
 
     def add_item(self, alias, item):
         raise NotImplementedError()

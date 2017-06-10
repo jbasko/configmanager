@@ -212,6 +212,9 @@ class ConfigParserReaderWriter(ConfigReaderWriter):
 
         # TODO Clean up the repetition here!
 
+        # TODO Shouldn't really use create_item and create_section methods here,
+        # TODO should use load_values(..., as_defaults=True) instead!
+
         for option, value in cp.defaults().items():
             if as_defaults:
                 if option not in config:

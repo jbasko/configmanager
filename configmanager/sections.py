@@ -194,6 +194,10 @@ class Section(BaseSection):
         section._configmanager_section = self
         section._configmanager_section_alias = alias
 
+        # Must not mess around with settings of other Config instances.
+        if not section.is_config:
+            section._configmanager_settings = self._configmanager_settings
+
         self.hooks.handle(Hooks.SECTION_ADDED_TO_SECTION, alias=alias, section=self, subject=section)
 
     def _get_str_path_separator(self, override=not_set):

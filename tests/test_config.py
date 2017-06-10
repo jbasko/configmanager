@@ -5,46 +5,6 @@ import pytest
 from configmanager import Config, Section, Item, Types, NotFound
 
 
-def test_items_are_created_using_create_item_method():
-    class CustomItem(Item):
-        pass
-
-    class CustomConfig(Config):
-        def create_item(self, *args, **kwargs):
-            return CustomItem(*args, **kwargs)
-
-    config = CustomConfig({
-        'a': {'b': {'c': {'d': 1, 'e': '2', 'f': True}}},
-        'g': False,
-    })
-
-    assert isinstance(config.g, CustomItem)
-    assert isinstance(config.a.b.c.d, CustomItem)
-
-
-def test_config_create_section_creates_instance_of_section_class():
-    class ExtendedConfig(Config):
-        pass
-
-    config = ExtendedConfig({
-        'uploads': {
-            'db': {
-                'user': 'root'
-            },
-            'api': {
-                'port': 8000,
-                'extensions': {},
-            },
-        }
-    })
-
-    assert isinstance(config, ExtendedConfig)
-    assert isinstance(config.uploads, Section)
-    assert isinstance(config.uploads.db, Section)
-    assert isinstance(config.uploads.db.user, Item)
-    assert isinstance(config.uploads.api.extensions, Section)
-
-
 def test_reset_resets_values_to_defaults():
     config = Config({
         'x': Item(type=int),

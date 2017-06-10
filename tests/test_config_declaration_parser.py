@@ -4,30 +4,8 @@ import pytest
 
 from configmanager.items import Item
 from configmanager import Config, Types
+from configmanager.config_declaration_parser import parse_config_declaration
 from configmanager.sections import Section
-
-
-@pytest.fixture
-def app_config_cls_example():
-    class DeepConfig:
-        question = 'Why would you want a config this deep?'
-
-    class UploadsConfig:
-        enabled = True
-        threads = 1
-        type_ = Item(name='type', default=None)
-
-    class DownloadsConfig:
-        content_type = 'text/plain'
-        deep = DeepConfig
-        threads = Item(type=int)
-
-    class AppConfig:
-        uploads = UploadsConfig
-        downloads = DownloadsConfig
-        greeting = 'Hello, world!'
-
-    return AppConfig
 
 
 @pytest.fixture
@@ -72,67 +50,72 @@ def app_config_module_example():
     return app_config
 
 
-@pytest.fixture
-def app_config_mixed_example():
-    class DeepConfig:
-        question = 'Why would you want a config this deep?'
+def test_primitive_value_is_a_declaration_of_an_item():
+    config = Config((
+        ('enabled', True),
+        ('threads', 5),
+    ))
 
-    uploads_module = types.ModuleType('uploads')
-    uploads_module.enabled = True
-    uploads_module.threads = 1
-    uploads_module.type_ = Item(name='type', default=None)
+    assert config.enabled.is_item
+    assert config.enabled.default is True
+    assert config.enabled.name == 'enabled'
 
-    downloads_dict = {
-        'content_type': 'text/plain',
-        'deep': DeepConfig,
-        'threads': Item(type=int),
-    }
-
-    class AppConfig:
-        uploads = uploads_module
-        downloads = downloads_dict
-        greeting = 'Hello, world!'
-
-    return AppConfig
+    assert config.threads.is_item
+    assert config.threads.default == 5
+    assert config.threads.name == 'threads'
 
 
-def test_class_based_config_declaration(app_config_cls_example):
-    tree = Config(app_config_cls_example)
+def test_lists_of_tuples_declare_sections():
+    config = Config()
 
-    assert tree['uploads']
-    assert tree['uploads']['enabled'].name == 'enabled'
-    assert tree['uploads']['type'].name == 'type'
-    assert tree['uploads']['type'].value is None
+    parse_config_declaration([
+        ('uploads', [
+            ('enabled', True),
+            ('threads', 5),
+            ('db', [
+                ('user', 'root'),
+                ('password', 'secret'),
+            ]),
+        ]),
+    ], root=config)
 
-    assert tree['downloads']
-    assert tree['downloads']['deep']
-    assert tree['downloads']['deep']['question']
-    assert tree['downloads']['deep']['question'].value
-
-    assert tree['downloads']['threads'].name == 'threads'
-    assert tree['greeting'].name == 'greeting'
-
-    assert 'deep' not in tree
-    assert 'question' not in tree
-    assert 'enabled' not in tree
-
-
-def test_dict_based_config_declaration(app_config_dict_example, app_config_cls_example):
-    dict_tree = Config(app_config_dict_example)
-    cls_tree = Config(app_config_cls_example)
-    assert dict_tree.dump_values() == cls_tree.dump_values()
+    assert config.uploads.is_section
+    assert config.uploads.enabled.is_item
+    assert config.uploads.enabled.default is True
+    assert config.uploads.threads.is_item
+    assert config.uploads.db.is_section
+    assert config.uploads.db.user.is_item
+    assert config.uploads.db.user.default == 'root'
+    assert config.uploads.db.password.is_item
 
 
-def test_module_based_config_declaration(app_config_module_example, app_config_cls_example):
-    module_tree = Config(app_config_module_example)
-    cls_tree = Config(app_config_cls_example)
-    assert module_tree.dump_values() == cls_tree.dump_values()
+def test_non_empty_dictionaries_declare_sections():
+    config = Config()
+    parse_config_declaration({
+        'uploads': {
+            'enabled': True,
+            'threads': 5,
+            'db': {
+                'user': 'root',
+                'password': 'secret',
+            },
+        },
+    }, root=config)
+
+    assert config.uploads.is_section
+    assert config.uploads.enabled.is_item
+    assert config.uploads.enabled.default is True
+    assert config.uploads.threads.is_item
+    assert config.uploads.db.is_section
+    assert config.uploads.db.user.is_item
+    assert config.uploads.db.user.default == 'root'
+    assert config.uploads.db.password.is_item
 
 
-def test_mixed_config_declaration(app_config_mixed_example, app_config_cls_example):
-    mixed_tree = Config(app_config_mixed_example)
-    cls_tree = Config(app_config_cls_example)
-    assert mixed_tree.dump_values() == cls_tree.dump_values()
+def test_dict_and_module_based_config_declaration(app_config_dict_example, app_config_module_example):
+    dict_config = Config(app_config_dict_example)
+    module_config = Config(app_config_module_example)
+    assert dict_config.dump_values(with_defaults=True) == module_config.dump_values(with_defaults=True)
 
 
 def test_default_value_is_deep_copied():
@@ -145,77 +128,41 @@ def test_default_value_is_deep_copied():
     assert config['items'].value == [1, 2, 3, 4]
 
 
-def test_config_declaration_can_be_a_list_of_items_or_two_tuples():
+def test_can_use_list_notation_to_declare_ordered_config_tree():
     config = Config([
-        ('enabled', True),
-        ('threads', 5),
-        Item('greeting'),
-        ('db', Config({'user': 'root'}))
-    ])
-    assert list(path for path, _ in config.iter_items(recursive=True)) == [('enabled',), ('threads',), ('greeting',), ('db', 'user')]
-
-
-def test_declaration_can_be_a_list_of_field_names():
-    config = Config([
-        'enabled', 'threads', 'greeting', 'tmp_dir',
-        ('db', Config(['user', 'host', 'password', 'name']))
-    ])
-
-    assert config.enabled
-    assert config.threads
-    assert config.greeting
-    assert config.tmp_dir
-    assert config.db.user
-    assert config.db.host
-    assert config.db.password
-    assert config.db.name
-
-    assert not config.enabled.has_value
-
-
-def test_declaration_cannot_be_a_list_of_other_things():
-    with pytest.raises(TypeError):
-        Config(['enabled', True])
-
-    with pytest.raises(TypeError):
-        Config([True, 5])
-
-    with pytest.raises(TypeError):
-        Config([True, 5, 0.0])
-
-
-def test_declaration_can_be_a_filename(tmpdir):
-    config = Config([
-        ('uploads', Config([
-            ('enabled', True),
-            ('db', Config([
+        ('uploads', [
+            ('enabled', False),
+            ('db', [
                 ('user', 'root'),
-                ('password', 'secret'),
-            ])),
-            ('threads', 5),
-        ]))
+            ])
+        ])
     ])
 
-    json_path = tmpdir.join('uploads.json').strpath
-    ini_path = tmpdir.join('uploads.ini').strpath
-    yaml_path = tmpdir.join('uploads.yaml').strpath
+    assert config.uploads.enabled.value is False
+    assert config.uploads.db.user.value == 'root'
 
-    config.json.dump(json_path, with_defaults=True)
-    config.yaml.dump(yaml_path, with_defaults=True)
 
-    c2 = Config(json_path)
-    assert c2.dump_values(with_defaults=True) == config.dump_values(with_defaults=True)
+def test_config_root_declaration_cannot_be_a_primitive_value(tmpdir):
+    #
+    with pytest.raises(ValueError):
+        Config(5)
 
-    c3 = Config(yaml_path)
-    assert c3.dump_values(with_defaults=True) == config.dump_values(with_defaults=True)
+    with pytest.raises(ValueError):
+        Config(True)
 
-    # For configparser test 2 levels only:
-    config.uploads.configparser.dump(ini_path, with_defaults=True)
+    with pytest.raises(ValueError):
+        Config([])
 
-    c4 = Config(ini_path)
-    print(c4.configparser.dumps(with_defaults=True))
-    print(config.uploads.configparser.dumps(with_defaults=True))
-    assert c4.configparser.dumps(with_defaults=True) == config.uploads.configparser.dumps(with_defaults=True)
+    with pytest.raises(ValueError):
+        Config({})
+
+    with pytest.raises(ValueError):
+        Config('haha')
+
+    # Also, no more filenames
+    json_filename = tmpdir.join('uploads.json').strpath
+    with pytest.raises(ValueError):
+        Config(json_filename)
 
 
 def test_dict_with_all_keys_prefixed_with_at_symbol_is_treated_as_item_meta():
@@ -300,7 +247,7 @@ def test_accepts_configmanager_settings_which_are_passed_to_all_subsections():
     configmanager_settings = {
         'message': 'everyone should know this',
     }
-    config1 = Config({}, configmanager_settings=configmanager_settings)
+    config1 = Config(configmanager_settings=configmanager_settings)
     assert config1._configmanager_settings.message == 'everyone should know this'
 
     config2 = Config({'greeting': 'Hello'}, configmanager_settings=configmanager_settings)
@@ -311,3 +258,92 @@ def test_accepts_configmanager_settings_which_are_passed_to_all_subsections():
     assert config3.db._configmanager_settings.message == 'everyone should know this'
 
     assert config3.db._configmanager_settings is config3._configmanager_settings
+
+
+def test_empty_list_is_an_item_with_list_type():
+    config = Config({
+        'tags': [],
+        'uploads': {
+            'tmp_dirs': [],
+        },
+    })
+
+    assert config.tags.is_item
+    assert config.tags.type == Types.list
+    assert config.tags.default == []
+
+    assert config.uploads.tmp_dirs.is_item
+    assert config.uploads.tmp_dirs.type == Types.list
+    assert config.uploads.tmp_dirs.default == []
+
+
+def test_list_of_strings_is_an_item_with_list_type():
+    config = Config({
+        'tmp_dirs': ['tmp'],
+        'target_dirs': ['target1', 'target2'],
+        'other_dirs': ['other1', 'other2', 'other3'],
+        'uploads': {
+            'dirs': ['dir1', 'dir2'],
+        }
+    })
+
+    assert config.tmp_dirs.default == ['tmp']
+    assert config.target_dirs.default == ['target1', 'target2']
+    assert config.other_dirs.default == ['other1', 'other2', 'other3']
+    assert config.uploads.dirs.default == ['dir1', 'dir2']
+
+
+def test_empty_dict_is_an_item_with_dict_type():
+    config = Config({
+        'uploads': {}
+    })
+
+    assert config.uploads.is_item
+    assert config.uploads.default == {}
+    assert config.uploads.type == Types.dict
+
+
+def test_can_declare_empty_section_and_it_gets_updated_with_references_to_config():
+    config = Config({
+        'uploads': Section(),
+        'api': {
+            'db': Section(),
+        },
+    })
+
+    assert config.uploads.is_section
+    assert config.uploads.section is config
+    assert config.uploads._configmanager_settings is config._configmanager_settings
+
+    assert config.api.db.is_section
+    assert config.api.db.section is config.api
+    assert config.api.db._configmanager_settings is config._configmanager_settings
+
+    assert config.api.section is config
+    assert config.api._configmanager_settings is config._configmanager_settings
+
+
+def test_can_reassign_a_section_of_one_config_to_another_and_all_its_subsections_get_updated():
+    config1 = Config({
+        'uploads': {
+            'api': {
+                'db': Section()
+            },
+        },
+    })
+
+    config2 = Config({
+        'uploads': config1.uploads
+    })
+
+    assert config1._configmanager_settings is not config2._configmanager_settings
+
+    assert config2.uploads.section is config2
+    assert config2.uploads._configmanager_settings is config2._configmanager_settings
+
+    assert config2.uploads.api.section is config2.uploads
+
+    # TODO Think more about this
+    # Note that config1 is now left in a weird state and we can't be bothered about
+    # TODO Probably should make this illegal. But can we detect that someone tries to reassign
+    # TODO a section from another tree?

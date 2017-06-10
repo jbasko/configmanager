@@ -84,28 +84,17 @@ def test_nested_config():
         'port': 8080,
     })
 
-    # Also, it can be a Python module (actual module instance), -- not shown here
-    # or a class:
-    class ClientConfig:
-        timeout = 10
-
     #
     # All these sections can be combined into one config:
     #
     config = Config({
         'db': db_config,
         'server': server_config,
-        'client': ClientConfig,  # a class, not an instance
         'greeting': 'Hello',  # and you can have plain config items next to sections
     })
 
     # You can load values
-    assert config.client.timeout.value == 10
     assert config.greeting.value == 'Hello'
-
-    # You can change values and they will be converted to the right type if possible
-    config.client.timeout.value = '20'
-    assert config.client.timeout.value == 20
 
     # Your original declarations are safe -- db_config dictionary won't be changed
     config.db.user.value = 'root'
@@ -150,10 +139,8 @@ def test_nested_config():
     assert config.db.user.value == 'admin'
 
     # Or you can reset all configuration and you can make sure all values match defaults
-    assert config.client.timeout.value == 20
     assert not config.is_default
     config.reset()
-    assert config.client.timeout.value == 10
     assert config.is_default
 
 
