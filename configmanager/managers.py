@@ -111,7 +111,8 @@ class Config(Section):
         if schema is not None:
             parse_config_schema(schema, root=self)
 
-        self.load_user_app_config()
+        if self._settings.auto_load:
+            self.load()
 
     def __repr__(self):
         return '<{cls} {alias} at {id}>'.format(cls=self.__class__.__name__, alias=self.alias, id=id(self))
@@ -173,7 +174,7 @@ class Config(Section):
             )
         return self._click_extension
 
-    def load_user_app_config(self):
+    def load(self):
         if not self._settings.app_name:
             return
 

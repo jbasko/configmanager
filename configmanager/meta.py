@@ -18,6 +18,7 @@ class ConfigManagerSettings(object):
             'str_path_separator': '.',
             'key_getter': None,
             'key_setter': None,
+            'auto_load': False,
         }
         self._factories = {
             'configparser_factory': self.create_configparser_factory,

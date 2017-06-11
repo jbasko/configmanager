@@ -48,7 +48,7 @@ class Section(BaseSection):
         self._hooks = Hooks(self)
 
         if schema is not None:
-            parse_config_schema(schema, root=self)
+            self.add_schema(schema)
 
     def __len__(self):
         return len(self._tree)
@@ -562,3 +562,18 @@ class Section(BaseSection):
             return self._section._settings
         else:
             return self._local_settings
+
+    def add_schema(self, schema):
+        """
+        Add schema to the configuration tree.
+
+        Adding a schema means declaring additional collection of sections and items that are managed
+        by this :class:`.Section` (or :class:`.Config`).
+
+        Examples:
+
+            config = Config()
+            config.add_schema({'db': {'user': 'root', 'password': 'secret'}})
+
+        """
+        parse_config_schema(schema, root=self)

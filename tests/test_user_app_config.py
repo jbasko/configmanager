@@ -8,7 +8,7 @@ def test_config_with_app_name(tmpdir):
     with open(config_path, 'w') as f:
         json.dump({'uploads': {'enabled': True}}, f)
 
-    config = Config({
+    schema = {
         'uploads': {
             'enabled': False,
             'threads': 1,
@@ -17,9 +17,19 @@ def test_config_with_app_name(tmpdir):
                 'password': 'secret',
             }
         }
-    }, app_name='test_config_with_app_name', user_config_root=tmpdir.strpath)
+    }
 
-    assert config.uploads.threads.value == 1
+    # Auto-load enabled
+    config1 = Config(schema, app_name='test_config_with_app_name', user_config_root=tmpdir.strpath, auto_load=True)
 
-    assert config.uploads.enabled.value is True
-    assert not config.uploads.enabled.is_default
+    assert config1.uploads.threads.value == 1
+
+    assert config1.uploads.enabled.value is True
+    assert not config1.uploads.enabled.is_default
+
+    # Auto-load not enabled by default
+    config2 = Config(schema, app_name='test_config_with_app_name', user_config_root=tmpdir.strpath)
+    assert config2.uploads.enabled.value is False
+
+    config2.load()
+    assert config2.uploads.enabled.value is True
