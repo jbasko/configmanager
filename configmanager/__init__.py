@@ -7,11 +7,14 @@ from .base import ItemAttribute
 from .persistence import ConfigPersistenceAdapter
 from .item_types import Types
 from .sections import Section
+from .plain import PlainConfig
+
 
 all = [
     'Item',
     'Section',
     'Config',
+    'PlainConfig',
     'ItemAttribute',
     'ConfigPersistenceAdapter',
     'Types',
