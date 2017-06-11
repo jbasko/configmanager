@@ -348,8 +348,8 @@ class Section(BaseSection):
             yield clean_path, config
 
         if config.is_section:
-            for path, obj in config._get_recursive_iterator(recursive=recursive):
-                yield (clean_path + path), obj
+            for p, obj in config._get_recursive_iterator(recursive=recursive):
+                yield (clean_path + p), obj
 
     def iter_all(self, recursive=False, path=None, key='path', separator=not_set):
         """
@@ -378,8 +378,8 @@ class Section(BaseSection):
 
         separator = self._get_str_path_separator(separator)
 
-        for path, obj in self._get_path_iterator(recursive=recursive, path=path, separator=separator):
-            yield emitter(path, obj, separator)
+        for p, obj in self._get_path_iterator(recursive=recursive, path=path, separator=separator):
+            yield emitter(p, obj, separator)
 
     def iter_items(self, recursive=False, path=None, key='path', separator=not_set):
         """
@@ -425,8 +425,8 @@ class Section(BaseSection):
 
         """
         assert key is not None
-        for path, _ in self.iter_all(recursive=recursive, path=path, key=key, separator=separator):
-            yield path
+        for p, _ in self.iter_all(recursive=recursive, path=path, key=key, separator=separator):
+            yield p
 
     def reset(self):
         """
