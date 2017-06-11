@@ -30,13 +30,17 @@ class Hooks(object):
             self._decorators[name] = decorator
         return self._decorators[name]
 
-    def __getattr__(self, name):
-        if name in self._names:
-            return self._get_decorator(name)
-        else:
-            raise AttributeError('Hook {} does not exist; valid hook names are {}'.format(
-                name, ', '.join(self._names),
-            ))
+    def not_found(self, f):
+        return self._get_decorator(self.NOT_FOUND)(f)
+
+    def item_added_to_section(self, f):
+        return self._get_decorator(self.ITEM_ADDED_TO_SECTION)(f)
+
+    def section_added_to_section(self, f):
+        return self._get_decorator(self.SECTION_ADDED_TO_SECTION)(f)
+
+    def item_value_changed(self, f):
+        return self._get_decorator(self.ITEM_VALUE_CHANGED)(f)
 
     def handle(self, hook_name, *args, **kwargs):
 
