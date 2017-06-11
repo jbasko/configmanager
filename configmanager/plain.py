@@ -28,11 +28,17 @@ class PlainConfig(Config):
     def __init__(self, *args, **kwargs):
         super(PlainConfig, self).__init__(*args, **kwargs)
 
-        self._settings.item_setter = self.__item_setter
-        self._settings.item_getter = self.__item_getter
+        self._settings.key_setter = self.__key_setter
+        self._settings.key_getter = self.__key_getter
 
-    def __item_setter(self, item=None, value=None, **kwargs):
-        item.value = value
+    def __key_setter(self, subject=None, value=None, default_key_setter=None, **kwargs):
+        if subject.is_item:
+            subject.value = value
+        else:
+            default_key_setter()
 
-    def __item_getter(self, section=None, item=None, **kwargs):
-        return item.value
+    def __key_getter(self, parent=None, subject=None, **kwargs):
+        if subject.is_item:
+            return subject.value
+        else:
+            return subject

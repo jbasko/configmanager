@@ -109,19 +109,21 @@ class Section(BaseSection):
             return super(Section, self).__setattr__(name, value)
         self._set_key(name, value)
 
-    def _default_item_setter(self, name, item):
+    def _default_key_setter(self, name, subject):
         """
-        This method is used only when there is a custom item_setter set.
+        This method is used only when there is a custom key_setter set.
 
         Do not override this method.
         """
-        if is_config_item(item):
-            self.add_item(name, item)
+        if is_config_item(subject):
+            self.add_item(name, subject)
+        elif is_config_section(subject):
+            self.add_section(name, subject)
         else:
             raise TypeError(
                 'Section items can only be replaced with items, '
                 'got {type}. To set item value use ...{name}.value = <new_value>'.format(
-                    type=type(item),
+                    type=type(subject),
                     name=name,
                 )
             )
@@ -137,7 +139,7 @@ class Section(BaseSection):
             self.add_section(key, value)
             return
 
-        if key not in self._tree or self._settings.item_setter is None:
+        if key not in self._tree or self._settings.key_setter is None:
             if is_config_item(value):
                 self.add_item(key, value)
                 return
@@ -150,15 +152,10 @@ class Section(BaseSection):
                 )
             )
 
-        if key in self._tree and not self._tree[key].is_item:
-            raise TypeError(
-                'Attempting to replace a section with a non-section {!r}'.format(value)
-            )
-
-        if self._settings.item_setter is None:
-            self._default_item_setter(key, value)
+        if self._settings.key_setter is None:
+            self._default_key_setter(key, value)
         else:
-            self._settings.item_setter(item=self._tree[key], value=value, default_item_setter=self._default_item_setter)
+            self._settings.key_setter(subject=self._tree[key], value=value, default_key_setter=self._default_key_setter)
 
     def _get_by_key(self, key):
         """
@@ -167,8 +164,8 @@ class Section(BaseSection):
         Do not override this method.
         """
         resolution = self._get_item_or_section(key)
-        if resolution.is_item and self._settings.item_getter:
-            return self._settings.item_getter(section=self, item=resolution)
+        if self._settings.key_getter:
+            return self._settings.key_getter(parent=self, subject=resolution)
         else:
             return resolution
 
