@@ -2,7 +2,7 @@ import six
 
 from builtins import str as text
 
-from configmanager.utils import not_set
+from .utils import not_set
 
 
 class _ItemType(object):

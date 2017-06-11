@@ -4,7 +4,7 @@ import keyword
 
 import six
 
-from configmanager.schema_parser import parse_config_schema
+from .schema_parser import parse_config_schema
 from .hooks import Hooks
 from .meta import ConfigManagerSettings
 from .exceptions import NotFound
@@ -66,7 +66,7 @@ class Section(BaseSection):
 
     def __contains__(self, key):
         try:
-            _ = self._get_by_key(key)
+            _ = self._get_by_key(key, handle_not_found=False)
             return True
         except NotFound:
             return False
@@ -155,23 +155,27 @@ class Section(BaseSection):
         else:
             self.settings.key_setter(subject=self._tree[key], value=value, default_key_setter=self._default_key_setter)
 
-    def _get_by_key(self, key):
+    def _get_by_key(self, key, handle_not_found=True):
         """
         This method must NOT be called from outside the Section class.
 
         Do not override this method.
         """
-        resolution = self._get_item_or_section(key)
+        resolution = self._get_item_or_section(key, handle_not_found=handle_not_found)
         if self.settings.key_getter:
             return self.settings.key_getter(parent=self, subject=resolution)
         else:
             return resolution
 
-    def _get_item_or_section(self, key):
+    def _get_item_or_section(self, key, handle_not_found=True):
         """
         This method must NOT be called from outside the Section class.
 
         Do not override this method.
+
+        If handle_not_found is set to False, hooks won't be called.
+        This is needed when checking key existence -- the whole
+        purpose of key existence checking is to avoid errors (and error handling).
         """
         if isinstance(key, six.string_types):
             if self.settings.str_path_separator in key:
@@ -183,17 +187,22 @@ class Section(BaseSection):
             if key in self._tree:
                 resolution = self._tree[key]
             else:
-                result = self.hooks.handle(Hooks.NOT_FOUND, name=key, section=self)
-                if result is not None:
-                    resolution = result
+                if handle_not_found:
+                    result = self.hooks.handle(Hooks.NOT_FOUND, name=key, section=self)
+                    if result is not None:
+                        resolution = result
+                    else:
+                        raise NotFound(key, section=self)
                 else:
                     raise NotFound(key, section=self)
 
         elif isinstance(key, (tuple, list)) and len(key) > 0:
             if len(key) == 1:
-                resolution = self._get_item_or_section(key[0])
+                resolution = self._get_item_or_section(key[0], handle_not_found=handle_not_found)
             else:
-                resolution = self._get_item_or_section(key[0])._get_item_or_section(key[1:])
+                resolution = self._get_item_or_section(
+                    key[0], handle_not_found=handle_not_found
+                )._get_item_or_section(key[1:], handle_not_found=handle_not_found)
         else:
             raise TypeError('Expected either a string or a tuple as key, got {!r}'.format(key))
 
@@ -321,11 +330,10 @@ class Section(BaseSection):
         else:
             clean_path = path
 
-        if clean_path not in self:
-            for i, part in enumerate(clean_path):
-                if clean_path[:i + 1] not in self:
-                    raise NotFound(part)
-            assert False  # shouldn't reach this line
+        # This is to raise NotFound in case path doesn't exist and to have it
+        # handled by not_found hook callbacks.
+        self._get_by_key(path)
+
         return clean_path
 
     def _get_recursive_iterator(self, recursive=False):

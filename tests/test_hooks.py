@@ -320,3 +320,37 @@ def test_hooks_work_across_nested_configs():
 
     uploads_config.db.user.value = 'Administrator'
     assert len(calls) == 3
+
+
+def test_not_found_hook_not_handled_if_contains_raises_not_found(simple_config):
+    calls = []
+
+    @simple_config.hooks.not_found
+    def not_found(**kwargs):
+        calls.append(kwargs)
+
+    assert len(calls) == 0
+
+    assert 'downloads' not in simple_config
+
+    assert len(calls) == 0
+
+
+def test_not_found_hook_handled_in_iterators(simple_config):
+    calls = []
+
+    @simple_config.hooks.not_found
+    def not_found(**kwargs):
+        calls.append(kwargs)
+
+    assert len(calls) == 0
+
+    with pytest.raises(NotFound):
+        list(simple_config.iter_items(path='uploads.downloads.leftloads.rightloads', recursive=True))
+
+    assert len(calls) == 1
+
+    with pytest.raises(NotFound):
+        list(simple_config.iter_paths(path='uploads.downloads.leftloads.rightloads', recursive=True))
+
+    assert len(calls) == 2

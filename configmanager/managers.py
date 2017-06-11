@@ -1,6 +1,4 @@
-import os.path
-
-from configmanager.utils import _get_persistence_adapter_for
+from .utils import _get_persistence_adapter_for
 from .schema_parser import parse_config_schema
 from .meta import ConfigManagerSettings
 from .persistence import ConfigPersistenceAdapter, YamlReaderWriter, JsonReaderWriter, ConfigParserReaderWriter

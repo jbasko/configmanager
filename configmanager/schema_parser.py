@@ -3,7 +3,7 @@ import inspect
 
 import six
 
-from configmanager.base import BaseItem, BaseSection
+from .base import BaseItem, BaseSection
 
 
 def parse_config_schema(schema, parent_section=None, root=None):
