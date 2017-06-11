@@ -3,6 +3,7 @@ import copy
 
 import six
 
+from configmanager.config_declaration_parser import parse_config_declaration
 from .hooks import Hooks
 from .meta import ConfigManagerSettings
 from .exceptions import NotFound
@@ -28,31 +29,26 @@ class Section(BaseSection):
     # Core section functionality.
     # Keep as light as possible.
 
-    def __init__(self, configmanager_settings=None):
-
-        # It is Config's responsibility to initialise configmanager_settings.
-        if configmanager_settings is None:
-            configmanager_settings = ConfigManagerSettings()
-        elif isinstance(configmanager_settings, dict):
+    def __init__(self, declaration=None, section=None, configmanager_settings=None):
+        #: local settings which are used only until we have settings available from manager
+        self._local_settings = configmanager_settings or ConfigManagerSettings()
+        if not isinstance(self._local_settings, ConfigManagerSettings):
             raise ValueError('configmanager_settings should be either None or an instance of ConfigManagerSettings')
-
-        #: configmanager settings
-        self._settings = configmanager_settings
 
         #: Actual contents of the section
         self._tree = collections.OrderedDict()
 
         #: Section to which this section belongs (if any at all)
-        self._section = None
+        self._section = section
 
         #: Alias of this section with which it was added to its parent section
         self._section_alias = None
 
-        #: :class:`.Config` which manages this section
-        self._manager = None
-
         #: Hooks registry
         self._hooks = Hooks(self)
+
+        if declaration is not None:
+            parse_config_declaration(declaration, root=self)
 
     def __len__(self):
         return len(self._tree)
@@ -205,11 +201,6 @@ class Section(BaseSection):
 
         section._section = self
         section._section_alias = alias
-        section._manager = self._manager
-
-        # Must not mess around with settings of other Config instances.
-        if not section.is_config:
-            section._settings = self._settings
 
         self.hooks.handle(Hooks.SECTION_ADDED_TO_SECTION, alias=alias, section=self, subject=section)
 
@@ -463,24 +454,38 @@ class Section(BaseSection):
     def create_item(self, *args, **kwargs):
         """
         Internal factory method used to create an instance of configuration item.
-        Should only be used to extend configmanager's functionality.
+
+        Should only be used when extending or modifying configmanager's functionality.
+        Under normal circumstances you should let configmanager create sections
+        and items when parsing configuration declarations.
+
+        Do not override this method. To customise item creation,
+        write your own item factory and pass it to Config through
+        item_factory= keyword argument.
         """
-        return self._settings.item_cls(*args, **kwargs)
+        return self._settings.item_factory(*args, **kwargs)
 
     def create_section(self, *args, **kwargs):
         """
         Internal factory method used to create an instance of configuration section.
-        Should only be used to extend configmanager's functionality.
+
+        Should only be used when extending or modifying configmanager's functionality.
+        Under normal circumstances you should let configmanager create sections
+        and items when parsing configuration declarations.
+
+        Do not override this method. To customise section creation,
+        write your own section factory and pass it to Config through
+        section_factory= keyword argument.
         """
         kwargs.setdefault('configmanager_settings', self._settings)
-        return self._settings.section_cls(*args, **kwargs)
+        kwargs.setdefault('section', self)
+        return self._settings.section_factory(*args, **kwargs)
 
     @property
-    def _root_manager(self):
-        # TODO Maybe this isn't needed really?
-        if self._manager is not None:
-            if self._manager is self:
-                return self
-            else:
-                return self._manager._root_manager
-        return None
+    def _settings(self):
+        if self.is_config:
+            return self._local_settings
+        elif self._section:
+            return self._section._settings
+        else:
+            return self._local_settings

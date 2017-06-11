@@ -2,7 +2,6 @@ import collections
 
 
 class Hooks(object):
-
     NOT_FOUND = 'not_found'
     ITEM_ADDED_TO_SECTION = 'item_added_to_section'
     SECTION_ADDED_TO_SECTION = 'section_added_to_section'
@@ -40,6 +39,11 @@ class Hooks(object):
             ))
 
     def handle(self, hook_name, *args, **kwargs):
+
+        # If hooks are disabled in a high-level Config, and enabled
+        # in a low-level Config, they will still be handled within
+        # the low-level Config's "jurisdiction".
+
         if self._section._settings.hooks_enabled:
             for handler in self._registry[hook_name]:
                 result = handler(*args, **kwargs)

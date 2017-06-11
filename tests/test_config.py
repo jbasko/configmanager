@@ -535,23 +535,6 @@ def test_config_accepts_and_respects_str_path_separator_setting(simple_config):
     }
 
 
-def test_section_holds_reference_to_the_manager_to_which_it_belongs():
-    config1 = Config()
-    assert config1._manager is config1
-    assert config1._root_manager is config1
-
-    config2 = Config({
-        'uploads': Section(),
-    })
-
-    assert config2.uploads._manager is config2
-    assert config2.uploads._root_manager is config2
-
-    config2.add_section('downloads', Section())
-    assert config2.downloads._manager is config2
-    assert config2.downloads._root_manager is config2
-
-
 def test_config_of_configs():
     uploads = Config({
         'threads': 1,
@@ -576,12 +559,47 @@ def test_config_of_configs():
         }
     })
 
-    assert config.messages._manager is config
-    assert config.messages._root_manager is config
+    assert config.uploads.threads.is_item
+    assert config.uploads.api.port.is_item
+    assert config.downloads.db.user.is_item
+    assert config.messages.greeting.is_item
 
-    assert config.uploads._manager is config
-    assert config.uploads._root_manager is config
-    assert config.uploads.section is config
 
-    assert config.uploads.api._manager is config.uploads
-    assert config.uploads.api._root_manager is config
+def test_nested_section_settings_always_point_to_the_settings_of_the_topmost_section_or_first_manager():
+    s01 = Section()
+    s02 = Section()
+
+    s01_settings = s01._settings
+    s02_settings = s02._settings
+
+    assert s01_settings is not s02_settings
+
+    s11 = Section({
+        's01': s01,
+        's02': s02,
+    })
+
+    s11_settings = s11._settings
+    assert s11_settings is s01._settings
+    assert s11_settings is s02._settings
+    assert s01._settings is s02._settings
+    assert s01._settings is not s01_settings
+
+    c20 = Config({
+        's11': s11
+    })
+
+    c20_settings = c20._settings
+    assert c20_settings is s01._settings
+    assert c20_settings is s02._settings
+    assert c20_settings is s11._settings
+    assert s01._settings is s02._settings
+    assert s01._settings is s11._settings
+    assert s11_settings is not s11._settings
+
+    c30 = Config({
+        'c20': c20
+    })
+
+    # Settings don't cross Config boundaries
+    assert c30._settings is not c20._settings

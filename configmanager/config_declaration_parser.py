@@ -72,6 +72,8 @@ def parse_config_declaration(declaration, parent_section=None, root=None):
                 meta['default'] = dict(clean_declaration)
                 return parent_section.create_item(**meta)
 
+        # If root is specified it means we are parsing declaration for the root,
+        # so no need to create a new section.
         section = root or parent_section.create_section()
 
         for k, v in clean_declaration:
