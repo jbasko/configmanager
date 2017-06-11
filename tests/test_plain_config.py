@@ -23,8 +23,16 @@ def test_items_are_values(schema):
     config = PlainConfig(schema)
 
     assert config.uploads.is_section
+    assert config['uploads'].is_section
+
     assert isinstance(config.uploads.enabled, bool)
     assert config.uploads.enabled is True
+
+    assert isinstance(config['uploads']['enabled'], bool)
+    assert config['uploads']['enabled'] is True
+
+    assert isinstance(config['uploads', 'enabled'], bool)
+    assert config['uploads', 'enabled'] is True
 
     assert config.uploads.db.is_section
     assert isinstance(config.uploads.db.user, six.string_types)
@@ -35,6 +43,12 @@ def test_items_are_values(schema):
 
     with pytest.raises(NotFound):
         assert config.greeting
+
+    with pytest.raises(AttributeError):
+        assert not config['uploads']['db']['password'].value
+
+    with pytest.raises(NotFound):
+        assert config['greeting']
 
 
 def test_values_can_be_changed(schema):

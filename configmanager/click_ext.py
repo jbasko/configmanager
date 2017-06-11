@@ -30,7 +30,10 @@ class ClickExtension(object):
     def __init__(self, config):
         self._config = config
 
-        import click
+        try:
+            import click
+        except ImportError:
+            raise RuntimeError('To use click extension, you should install click first')
         self._click = click
 
     def __getattr__(self, item):

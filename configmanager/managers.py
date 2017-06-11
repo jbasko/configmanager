@@ -1,3 +1,6 @@
+import os.path
+
+from configmanager.utils import _get_persistence_adapter_for
 from .schema_parser import parse_config_schema
 from .meta import ConfigManagerSettings
 from .persistence import ConfigPersistenceAdapter, YamlReaderWriter, JsonReaderWriter, ConfigParserReaderWriter
@@ -167,6 +170,9 @@ class Config(Section):
 
     @property
     def click(self):
+        """
+        click extension
+        """
         if self._click_extension is None:
             from .click_ext import ClickExtension
             self._click_extension = ClickExtension(
@@ -175,9 +181,17 @@ class Config(Section):
         return self._click_extension
 
     def load(self):
-        if not self.settings.app_name:
-            return
+        """
+        Load user configuration based on settings.
+        """
 
-        import os.path
-        if os.path.exists(self.settings.user_app_config):
-            self.json.load(self.settings.user_app_config)
+        # Must reverse because we want the sources assigned to higher-up Config instances
+        # to overrides sources assigned to lower Config instances.
+        for section in reversed(list(self.iter_sections(recursive=True, key=None))):
+            if section.is_config:
+                section.load()
+
+        for source in self.settings.load_sources:
+            adapter = getattr(self, _get_persistence_adapter_for(source))
+            if adapter.store_exists(source):
+                adapter.load(source)

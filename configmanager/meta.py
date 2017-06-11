@@ -19,6 +19,7 @@ class ConfigManagerSettings(object):
             'key_getter': None,
             'key_setter': None,
             'auto_load': False,
+            'load_sources': [],
         }
         self._factories = {
             'configparser_factory': self.create_configparser_factory,
@@ -30,6 +31,9 @@ class ConfigManagerSettings(object):
                 self._factories[k[7:]] = v
             else:
                 self._settings[k] = v
+
+        if self.app_name:
+            self.load_sources.append(self.user_app_config)
 
     def __repr__(self):
         return '<ConfigManagerSettings {!r}>'.format(self._settings)

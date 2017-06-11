@@ -1,3 +1,6 @@
+import os.path
+
+
 class _NotSet(object):
     instance = None
 
@@ -29,3 +32,21 @@ class _NotSet(object):
 
 
 not_set = _NotSet()
+
+
+_file_ext_to_adapter_name = {
+    '.json': 'json',
+    '.yaml': 'yaml',
+    '.yml': 'yaml',
+    '.ini': 'configparser',
+    '.toml': 'toml',  # not really supported yet
+    '.xml': 'xml',  # not really supported yet
+}
+
+
+def _get_persistence_adapter_for(filename):
+    _, ext = os.path.splitext(filename)
+    ext = ext.lower()
+    if ext not in _file_ext_to_adapter_name:
+        raise ValueError('Unrecognised config file extension for file {!r}'.format(filename))
+    return _file_ext_to_adapter_name[ext]

@@ -1,5 +1,6 @@
 import collections
 from io import open
+import os.path
 
 from builtins import str
 import configparser
@@ -9,6 +10,9 @@ import six
 class ConfigReaderWriter(object):
     def __init__(self, **options):
         pass
+
+    def store_exists(self, store):
+        return os.path.exists(store)
 
     def dump_config_to_file(self, config, file_obj, with_defaults=False, **kwargs):
         raise NotImplementedError()
@@ -85,6 +89,12 @@ class ConfigPersistenceAdapter(object):
         """
         return self._rw.dump_config_to_string(self._config, with_defaults=with_defaults)
 
+    def store_exists(self, store):
+        """
+        Returns ``True`` if configuration can be loaded from the store.
+        """
+        return self._rw.store_exists(store)
+
 
 class JsonReaderWriter(ConfigReaderWriter):
     def __init__(self, **options):
@@ -130,8 +140,11 @@ class YamlReaderWriter(ConfigReaderWriter):
     def __init__(self, **options):
         super(YamlReaderWriter, self).__init__(**options)
 
-        import yaml
-        import yaml.resolver
+        try:
+            import yaml
+            import yaml.resolver
+        except ImportError:
+            raise RuntimeError('To use YAML, please install PyYAML first')
 
         #
         # The code to preserve order of items is taken from here:
