@@ -81,3 +81,8 @@ def test_items_and_sections_with_python_keywords_as_names_can_be_accessed_with_s
         assert config.not_keyword.really_.is_item
 
     assert config.not_keyword.really.is_item
+
+    # Make sure iterators like those paths too
+    paths1 = list(config.iter_paths(path='for_', recursive=True))
+    paths2 = list(config.iter_paths(path='for', recursive=True))
+    assert paths1 == paths2

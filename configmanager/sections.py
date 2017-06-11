@@ -291,7 +291,13 @@ class Section(BaseSection):
             return ()
 
         if isinstance(path, six.string_types):
-            clean_path = tuple(path.split(self._get_str_path_separator(separator)))
+            clean_path = []
+            for part in path.split(self._get_str_path_separator(separator)):
+                if part.endswith('_') and keyword.iskeyword(part[:-1]):
+                    clean_path.append(part[:-1])
+                else:
+                    clean_path.append(part)
+            clean_path = tuple(clean_path)
         else:
             clean_path = path
 
