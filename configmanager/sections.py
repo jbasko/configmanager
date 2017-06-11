@@ -1,5 +1,6 @@
 import collections
 import copy
+import keyword
 
 import six
 
@@ -176,6 +177,9 @@ class Section(BaseSection):
         Do not override this method.
         """
         if isinstance(key, six.string_types):
+            if key.endswith('_') and keyword.iskeyword(key[:-1]):
+                key = key[:-1]
+
             if key in self._tree:
                 resolution = self._tree[key]
             else:
