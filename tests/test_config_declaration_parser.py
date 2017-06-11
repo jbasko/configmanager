@@ -343,7 +343,35 @@ def test_can_reassign_a_section_of_one_config_to_another_and_all_its_subsections
 
     assert config2.uploads.api.section is config2.uploads
 
-    # TODO Think more about this
-    # Note that config1 is now left in a weird state and we can't be bothered about
-    # TODO Probably should make this illegal. But can we detect that someone tries to reassign
-    # TODO a section from another tree?
+
+def test_config_of_configs():
+    uploads = Config({
+        'threads': 1,
+        'db': {
+            'user': 'root',
+        },
+    })
+
+    downloads = Config({
+        'enabled': True,
+        'tmp_dir': '/tmp',
+    })
+
+    uploads.threads.value = 5
+    downloads.tmp_dir.value = '/tmp/downloads'
+
+    config = Config({
+        'uploads': uploads,
+        'downloads': downloads,
+    })
+
+    assert config.uploads.threads.value == 5
+
+    config.uploads.threads.value = 3
+    assert uploads.threads.value == 3
+
+    assert config.uploads.threads is uploads.threads
+    assert config.downloads.enabled is downloads.enabled
+
+    uploads.reset()
+    assert config.uploads.threads.value == 1

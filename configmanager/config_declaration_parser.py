@@ -32,8 +32,6 @@ def parse_config_declaration(declaration, parent_section=None, root=None):
 
     if isinstance(declaration, (BaseItem, BaseSection)):
         # Do not parse existing objects of our hierarchy
-        # TODO However, we should probably process raw sections!
-        # TODO Also, how would it be possible for user to legally create a new Section?
         return declaration
 
     elif inspect.ismodule(declaration):

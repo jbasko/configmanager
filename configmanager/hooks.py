@@ -15,8 +15,8 @@ class Hooks(object):
         ITEM_VALUE_CHANGED,
     )
 
-    def __init__(self, config):
-        self._config = config
+    def __init__(self, section):
+        self._section = section
         self._registry = collections.defaultdict(list)
         self._decorators = {}
 
@@ -24,8 +24,8 @@ class Hooks(object):
         if name not in self._decorators:
             def decorator(f):
                 self._registry[name].append(f)
-                if self._config._settings.hooks_enabled is None:
-                    self._config._settings.hooks_enabled = True
+                if self._section._settings.hooks_enabled is None:
+                    self._section._settings.hooks_enabled = True
                 return f
             decorator.__name__ = name
             self._decorators[name] = decorator
@@ -40,14 +40,17 @@ class Hooks(object):
             ))
 
     def handle(self, hook_name, *args, **kwargs):
-        if not self._config._settings.hooks_enabled:
-            return
+        if self._section._settings.hooks_enabled:
+            for handler in self._registry[hook_name]:
+                result = handler(*args, **kwargs)
+                if result is not None:
+                    return result
 
-        for handler in self._registry[hook_name]:
-            result = handler(*args, **kwargs)
-            if result is not None:
-                return result
+            # Must also call callbacks in parent section hook registry
+            if self._section.section and self._section.section.hooks != self:
+                return self._section.section.hooks.handle(hook_name, *args, **kwargs)
 
-        # Must also call callbacks in parent section hook registry
-        if self._config.section and self._config.section.hooks != self:
-            return self._config.section.hooks.handle(hook_name, *args, **kwargs)
+        elif self._section.is_config and self._section.section:
+            # Settings only apply to within one Config instance in the tree.
+            # Hooks still may need to be called in parent Configs.
+            self._section.section.hooks.handle(hook_name, *args, **kwargs)

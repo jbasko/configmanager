@@ -36,12 +36,22 @@ class Section(BaseSection):
         elif isinstance(configmanager_settings, dict):
             raise ValueError('configmanager_settings should be either None or an instance of ConfigManagerSettings')
 
+        #: configmanager settings
         self._settings = configmanager_settings
 
+        #: Actual contents of the section
         self._tree = collections.OrderedDict()
+
+        #: Section to which this section belongs (if any at all)
         self._section = None
+
+        #: Alias of this section with which it was added to its parent section
         self._section_alias = None
 
+        #: :class:`.Config` which manages this section
+        self._manager = None
+
+        #: Hooks registry
         self._hooks = Hooks(self)
 
     def __len__(self):
@@ -195,6 +205,7 @@ class Section(BaseSection):
 
         section._section = self
         section._section_alias = alias
+        section._manager = self._manager
 
         # Must not mess around with settings of other Config instances.
         if not section.is_config:
@@ -463,3 +474,13 @@ class Section(BaseSection):
         """
         kwargs.setdefault('configmanager_settings', self._settings)
         return self._settings.section_cls(*args, **kwargs)
+
+    @property
+    def _root_manager(self):
+        # TODO Maybe this isn't needed really?
+        if self._manager is not None:
+            if self._manager is self:
+                return self
+            else:
+                return self._manager._root_manager
+        return None
