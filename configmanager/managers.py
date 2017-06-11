@@ -102,9 +102,9 @@ class Config(Section):
             configmanager_settings = configmanager_settings['configmanager_settings']
 
         if not isinstance(configmanager_settings, ConfigManagerSettings):
-            configmanager_settings = ConfigManagerSettings(**configmanager_settings)
+            self._settings = ConfigManagerSettings(**configmanager_settings)
 
-        super(Config, self).__init__(configmanager_settings=configmanager_settings)
+        super(Config, self).__init__()
 
         self._configparser_adapter = None
         self._json_adapter = None
@@ -119,6 +119,10 @@ class Config(Section):
 
     def __repr__(self):
         return '<{cls} {alias} at {id}>'.format(cls=self.__class__.__name__, alias=self.alias, id=id(self))
+
+    @property
+    def settings(self):
+        return self._settings
 
     @property
     def configparser(self):

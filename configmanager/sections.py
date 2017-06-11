@@ -30,12 +30,9 @@ class Section(BaseSection):
     # Core section functionality.
     # Keep as light as possible.
 
-    def __init__(self, schema=None, section=None, configmanager_settings=None):
-        #: local settings which are used only until we have settings available from manager
-        self._local_settings = configmanager_settings or ConfigManagerSettings()
-        if not isinstance(self._local_settings, ConfigManagerSettings):
-            raise ValueError('configmanager_settings should be either None or an instance of ConfigManagerSettings')
+    _default_settings = ConfigManagerSettings(immutable=True)
 
+    def __init__(self, schema=None, section=None):
         #: Actual contents of the section
         self._tree = collections.OrderedDict()
 
@@ -560,18 +557,25 @@ class Section(BaseSection):
         write your own section factory and pass it to Config through
         section_factory= keyword argument.
         """
-        kwargs.setdefault('configmanager_settings', self.settings)
         kwargs.setdefault('section', self)
         return self.settings.section_factory(*args, **kwargs)
 
     @property
     def settings(self):
-        if self.is_config:
-            return self._local_settings
-        elif self._section:
+        """
+        The settings that apply to this section.
+
+        By design, sections can't have their own settings, so normally this would
+        point to the settings of manager (an instance of :class:`.Config`) to which this section or one of its parent
+        sections has been added to.
+
+        For section objects which haven't been added to a manager yet,
+        this points to default settings which are the same for all such free-floating sections.
+        """
+        if self._section:
             return self._section.settings
         else:
-            return self._local_settings
+            return self._default_settings
 
     def add_schema(self, schema):
         """

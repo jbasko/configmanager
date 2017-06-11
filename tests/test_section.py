@@ -7,6 +7,34 @@ import pytest
 from configmanager import Section, NotFound
 
 
+def test_free_floating_sections_share_the_same_default_settings():
+    s1 = Section()
+    s2 = Section()
+
+    assert s1.settings is s2.settings
+
+    s3 = Section({
+        's1': s1,
+        's2': s2,
+    })
+
+    assert s3.settings is s1.settings
+    assert s3.settings is s2.settings
+    assert s3.settings is s3.s1.settings
+    assert s3.settings is s3.s2.settings
+
+
+def test_section_default_settings_are_immutable():
+    s1 = Section()
+    s2 = Section()
+
+    assert s1.settings.load_sources == []
+
+    s1.settings.load_sources.append('config.json')
+    assert s1.settings.load_sources == []
+    assert s2.settings.load_sources == []
+
+
 def test_section_created_from_schema():
     uploads = Section({
         'enabled': True,

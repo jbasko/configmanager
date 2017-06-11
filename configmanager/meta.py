@@ -1,10 +1,15 @@
+import copy
 import os.path
 
 from .items import Item
 
 
 class ConfigManagerSettings(object):
-    def __init__(self, **settings_and_factories):
+    def __init__(self, immutable=False, **settings_and_factories):
+
+        #: set to True for default settings which means deep copies are returned as values
+        #: and new settings cannot be set.
+        self._is_immutable = immutable
 
         # Some settings are declared as @properties and look
         # into settings or _factories just for overrides.
@@ -42,12 +47,14 @@ class ConfigManagerSettings(object):
         return '<ConfigManagerSettings {!r}>'.format(self._settings)
 
     def __getattr__(self, item):
-        if item in self._settings:
-            return self._settings[item]
-
-        elif item in self._factories:
+        if item not in self._settings and item in self._factories:
             self._settings[item] = self._factories[item]()
-            return self._settings[item]
+
+        if item in self._settings:
+            if self._is_immutable:
+                return copy.deepcopy(self._settings[item])
+            else:
+                return self._settings[item]
 
         raise AttributeError(item)
 

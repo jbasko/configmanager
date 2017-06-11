@@ -565,44 +565,41 @@ def test_config_of_configs():
     assert config.messages.greeting.is_item
 
 
-def test_nested_section_settings_always_point_to_the_settings_of_the_topmost_section_or_first_manager():
-    s01 = Section()
-    s02 = Section()
-
-    s01_settings = s01.settings
-    s02_settings = s02.settings
-
-    assert s01_settings is not s02_settings
-
-    s11 = Section({
-        's01': s01,
-        's02': s02,
+def test_nested_section_settings_are_the_settings_of_the_nearest_manager_in_tree():
+    c = Config({
+        'main': Config({
+            'a1': Section({
+                'a2': Config({
+                    'a3': Section({
+                        'a4': Section()
+                    }),
+                }),
+            }),
+            'b1': Section({
+                'b2': Section({
+                    'b3': Section({
+                        'b4': Config({
+                            'b5': Section()
+                        }),
+                    }),
+                }),
+            }),
+        }),
     })
 
-    s11_settings = s11.settings
-    assert s11_settings is s01.settings
-    assert s11_settings is s02.settings
-    assert s01.settings is s02.settings
-    assert s01.settings is not s01_settings
+    assert c.settings
+    assert c.main.settings
+    assert c.settings is not c.main.settings
+    assert c.main.a1.settings is c.main.settings
+    assert c.main.a1.a2.settings is not c.main.settings
+    assert c.main.a1.a2.a3.settings is c.main.a1.a2.settings
+    assert c.main.a1.a2.a3.a4.settings is c.main.a1.a2.settings
 
-    c20 = Config({
-        's11': s11
-    })
-
-    c20_settings = c20.settings
-    assert c20_settings is s01.settings
-    assert c20_settings is s02.settings
-    assert c20_settings is s11.settings
-    assert s01.settings is s02.settings
-    assert s01.settings is s11.settings
-    assert s11_settings is not s11.settings
-
-    c30 = Config({
-        'c20': c20
-    })
-
-    # Settings don't cross Config boundaries
-    assert c30.settings is not c20.settings
+    assert c.main.b1.settings is c.main.settings
+    assert c.main.b1.b2.settings is c.main.settings
+    assert c.main.b1.b2.b3.settings is c.main.settings
+    assert c.main.b1.b2.b3.b4.settings is not c.main.settings
+    assert c.main.b1.b2.b3.b4.b5.settings is c.main.b1.b2.b3.b4.settings
 
 
 def test_get_item_and_get_section_for_rich_config():
