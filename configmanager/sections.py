@@ -1,5 +1,6 @@
 import collections
 import copy
+import functools
 import keyword
 
 import six
@@ -234,6 +235,12 @@ class Section(BaseSection):
         if not section.is_section:
             raise RuntimeError('{} is an item, not a section'.format(key))
         return section
+
+    def get_proxy(self, *key):
+        """
+        Get hold of a reference to an item or section before it has been declared.
+        """
+        return PathProxy(self, key)
 
     @property
     def hooks(self):
@@ -616,3 +623,17 @@ class Section(BaseSection):
 
         """
         parse_config_schema(schema, root=self)
+
+
+class PathProxy(object):
+    def __init__(self, config, path):
+        self.__path_getter = functools.partial(config._get_item_or_section, path)
+        self.__path_target = not_set
+
+    def _get_real_object(self):
+        if self.__path_target is not_set:
+            self.__path_target = self.__path_getter()
+        return self.__path_target
+
+    def __getattr__(self, name):
+        return getattr(self._get_real_object(), name)

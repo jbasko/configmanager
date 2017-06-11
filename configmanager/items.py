@@ -1,12 +1,12 @@
 import copy
-
-import six
 from builtins import str
 
+import six
+
+from .base import ItemAttribute, BaseItem
+from .exceptions import RequiredValueMissing
 from .hooks import Hooks
 from .item_types import Types
-from .exceptions import RequiredValueMissing
-from .base import ItemAttribute, BaseItem
 from .utils import not_set
 
 
