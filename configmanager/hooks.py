@@ -23,8 +23,8 @@ class Hooks(object):
         if name not in self._decorators:
             def decorator(f):
                 self._registry[name].append(f)
-                if self._section._settings.hooks_enabled is None:
-                    self._section._settings.hooks_enabled = True
+                if self._section.settings.hooks_enabled is None:
+                    self._section.settings.hooks_enabled = True
                 return f
             decorator.__name__ = name
             self._decorators[name] = decorator
@@ -48,7 +48,7 @@ class Hooks(object):
         # in a low-level Config, they will still be handled within
         # the low-level Config's "jurisdiction".
 
-        if self._section._settings.hooks_enabled:
+        if self._section.settings.hooks_enabled:
             for handler in self._registry[hook_name]:
                 result = handler(*args, **kwargs)
                 if result is not None:

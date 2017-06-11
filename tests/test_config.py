@@ -517,7 +517,7 @@ def test_config_accepts_and_respects_str_path_separator_setting(simple_config):
         'uploads', 'uploads.enabled', 'uploads.threads', 'uploads.db', 'uploads.db.user', 'uploads.db.password',
     ]
 
-    simple_config._settings.str_path_separator = '/'
+    simple_config.settings.str_path_separator = '/'
 
     assert list(simple_config.iter_paths(recursive=True, key='str_path')) == [
         'uploads', 'uploads/enabled', 'uploads/threads', 'uploads/db', 'uploads/db/user', 'uploads/db/password',
@@ -569,8 +569,8 @@ def test_nested_section_settings_always_point_to_the_settings_of_the_topmost_sec
     s01 = Section()
     s02 = Section()
 
-    s01_settings = s01._settings
-    s02_settings = s02._settings
+    s01_settings = s01.settings
+    s02_settings = s02.settings
 
     assert s01_settings is not s02_settings
 
@@ -579,30 +579,30 @@ def test_nested_section_settings_always_point_to_the_settings_of_the_topmost_sec
         's02': s02,
     })
 
-    s11_settings = s11._settings
-    assert s11_settings is s01._settings
-    assert s11_settings is s02._settings
-    assert s01._settings is s02._settings
-    assert s01._settings is not s01_settings
+    s11_settings = s11.settings
+    assert s11_settings is s01.settings
+    assert s11_settings is s02.settings
+    assert s01.settings is s02.settings
+    assert s01.settings is not s01_settings
 
     c20 = Config({
         's11': s11
     })
 
-    c20_settings = c20._settings
-    assert c20_settings is s01._settings
-    assert c20_settings is s02._settings
-    assert c20_settings is s11._settings
-    assert s01._settings is s02._settings
-    assert s01._settings is s11._settings
-    assert s11_settings is not s11._settings
+    c20_settings = c20.settings
+    assert c20_settings is s01.settings
+    assert c20_settings is s02.settings
+    assert c20_settings is s11.settings
+    assert s01.settings is s02.settings
+    assert s01.settings is s11.settings
+    assert s11_settings is not s11.settings
 
     c30 = Config({
         'c20': c20
     })
 
     # Settings don't cross Config boundaries
-    assert c30._settings is not c20._settings
+    assert c30.settings is not c20.settings
 
 
 def test_get_item_and_get_section_for_rich_config():

@@ -111,7 +111,7 @@ class Config(Section):
         if schema is not None:
             parse_config_schema(schema, root=self)
 
-        if self._settings.auto_load:
+        if self.settings.auto_load:
             self.load()
 
     def __repr__(self):
@@ -130,7 +130,7 @@ class Config(Section):
             self._configparser_adapter = ConfigPersistenceAdapter(
                 config=self,
                 reader_writer=ConfigParserReaderWriter(
-                    config_parser_factory=self._settings.configparser_factory,
+                    config_parser_factory=self.settings.configparser_factory,
                 ),
             )
         return self._configparser_adapter
@@ -175,9 +175,9 @@ class Config(Section):
         return self._click_extension
 
     def load(self):
-        if not self._settings.app_name:
+        if not self.settings.app_name:
             return
 
         import os.path
-        if os.path.exists(self._settings.user_app_config):
-            self.json.load(self._settings.user_app_config)
+        if os.path.exists(self.settings.user_app_config):
+            self.json.load(self.settings.user_app_config)

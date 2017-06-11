@@ -140,7 +140,7 @@ class Section(BaseSection):
             self.add_section(key, value)
             return
 
-        if key not in self._tree or self._settings.key_setter is None:
+        if key not in self._tree or self.settings.key_setter is None:
             if is_config_item(value):
                 self.add_item(key, value)
                 return
@@ -153,10 +153,10 @@ class Section(BaseSection):
                 )
             )
 
-        if self._settings.key_setter is None:
+        if self.settings.key_setter is None:
             self._default_key_setter(key, value)
         else:
-            self._settings.key_setter(subject=self._tree[key], value=value, default_key_setter=self._default_key_setter)
+            self.settings.key_setter(subject=self._tree[key], value=value, default_key_setter=self._default_key_setter)
 
     def _get_by_key(self, key):
         """
@@ -165,8 +165,8 @@ class Section(BaseSection):
         Do not override this method.
         """
         resolution = self._get_item_or_section(key)
-        if self._settings.key_getter:
-            return self._settings.key_getter(parent=self, subject=resolution)
+        if self.settings.key_getter:
+            return self.settings.key_getter(parent=self, subject=resolution)
         else:
             return resolution
 
@@ -284,7 +284,7 @@ class Section(BaseSection):
     def _get_str_path_separator(self, override=not_set):
         if override is not not_set:
             return override
-        return self._settings.str_path_separator
+        return self.settings.str_path_separator
 
     def _parse_path(self, path=None, separator=not_set):
         if not path:
@@ -540,7 +540,7 @@ class Section(BaseSection):
         write your own item factory and pass it to Config through
         item_factory= keyword argument.
         """
-        return self._settings.item_factory(*args, **kwargs)
+        return self.settings.item_factory(*args, **kwargs)
 
     def create_section(self, *args, **kwargs):
         """
@@ -554,16 +554,16 @@ class Section(BaseSection):
         write your own section factory and pass it to Config through
         section_factory= keyword argument.
         """
-        kwargs.setdefault('configmanager_settings', self._settings)
+        kwargs.setdefault('configmanager_settings', self.settings)
         kwargs.setdefault('section', self)
-        return self._settings.section_factory(*args, **kwargs)
+        return self.settings.section_factory(*args, **kwargs)
 
     @property
-    def _settings(self):
+    def settings(self):
         if self.is_config:
             return self._local_settings
         elif self._section:
-            return self._section._settings
+            return self._section.settings
         else:
             return self._local_settings
 

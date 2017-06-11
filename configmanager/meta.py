@@ -7,9 +7,9 @@ class ConfigManagerSettings(object):
     def __init__(self, **settings_and_factories):
 
         # Some settings are declared as @properties and look
-        # into _settings or _factories just for overrides.
+        # into settings or _factories just for overrides.
 
-        # Use _settings when you want to initialise defaults for all Config instances.
+        # Use settings when you want to initialise defaults for all Config instances.
         # Use _factories when you want to lazy-load defaults only when requested.
         self._settings = {
             'item_factory': Item,

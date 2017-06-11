@@ -31,8 +31,8 @@ def test_nested_section_created_from_schema():
         })
     })
 
-    assert config.uploads.db._settings is config._settings
-    assert config.uploads._settings is config._settings
+    assert config.uploads.db.settings is config.settings
+    assert config.uploads.settings is config.settings
 
     calls = []
 

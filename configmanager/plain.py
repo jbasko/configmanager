@@ -28,8 +28,8 @@ class PlainConfig(Config):
     def __init__(self, *args, **kwargs):
         super(PlainConfig, self).__init__(*args, **kwargs)
 
-        self._settings.key_setter = self.__key_setter
-        self._settings.key_getter = self.__key_getter
+        self.settings.key_setter = self.__key_setter
+        self.settings.key_getter = self.__key_getter
 
     def __key_setter(self, subject=None, value=None, default_key_setter=None, **kwargs):
         if subject.is_item:

@@ -277,15 +277,15 @@ def test_hooks_arent_handled_if_hooks_enabled_setting_is_set_to_falsey_value():
     config.uploads.db.user.value = 'admin2'
     assert len(calls) == 2
 
-    config._settings.hooks_enabled = False
+    config.settings.hooks_enabled = False
     config.uploads.db.user.value = 'admin3'
     assert len(calls) == 2
 
-    config._settings.hooks_enabled = None
+    config.settings.hooks_enabled = None
     config.uploads.db.user.value = 'admin4'
     assert len(calls) == 2
 
-    config._settings.hooks_enabled = True
+    config.settings.hooks_enabled = True
     config.uploads.db.user.value = 'admin5'
     assert len(calls) == 3
 
