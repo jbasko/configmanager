@@ -17,7 +17,7 @@ _iter_emitters = {
     'name': lambda k, v, _: (v.alias, v) if v.is_section else (v.name, v),
     'alias': lambda k, v, _: (v.alias, v) if v.is_section else (v.name, v),
     'str_path': lambda k, v, sep: (sep.join(k), v),
-    None: lambda k, v: v,
+    None: lambda k, v, sep: v,
 }
 
 
@@ -368,7 +368,7 @@ class Section(BaseSection):
             iterator: iterator over ``(path, obj)`` pairs of all items and
             sections contained in this section.
         """
-        if isinstance(key, six.string_types):
+        if isinstance(key, six.string_types) or key is None:
             if key in _iter_emitters:
                 emitter = _iter_emitters[key]
             else:

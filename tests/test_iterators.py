@@ -274,3 +274,9 @@ def test_iterators_accept_key_function(c4):
     all = list(c4.iter_all(recursive=True, key=lambda k, v: (v.name if v.is_item else v.alias)))
     all_names = list(k for k, v in all)
     assert all_names == ['greeting', 'uploads', 'enabled', 'db', 'host', 'user', 'downloads', 'enabled', 'threads']
+
+
+def test_iter_sections_with_key_none(c4):
+    sections = list(c4.iter_sections(recursive=True, key=None))
+    assert len(sections) == 3
+    assert sections[0].is_section
