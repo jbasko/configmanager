@@ -103,8 +103,6 @@ class Config(Section):
 
         super(Config, self).__init__(configmanager_settings=configmanager_settings)
 
-        self._manager = self
-
         self._configparser_adapter = None
         self._json_adapter = None
         self._yaml_adapter = None
