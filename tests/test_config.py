@@ -43,34 +43,44 @@ def test_assigning_nameless_item_directly_to_config_should_set_its_name():
     assert config.dump_values() == {'dummy': {'x': 5, 'y': True}}
 
 
-def test_assigning_item_with_name_directly_to_config_should_preserve_its_name():
-    # This is debatable, but assuming that user wants to use
-    # attribute access as much as possible, this should allow them to.
+def test_must_not_allow_item_or_section_names_with_str_path_separator_in_them():
+    with pytest.raises(ValueError):
+        Config({
+            'a.b': True,
+        })
 
-    config = Config()
-    config.dummy = Config()
+    Config({
+        'a.b': True
+    }, str_path_separator='/')
 
-    config.dummy.a_b = Item(name='a.b', value='AB')
-    assert config.dummy.a_b.name == 'a.b'
-    assert config.dummy['a_b']
-    assert 'a_b' in config.dummy
-    assert 'a.b' in config.dummy
+    with pytest.raises(ValueError):
+        Config({
+            'a/b': True
+        }, str_path_separator='/')
 
-    config.dummy['w'] = Item(name='www', value=6)
-    assert 'www' in config.dummy
-    assert config.dummy.w.name == 'www'
-    assert config.dummy.www.name == 'www'
+    # Sections
 
-    assert config.dump_values() == {'dummy': {'a.b': 'AB', 'www': 6}}
+    with pytest.raises(ValueError):
+        Config({
+            'a.b': Section()
+        })
 
-    all_dummies = list(config.dummy.iter_items())
-    assert len(all_dummies) == 2
+    with pytest.raises(ValueError):
+        Config({
+            'a/b': Section()
+        }, str_path_separator='/')
 
-    items = dict(config.dummy.iter_items())
-    assert ('a.b',) in items
-    assert ('a_b',) not in items
-    assert ('www',) in items
-    assert ('w',) not in items
+    config = Config({
+        'a/b': Section()
+    }, str_path_separator='.')
+
+    assert config['a/b'].is_section
+
+    config = Config({
+        'a.b': Section()
+    }, str_path_separator='/')
+
+    assert config['a.b'].is_section
 
 
 def test_item_name_and_alias_must_be_a_string():
@@ -423,6 +433,18 @@ def test__getitem__handles_paths_to_sections_and_items_and_so_does__contains__()
     assert config.uploads.db.user.value == 'admin'
 
 
+def test__contains__handles_str_paths(simple_config, plain_config):
+    assert 'uploads.db' in simple_config
+    assert 'uploads.db' in plain_config
+    assert 'uploads.db.user' in simple_config
+    assert 'uploads.db.user' in plain_config
+
+    assert 'uploads/db' not in simple_config
+    assert 'uploads/db' not in plain_config
+    assert 'uploads/db/user' not in simple_config
+    assert 'uploads/db/user' not in plain_config
+
+
 def test_can_use__setitem__to_create_new_deep_paths():
     config = Config()
     config['uploads'] = Config({'enabled': True})
@@ -469,7 +491,7 @@ def test_config_is_section_and_is_not_item():
     assert not config.is_item
 
 
-def test_dump_values_with_flat_true_accepts_separator(simple_config):
+def test_dump_values_with_flat_true_respects_separator(simple_config):
     assert simple_config.dump_values(with_defaults=True, flat=True) == {
         'uploads.enabled': False,
         'uploads.threads': 1,
@@ -477,7 +499,9 @@ def test_dump_values_with_flat_true_accepts_separator(simple_config):
         'uploads.db.password': 'secret',
     }
 
-    assert simple_config.dump_values(with_defaults=True, flat=True, separator='/') == {
+    simple_config.settings.str_path_separator = '/'
+
+    assert simple_config.dump_values(with_defaults=True, flat=True) == {
         'uploads/enabled': False,
         'uploads/threads': 1,
         'uploads/db/user': 'root',
@@ -485,7 +509,7 @@ def test_dump_values_with_flat_true_accepts_separator(simple_config):
     }
 
 
-def test_load_values_with_flat_true_accepts_separator(simple_config):
+def test_load_values_with_flat_respects_separator(simple_config):
     new_values = {
         'uploads.enabled': True,
         'uploads.db.user': 'NEW_USER',
@@ -503,8 +527,10 @@ def test_load_values_with_flat_true_accepts_separator(simple_config):
 
     simple_config.reset()
 
+    simple_config.settings.str_path_separator = '/'
+
     # Now the '.'-separated values are ignored
-    simple_config.load_values(new_values, flat=True, separator='/')
+    simple_config.load_values(new_values, flat=True)
 
     assert simple_config.uploads.enabled.value is False
     assert simple_config.uploads.db.user.value == 'root'
@@ -521,10 +547,6 @@ def test_config_accepts_and_respects_str_path_separator_setting(simple_config):
 
     assert list(simple_config.iter_paths(recursive=True, key='str_path')) == [
         'uploads', 'uploads/enabled', 'uploads/threads', 'uploads/db', 'uploads/db/user', 'uploads/db/password',
-    ]
-
-    assert list(simple_config.iter_paths(recursive=True, key='str_path', separator=':')) == [
-        'uploads', 'uploads:enabled', 'uploads:threads', 'uploads:db', 'uploads:db:user', 'uploads:db:password',
     ]
 
     assert simple_config.dump_values(with_defaults=True, flat=True) == {
@@ -658,3 +680,19 @@ def test_get_item_and_get_section_for_plain_config():
 
     with pytest.raises(NotFound):
         config.get_section('uploads', 'tmp_dir')
+
+
+def test_get_item_and_get_section_should_handle_str_paths(simple_config, plain_config):
+    assert simple_config.get_item('uploads.db.user') is simple_config.uploads.db.user
+    assert simple_config.get_section('uploads.db') is simple_config.uploads.db
+
+    assert plain_config.get_item('uploads.db.user').value == plain_config.uploads.db.user
+    assert plain_config.get_section('uploads.db') is plain_config.uploads.db
+
+    custom = Config({'main': simple_config}, str_path_separator='/')
+
+    assert custom.main.uploads.db.user.is_item
+    with pytest.raises(NotFound):
+        assert custom.get_item('main.uploads.db.user').is_item
+
+    assert custom.get_item('main/uploads/db/user').is_item

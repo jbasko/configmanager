@@ -170,7 +170,7 @@ def test_iter_items_can_yield_names_as_keys(c4):
     assert items2[('greeting',)] == c4.greeting
 
 
-def test_iter_items_accepts_path_and_separator_and_str_path_as_key(c4):
+def test_iter_items_accepts_path_and_key(c4):
     items = list(c4.iter_items(path='uploads.db', key='str_path'))
     assert len(items) == 2
 
@@ -179,13 +179,6 @@ def test_iter_items_accepts_path_and_separator_and_str_path_as_key(c4):
 
     assert items[1][0] == 'uploads.db.user'
     assert items[1][1] == c4.uploads.db.user
-
-    # Same as above with a different separator
-    items = list(c4.iter_items(path='uploads/db', key='str_path', separator='/'))
-    assert len(items) == 2
-
-    assert items[0][0] == 'uploads/db/host'
-    assert items[1][0] == 'uploads/db/user'
 
     # Different level, different key type, not recursive
     items = list(c4.iter_items(path='uploads', key='path'))
@@ -200,7 +193,7 @@ def test_iter_items_accepts_path_and_separator_and_str_path_as_key(c4):
     assert items[2][0] == ('uploads', 'db', 'user')
 
 
-def test_iter_sections_accepts_path_and_separator_and_str_path_as_key(c4):
+def test_iter_sections_accepts_path_and_key(c4):
     sections = list(c4.iter_sections(path=(), key='str_path'))
     assert len(sections) == 2
     assert sections[0][0] == 'uploads'
@@ -222,18 +215,12 @@ def test_iter_sections_accepts_path_and_separator_and_str_path_as_key(c4):
     assert sections[0][0] == ('uploads',)
     assert sections[1][0] == ('uploads', 'db')
 
-    # Non-empty path, str_path again, custom separator
-    sections = list(c4.iter_sections(path='uploads', separator='/', key='str_path', recursive=True))
-    assert len(sections) == 2
-    assert sections[0][0] == 'uploads'
-    assert sections[1][0] == 'uploads/db'
 
-
-def test_iter_all_accepts_path_and_separator_and_str_path_as_key(c4):
-    all = list(c4.iter_all(key='str_path', separator='/'))
+def test_iter_all_accepts_path_and_key(c4):
+    all = list(c4.iter_all(key='str_path'))
     assert len(all) == 3
 
-    all = list(c4.iter_all(recursive=True, key='str_path', separator='/'))
+    all = list(c4.iter_all(recursive=True, key='str_path'))
     assert len(all) == 9
 
     all = list(c4.iter_all(path='downloads'))
@@ -243,17 +230,17 @@ def test_iter_all_accepts_path_and_separator_and_str_path_as_key(c4):
     assert all[2][0] == ('downloads', 'threads')
 
 
-def test_iter_paths_accepts_path_and_separator_and_str_path_as_key(c4):
+def test_iter_paths_accepts_path_and_key(c4):
     all = list(c4.iter_paths(key='str_path'))
     assert len(all) == 3
     assert all == ['greeting', 'uploads', 'downloads']
 
-    all = list(c4.iter_paths(recursive=True, key='str_path', separator='/'))
+    all = list(c4.iter_paths(recursive=True, key='str_path'))
     assert len(all) == 9
     assert all[0] == 'greeting'
-    assert all[-1] == 'downloads/threads'
+    assert all[-1] == 'downloads.threads'
 
-    all = list(c4.iter_paths(recursive=True, path='uploads', key='str_path', separator='.'))
+    all = list(c4.iter_paths(recursive=True, path='uploads', key='str_path'))
     assert len(all) == 5
     assert all[0] == 'uploads'
     assert all[1] == 'uploads.enabled'
