@@ -517,7 +517,7 @@ def test_config_accepts_and_respects_str_path_separator_setting(simple_config):
         'uploads', 'uploads.enabled', 'uploads.threads', 'uploads.db', 'uploads.db.user', 'uploads.db.password',
     ]
 
-    simple_config._configmanager_settings.str_path_separator = '/'
+    simple_config._settings.str_path_separator = '/'
 
     assert list(simple_config.iter_paths(recursive=True, key='str_path')) == [
         'uploads', 'uploads/enabled', 'uploads/threads', 'uploads/db', 'uploads/db/user', 'uploads/db/password',
@@ -533,3 +533,55 @@ def test_config_accepts_and_respects_str_path_separator_setting(simple_config):
         'uploads/db/user': 'root',
         'uploads/db/password': 'secret',
     }
+
+
+def test_section_holds_reference_to_the_manager_to_which_it_belongs():
+    config1 = Config()
+    assert config1._manager is config1
+    assert config1._root_manager is config1
+
+    config2 = Config({
+        'uploads': Section(),
+    })
+
+    assert config2.uploads._manager is config2
+    assert config2.uploads._root_manager is config2
+
+    config2.add_section('downloads', Section())
+    assert config2.downloads._manager is config2
+    assert config2.downloads._root_manager is config2
+
+
+def test_config_of_configs():
+    uploads = Config({
+        'threads': 1,
+        'enabled': True,
+        'api': {
+            'port': 8000,
+        }
+    })
+
+    downloads = Config({
+        'tmp_dir': '/tmp',
+        'db': {
+            'user': 'root',
+        }
+    })
+
+    config = Config({
+        'uploads': uploads,
+        'downloads': downloads,
+        'messages': {
+            'greeting': 'Hello',
+        }
+    })
+
+    assert config.messages._manager is config
+    assert config.messages._root_manager is config
+
+    assert config.uploads._manager is config
+    assert config.uploads._root_manager is config
+    assert config.uploads.section is config
+
+    assert config.uploads.api._manager is config.uploads
+    assert config.uploads.api._root_manager is config

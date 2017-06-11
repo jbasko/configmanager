@@ -248,16 +248,16 @@ def test_accepts_configmanager_settings_which_are_passed_to_all_subsections():
         'message': 'everyone should know this',
     }
     config1 = Config(configmanager_settings=configmanager_settings)
-    assert config1._configmanager_settings.message == 'everyone should know this'
+    assert config1._settings.message == 'everyone should know this'
 
     config2 = Config({'greeting': 'Hello'}, configmanager_settings=configmanager_settings)
-    assert config2._configmanager_settings.message == 'everyone should know this'
+    assert config2._settings.message == 'everyone should know this'
 
     config3 = Config({'db': {'user': 'root'}}, configmanager_settings=configmanager_settings)
-    assert config3._configmanager_settings.message == 'everyone should know this'
-    assert config3.db._configmanager_settings.message == 'everyone should know this'
+    assert config3._settings.message == 'everyone should know this'
+    assert config3.db._settings.message == 'everyone should know this'
 
-    assert config3.db._configmanager_settings is config3._configmanager_settings
+    assert config3.db._settings is config3._settings
 
 
 def test_empty_list_is_an_item_with_list_type():
@@ -313,14 +313,14 @@ def test_can_declare_empty_section_and_it_gets_updated_with_references_to_config
 
     assert config.uploads.is_section
     assert config.uploads.section is config
-    assert config.uploads._configmanager_settings is config._configmanager_settings
+    assert config.uploads._settings is config._settings
 
     assert config.api.db.is_section
     assert config.api.db.section is config.api
-    assert config.api.db._configmanager_settings is config._configmanager_settings
+    assert config.api.db._settings is config._settings
 
     assert config.api.section is config
-    assert config.api._configmanager_settings is config._configmanager_settings
+    assert config.api._settings is config._settings
 
 
 def test_can_reassign_a_section_of_one_config_to_another_and_all_its_subsections_get_updated():
@@ -336,14 +336,42 @@ def test_can_reassign_a_section_of_one_config_to_another_and_all_its_subsections
         'uploads': config1.uploads
     })
 
-    assert config1._configmanager_settings is not config2._configmanager_settings
+    assert config1._settings is not config2._settings
 
     assert config2.uploads.section is config2
-    assert config2.uploads._configmanager_settings is config2._configmanager_settings
+    assert config2.uploads._settings is config2._settings
 
     assert config2.uploads.api.section is config2.uploads
 
-    # TODO Think more about this
-    # Note that config1 is now left in a weird state and we can't be bothered about
-    # TODO Probably should make this illegal. But can we detect that someone tries to reassign
-    # TODO a section from another tree?
+
+def test_config_of_configs():
+    uploads = Config({
+        'threads': 1,
+        'db': {
+            'user': 'root',
+        },
+    })
+
+    downloads = Config({
+        'enabled': True,
+        'tmp_dir': '/tmp',
+    })
+
+    uploads.threads.value = 5
+    downloads.tmp_dir.value = '/tmp/downloads'
+
+    config = Config({
+        'uploads': uploads,
+        'downloads': downloads,
+    })
+
+    assert config.uploads.threads.value == 5
+
+    config.uploads.threads.value = 3
+    assert uploads.threads.value == 3
+
+    assert config.uploads.threads is uploads.threads
+    assert config.downloads.enabled is downloads.enabled
+
+    uploads.reset()
+    assert config.uploads.threads.value == 1

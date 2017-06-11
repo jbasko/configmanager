@@ -277,14 +277,46 @@ def test_hooks_arent_handled_if_hooks_enabled_setting_is_set_to_falsey_value():
     config.uploads.db.user.value = 'admin2'
     assert len(calls) == 2
 
-    config._configmanager_settings.hooks_enabled = False
+    config._settings.hooks_enabled = False
     config.uploads.db.user.value = 'admin3'
     assert len(calls) == 2
 
-    config._configmanager_settings.hooks_enabled = None
+    config._settings.hooks_enabled = None
     config.uploads.db.user.value = 'admin4'
     assert len(calls) == 2
 
-    config._configmanager_settings.hooks_enabled = True
+    config._settings.hooks_enabled = True
     config.uploads.db.user.value = 'admin5'
+    assert len(calls) == 3
+
+
+def test_hooks_work_across_nested_configs():
+    calls = []
+
+    uploads_config = Config({
+        'db': Config({
+            'user': 'root',
+        })
+    })
+
+    @uploads_config.hooks.item_value_changed
+    def value_changed(**kwargs):
+        calls.append(('uploads', kwargs))
+
+    config = Config({
+        'uploads': uploads_config,
+        'greeting': 'Hello',
+    })
+
+    config.greeting.value = 'Hey!'
+    assert len(calls) == 0
+
+    config.uploads.db.user.value = 'admin'
+    assert len(calls) == 1
+
+    @config.hooks.item_value_changed
+    def value_changed(**kwargs):
+        calls.append(('main', kwargs))
+
+    uploads_config.db.user.value = 'Administrator'
     assert len(calls) == 3
