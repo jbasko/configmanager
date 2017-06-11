@@ -34,7 +34,7 @@ class ConfigPersistenceAdapter(object):
 
         Args:
             source:
-            as_defaults (bool): if ``True``, contents of ``source`` will be treated as declaration of configuration items.
+            as_defaults (bool): if ``True``, contents of ``source`` will be treated as schema of configuration items.
 
         """
         if isinstance(source, six.string_types):
@@ -55,7 +55,7 @@ class ConfigPersistenceAdapter(object):
 
         Args:
             config_str:
-            as_defaults (bool): if ``True``, contents of ``source`` will be treated as declaration of configuration items.
+            as_defaults (bool): if ``True``, contents of ``source`` will be treated as schema of configuration items.
 
         """
         self._rw.load_config_from_string(self._config, config_str, as_defaults=as_defaults)

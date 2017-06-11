@@ -216,7 +216,7 @@ def mixed_app_config(raw_logging_config, raw_db_config):
     })
 
 
-def test_declaration_parser_does_not_modify_config(raw_logging_config):
+def test_schema_parser_does_not_modify_config(raw_logging_config):
     logging_config = Config(raw_logging_config)
     assert isinstance(logging_config, Config)
 

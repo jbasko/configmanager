@@ -96,7 +96,7 @@ def test_nested_config():
     # You can load values
     assert config.greeting.value == 'Hello'
 
-    # Your original declarations are safe -- db_config dictionary won't be changed
+    # Your original schemas are safe -- db_config dictionary won't be changed
     config.db.user.value = 'root'
     assert config.db.user.value == 'root'
     assert db_config['user'] == 'admin'

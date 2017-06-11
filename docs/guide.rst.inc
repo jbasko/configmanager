@@ -2,7 +2,7 @@
 User Guide
 **********
 
-.. include:: declarations.rst.inc
+.. include:: schemas.rst.inc
 
 .. include:: names.rst.inc
 

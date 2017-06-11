@@ -1,10 +1,11 @@
-Declarations
-============
+Schemas
+=======
 
-By default, *configmanager* requires user to declare all configuration items that their application code depends on.
-Our view is that if the set of available configuration items varies then it's not really a configuration anymore.
+By default, *configmanager* requires user to declare all configuration items that their application code depends on
+in schemas. Our view is that if the set of available configuration items varies then it's not
+really a configuration anymore.
 
-A declaration is basically a listing of what sections and items are there. The simplest way to declare a section
+A schema is basically a listing of what sections and items are there. The simplest way to declare a section
 is to pass a dictionary to :class:`.Config` initialiser:
 
 .. code-block:: python
@@ -29,7 +30,7 @@ them by passing a list of strings:
     db_config = Config(['host', 'user', 'password', 'name'])
 
 The first example was better by providing some sensible defaults, but it is not how you want to declare your
-configuration. We believe that the order of items and sections in configuration matters, so a better declaration
+configuration. We believe that the order of items and sections in configuration matters, so a better schema
 would either pass an ``OrderedDict``, or a list of ``(name, default_value)`` pairs:
 
 .. code-block:: python
@@ -39,7 +40,7 @@ would either pass an ``OrderedDict``, or a list of ``(name, default_value)`` pai
         ('password', 'secret'),
     ])
 
-Default value is not the only thing that can be specified in declaration. If we pass a list of :class:`Item` instances
+Default value is not the only thing that can be specified in schema. If we pass a list of :class:`Item` instances
 then we allow ourselves to be more specific:
 
 .. code-block:: python
@@ -70,7 +71,7 @@ you are advised to use the list of tuples notation to preserve order of sections
                 'name': 'exampledb',
             },
         },
-        'logging': logging_config,  # a Python module is also a valid part of declaration
+        'logging': logging_config,  # a Python module is also a valid part of schema
     })
 
 This allows to maintain multiple ``Config`` instances, one for each component of your code, which are then combined

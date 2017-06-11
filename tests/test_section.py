@@ -5,7 +5,7 @@ Here are tests just to test Section usage outside of Configs.
 from configmanager import Section
 
 
-def test_section_created_from_declaration():
+def test_section_created_from_schema():
     uploads = Section({
         'enabled': True,
         'threads': 1,
@@ -20,7 +20,7 @@ def test_section_created_from_declaration():
     assert uploads.threads.value == 1
 
 
-def test_nested_section_created_from_declaration():
+def test_nested_section_created_from_schema():
     config = Section({
         'uploads': Section({
             'db': Section({

@@ -1,4 +1,4 @@
-from .config_declaration_parser import parse_config_declaration
+from .schema_parser import parse_config_schema
 from .meta import ConfigManagerSettings
 from .persistence import ConfigPersistenceAdapter, YamlReaderWriter, JsonReaderWriter, ConfigParserReaderWriter
 from .sections import Section
@@ -8,12 +8,12 @@ class Config(Section):
     """
     Represents a configuration tree.
     
-    .. attribute:: Config(config_declaration=None, **kwargs)
+    .. attribute:: Config(schema=None, **kwargs)
         
-        Creates a configuration tree from a declaration.
+        Creates a configuration tree from a schema.
 
         Args:
-            ``config_declaration``: can be a dictionary, a list, a simple class, a module, another :class:`.Config`
+            ``schema``: can be a dictionary, a list, a simple class, a module, another :class:`.Config`
             instance, and a combination of these.
 
         Keyword Args:
@@ -92,7 +92,7 @@ class Config(Section):
 
     is_config = True
 
-    def __init__(self, config_declaration=None, **configmanager_settings):
+    def __init__(self, schema=None, **configmanager_settings):
         if 'configmanager_settings' in configmanager_settings:
             if len(configmanager_settings) > 1:
                 raise ValueError('Dubious configmanager_settings specification: {}'.format(configmanager_settings))
@@ -108,8 +108,8 @@ class Config(Section):
         self._yaml_adapter = None
         self._click_extension = None
 
-        if config_declaration is not None:
-            parse_config_declaration(config_declaration, root=self)
+        if schema is not None:
+            parse_config_schema(schema, root=self)
 
         self.load_user_app_config()
 

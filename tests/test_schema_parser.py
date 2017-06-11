@@ -4,7 +4,7 @@ import pytest
 
 from configmanager.items import Item
 from configmanager import Config, Types
-from configmanager.config_declaration_parser import parse_config_declaration
+from configmanager.schema_parser import parse_config_schema
 from configmanager.sections import Section
 
 
@@ -50,7 +50,7 @@ def app_config_module_example():
     return app_config
 
 
-def test_primitive_value_is_a_declaration_of_an_item():
+def test_primitive_value_is_a_schema_of_an_item():
     config = Config((
         ('enabled', True),
         ('threads', 5),
@@ -68,7 +68,7 @@ def test_primitive_value_is_a_declaration_of_an_item():
 def test_lists_of_tuples_declare_sections():
     config = Config()
 
-    parse_config_declaration([
+    parse_config_schema([
         ('uploads', [
             ('enabled', True),
             ('threads', 5),
@@ -91,7 +91,7 @@ def test_lists_of_tuples_declare_sections():
 
 def test_non_empty_dictionaries_declare_sections():
     config = Config()
-    parse_config_declaration({
+    parse_config_schema({
         'uploads': {
             'enabled': True,
             'threads': 5,
@@ -112,7 +112,7 @@ def test_non_empty_dictionaries_declare_sections():
     assert config.uploads.db.password.is_item
 
 
-def test_dict_and_module_based_config_declaration(app_config_dict_example, app_config_module_example):
+def test_dict_and_module_based_config_schema(app_config_dict_example, app_config_module_example):
     dict_config = Config(app_config_dict_example)
     module_config = Config(app_config_module_example)
     assert dict_config.dump_values(with_defaults=True) == module_config.dump_values(with_defaults=True)
@@ -142,7 +142,7 @@ def test_can_use_list_notation_to_declare_ordered_config_tree():
     assert config.uploads.db.user.value == 'root'
 
 
-def test_config_root_declaration_cannot_be_a_primitive_value(tmpdir):
+def test_config_root_schema_cannot_be_a_primitive_value(tmpdir):
     #
     with pytest.raises(ValueError):
         Config(5)

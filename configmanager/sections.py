@@ -3,7 +3,7 @@ import copy
 
 import six
 
-from configmanager.config_declaration_parser import parse_config_declaration
+from configmanager.schema_parser import parse_config_schema
 from .hooks import Hooks
 from .meta import ConfigManagerSettings
 from .exceptions import NotFound
@@ -29,7 +29,7 @@ class Section(BaseSection):
     # Core section functionality.
     # Keep as light as possible.
 
-    def __init__(self, declaration=None, section=None, configmanager_settings=None):
+    def __init__(self, schema=None, section=None, configmanager_settings=None):
         #: local settings which are used only until we have settings available from manager
         self._local_settings = configmanager_settings or ConfigManagerSettings()
         if not isinstance(self._local_settings, ConfigManagerSettings):
@@ -47,8 +47,8 @@ class Section(BaseSection):
         #: Hooks registry
         self._hooks = Hooks(self)
 
-        if declaration is not None:
-            parse_config_declaration(declaration, root=self)
+        if schema is not None:
+            parse_config_schema(schema, root=self)
 
     def __len__(self):
         return len(self._tree)
@@ -533,7 +533,7 @@ class Section(BaseSection):
 
         Should only be used when extending or modifying configmanager's functionality.
         Under normal circumstances you should let configmanager create sections
-        and items when parsing configuration declarations.
+        and items when parsing configuration schemas.
 
         Do not override this method. To customise item creation,
         write your own item factory and pass it to Config through
@@ -547,7 +547,7 @@ class Section(BaseSection):
 
         Should only be used when extending or modifying configmanager's functionality.
         Under normal circumstances you should let configmanager create sections
-        and items when parsing configuration declarations.
+        and items when parsing configuration schemas.
 
         Do not override this method. To customise section creation,
         write your own section factory and pass it to Config through

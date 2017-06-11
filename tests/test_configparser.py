@@ -211,7 +211,7 @@ def test_read_string():
     assert m.a.y.value == 'yaya'
 
 
-def test_read_as_defaults_treats_all_values_as_declarations(tmpdir):
+def test_read_as_defaults_treats_all_values_as_schemas(tmpdir):
     path = tmpdir.join('conf.ini').strpath
     with open(path, 'w') as f:
         f.write('[uploads]\nthreads = 5\nenabled = no\n')
