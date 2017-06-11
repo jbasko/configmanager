@@ -3,6 +3,7 @@ import copy
 
 import six
 
+from configmanager.config_declaration_parser import parse_config_declaration
 from .hooks import Hooks
 from .meta import ConfigManagerSettings
 from .exceptions import NotFound
@@ -28,7 +29,7 @@ class Section(BaseSection):
     # Core section functionality.
     # Keep as light as possible.
 
-    def __init__(self, configmanager_settings=None):
+    def __init__(self, declaration=None, configmanager_settings=None):
 
         # It is Config's responsibility to initialise configmanager_settings.
         if configmanager_settings is None:
@@ -53,6 +54,9 @@ class Section(BaseSection):
 
         #: Hooks registry
         self._hooks = Hooks(self)
+
+        if declaration is not None:
+            parse_config_declaration(declaration, root=self)
 
     def __len__(self):
         return len(self._tree)
@@ -463,17 +467,31 @@ class Section(BaseSection):
     def create_item(self, *args, **kwargs):
         """
         Internal factory method used to create an instance of configuration item.
-        Should only be used to extend configmanager's functionality.
+
+        Should only be used when extending or modifying configmanager's functionality.
+        Under normal circumstances you should let configmanager create sections
+        and items when parsing configuration declarations.
+
+        Do not override this method. To customise item creation,
+        write your own item factory and pass it to Config through
+        item_factory= keyword argument.
         """
-        return self._settings.item_cls(*args, **kwargs)
+        return self._settings.item_factory(*args, **kwargs)
 
     def create_section(self, *args, **kwargs):
         """
         Internal factory method used to create an instance of configuration section.
-        Should only be used to extend configmanager's functionality.
+
+        Should only be used when extending or modifying configmanager's functionality.
+        Under normal circumstances you should let configmanager create sections
+        and items when parsing configuration declarations.
+
+        Do not override this method. To customise section creation,
+        write your own section factory and pass it to Config through
+        section_factory= keyword argument.
         """
         kwargs.setdefault('configmanager_settings', self._settings)
-        return self._settings.section_cls(*args, **kwargs)
+        return self._settings.section_factory(*args, **kwargs)
 
     @property
     def _root_manager(self):

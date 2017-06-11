@@ -13,7 +13,7 @@ def test_allow_passing_item_class_to_config_on_creation():
         },
         'd': 'e',
         'f': Item(default='this will not be converted'),
-    }, item_cls=CustomItem)
+    }, item_factory=CustomItem)
 
     assert isinstance(config.a.b, CustomItem)
     assert isinstance(config.d, CustomItem)

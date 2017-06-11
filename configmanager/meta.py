@@ -13,14 +13,14 @@ class ConfigManagerSettings(object):
         # Use _settings when you want to initialise defaults for all Config instances.
         # Use _factories when you want to lazy-load defaults only when requested.
         self._settings = {
-            'item_cls': Item,
+            'item_factory': Item,
             'app_name': None,
             'hooks_enabled': None,  # None means that when a hook is registered, hooks will be enabled automatically
             'str_path_separator': '.',
         }
         self._factories = {
             'configparser_factory': self.create_configparser_factory,
-            'section_cls': self.create_section_cls,
+            'section_factory': self.create_section_factory,
         }
 
         for k, v in settings_and_factories.items():
@@ -49,7 +49,7 @@ class ConfigManagerSettings(object):
         import configparser
         return configparser.ConfigParser
 
-    def create_section_cls(self):
+    def create_section_factory(self):
         from .sections import Section
         return Section
 
