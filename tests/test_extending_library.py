@@ -2,7 +2,7 @@ from configmanager import Item, ItemAttribute, Config
 from configmanager.utils import not_set
 
 
-def test_allow_passing_item_class_to_config_on_creation():
+def test_custom_item_class_as_item_factory():
     class CustomItem(Item):
         is_custom = ItemAttribute(name='is_custom', default=True)
 
@@ -21,6 +21,48 @@ def test_allow_passing_item_class_to_config_on_creation():
     assert not isinstance(config.f, CustomItem)
     assert config.f.value == 'this will not be converted'
     assert isinstance(config.f, Item)
+
+
+def test_user_defined_function_as_item_factory():
+    calls = []
+
+    def create_item(*args, **kwargs):
+        item = Item(*args, **kwargs)
+        calls.append(item.name)
+        return item
+
+    Config({
+        'a': {'b': 1, 'c': True}, 'd': 'efg',
+    }, item_factory=create_item)
+
+    assert len(calls) == 3
+
+
+def test_adding_new_attributes_to_item():
+    # This demonstrates two ways of adding new attributes:
+    # 1) by declaring ItemAttribute, 2) by creating them in initialiser
+
+    class CustomItem(Item):
+        help = ItemAttribute(name='help', default='No help available!')
+
+        def __init__(self, *args, **kwargs):
+            description = kwargs.pop('description', None)
+            super(CustomItem, self).__init__(*args, **kwargs)
+            self.description = description
+
+    config = Config({
+        'a': {
+            'b': 1,
+            'c': True,
+        },
+        'd': 'efg',
+    }, item_factory=CustomItem)
+
+    assert config.a.b.help
+    assert config.a.b.description is None
+
+    assert config.d.help
+    assert config.d.description is None
 
 
 def test_extending_item_class(monkeypatch):
