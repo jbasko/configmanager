@@ -68,7 +68,7 @@ class Section(BaseSection):
 
     def __contains__(self, key):
         try:
-            _ = self._get_item_or_section(key)
+            _ = self._get_by_key(key)
             return True
         except NotFound:
             return False
@@ -90,10 +90,10 @@ class Section(BaseSection):
             self[name][rest] = value
             return
 
-        self._set_item_or_section(name, value)
+        self._set_key(name, value)
 
     def __getitem__(self, key):
-        return self._get_item_or_section(key)
+        return self._get_by_key(key)
 
     def __getattr__(self, name):
         if not isinstance(name, six.string_types):
@@ -102,12 +102,12 @@ class Section(BaseSection):
         if name.startswith('_'):
             raise AttributeError(name)
 
-        return self._get_item_or_section(name)
+        return self._get_by_key(name)
 
     def __setattr__(self, name, value):
         if name.startswith('_'):
             return super(Section, self).__setattr__(name, value)
-        self._set_item_or_section(name, value)
+        self._set_key(name, value)
 
     def _default_item_setter(self, name, item):
         """
@@ -126,60 +126,57 @@ class Section(BaseSection):
                 )
             )
 
-    def _set_item_or_section(self, name, obj):
+    def _set_key(self, key, value):
         """
-        The single point through which all items and sections are set.
-
-        This method is not part of the public interface and
-        it must NOT be called from outside the Section class.
+        This method must NOT be called from outside the Section class.
 
         Do not override this method.
-
-        The right way to hook here is to pass item_setter= option
-        when creating a Config or Section.
-        Note that you can hook into resetting of existing items.
-        This limitation is because we can't distinguish between items
-        being set during section setup and items being set afterwards.
         """
 
-        if is_config_section(obj):
-            self.add_section(name, obj)
+        if is_config_section(value):
+            self.add_section(key, value)
             return
 
-        if name not in self._tree or self._settings.item_setter is None:
-            if is_config_item(obj):
-                self.add_item(name, obj)
+        if key not in self._tree or self._settings.item_setter is None:
+            if is_config_item(value):
+                self.add_item(key, value)
                 return
 
             raise TypeError(
                 'Section sections/items can only be replaced with sections/items, '
-                'got {type}. To set obj use ..[{name}].obj = <new_value>'.format(
-                    type=type(obj),
-                    name=name,
+                'got {type}. To set value use ..[{name}].value = <new_value>'.format(
+                    type=type(value),
+                    name=key,
                 )
             )
 
-        if name in self._tree and not self._tree[name].is_item:
+        if key in self._tree and not self._tree[key].is_item:
             raise TypeError(
-                'Attempting to replace a section with a non-section {!r}'.format(obj)
+                'Attempting to replace a section with a non-section {!r}'.format(value)
             )
 
         if self._settings.item_setter is None:
-            self._default_item_setter(name, obj)
+            self._default_item_setter(key, value)
         else:
-            self._settings.item_setter(item=self._tree[name], value=obj, default_item_setter=self._default_item_setter)
+            self._settings.item_setter(item=self._tree[key], value=value, default_item_setter=self._default_item_setter)
+
+    def _get_by_key(self, key):
+        """
+        This method must NOT be called from outside the Section class.
+
+        Do not override this method.
+        """
+        resolution = self._get_item_or_section(key)
+        if resolution.is_item and self._settings.item_getter:
+            return self._settings.item_getter(section=self, item=resolution)
+        else:
+            return resolution
 
     def _get_item_or_section(self, key):
         """
-        The single point through which all items and sections are retrieved.
-
-        This method is not part of the public interface and
-        it must NOT be called from outside the Section class.
+        This method must NOT be called from outside the Section class.
 
         Do not override this method.
-
-        The right way to hook here is to pass item_getter= option
-        when creating a Config or Section.
         """
         if isinstance(key, six.string_types):
             if key in self._tree:
@@ -195,14 +192,38 @@ class Section(BaseSection):
             if len(key) == 1:
                 resolution = self._get_item_or_section(key[0])
             else:
-                resolution = self._get_item_or_section(key[0])[key[1:]]
+                resolution = self._get_item_or_section(key[0])._get_item_or_section(key[1:])
         else:
             raise TypeError('Expected either a string or a tuple as key, got {!r}'.format(key))
 
-        if resolution.is_item and self._settings.item_getter:
-            return self._settings.item_getter(section=self, item=resolution)
-        else:
-            return resolution
+        return resolution
+
+    def get_item(self, *key):
+        """
+        The recommended way of retrieving an item by key when extending configmanager's behaviour.
+        Attribute and dictionary key access is configurable and may not always return items
+        (see PlainConfig for example), whereas this method will always return the corresponding
+        Item as long as NOT_FOUND hooks don't break this convention.
+
+        Args:
+            key
+
+        Returns:
+            item (:class:`.Item`):
+        """
+        item = self._get_item_or_section(key)
+        if not item.is_item:
+            raise RuntimeError('{} is a section, not an item'.format(key))
+        return item
+
+    def get_section(self, *key):
+        """
+        The recommended way of retrieving a section by key when extending configmanager's behaviour.
+        """
+        section = self._get_item_or_section(key)
+        if not section.is_section:
+            raise RuntimeError('{} is an item, not a section'.format(key))
+        return section
 
     @property
     def hooks(self):

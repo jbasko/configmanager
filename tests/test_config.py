@@ -2,7 +2,7 @@
 
 import pytest
 
-from configmanager import Config, Section, Item, Types, NotFound
+from configmanager import Config, Section, Item, Types, NotFound, PlainConfig
 
 
 def test_reset_resets_values_to_defaults():
@@ -603,3 +603,61 @@ def test_nested_section_settings_always_point_to_the_settings_of_the_topmost_sec
 
     # Settings don't cross Config boundaries
     assert c30._settings is not c20._settings
+
+
+def test_get_item_and_get_section_for_rich_config():
+    config = Config({
+        'uploads': Section({
+            'db': Section({
+                'user': 'root'
+            })
+        })
+    })
+
+    assert config.get_section('uploads').is_section
+    assert config.get_section('uploads', 'db').is_section
+    assert config.uploads.get_section('db').is_section
+
+    assert config.get_item('uploads', 'db', 'user').is_item
+    assert config.uploads.db.get_item('user').is_item
+
+    with pytest.raises(NotFound):
+        config.get_item('downloads')
+
+    with pytest.raises(NotFound):
+        config.get_section('downloads')
+
+    with pytest.raises(NotFound):
+        config.get_item('uploads', 'tmp_dir')
+
+    with pytest.raises(NotFound):
+        config.get_section('uploads', 'tmp_dir')
+
+
+def test_get_item_and_get_section_for_plain_config():
+    config = PlainConfig({
+        'uploads': Section({
+            'db': Section({
+                'user': 'root'
+            })
+        })
+    })
+
+    assert config.get_section('uploads').is_section
+    assert config.get_section('uploads', 'db').is_section
+    assert config.uploads.get_section('db').is_section
+
+    assert config.get_item('uploads', 'db', 'user').is_item
+    assert config.uploads.db.get_item('user').is_item
+
+    with pytest.raises(NotFound):
+        config.get_item('downloads')
+
+    with pytest.raises(NotFound):
+        config.get_section('downloads')
+
+    with pytest.raises(NotFound):
+        config.get_item('uploads', 'tmp_dir')
+
+    with pytest.raises(NotFound):
+        config.get_section('uploads', 'tmp_dir')

@@ -15,3 +15,5 @@
 
 .. include:: api.rst.inc
 
+.. include:: design.rst.inc
+

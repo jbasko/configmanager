@@ -38,6 +38,9 @@ To specify which configuration item is to be used as a fallback, pass it as the 
         say_hello()
 
 
+Note that if you are using :class:`.PlainConfig`, you will have to pass ``config.get_item('greeting')`` to
+``@config.click.option`` because ``config.greeting`` would be just the primitive value.
+
 If you now run this simple program it will say ``Hello!`` by default and whatever you supply with ``--greeting``
 otherwise.
 
