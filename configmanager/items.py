@@ -114,6 +114,13 @@ class Item(BaseItem):
             else:
                 setattr(self, k, v)
 
+    def __getattr__(self, name):
+        if name.startswith('_'):
+            raise AttributeError()
+        if self.section:
+            return self.section.get_item_attribute(self, name)
+        raise AttributeError(name)
+
     def __repr__(self):
         if self._value is not not_set:
             value = self.value

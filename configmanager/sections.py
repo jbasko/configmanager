@@ -46,6 +46,9 @@ class Section(BaseSection):
         #: Hooks registry
         self._hooks = Hooks(self)
 
+        #: Dynamic item attributes registry
+        self.__item_attributes = {}
+
         if schema is not None:
             self.add_schema(schema)
 
@@ -642,6 +645,24 @@ class Section(BaseSection):
             return self.section.get_path() + (self.alias,)
         else:
             return self.alias,
+
+    def item_attribute(self, f):
+        """
+        Register a dynamic item attribute provider.
+        """
+        self.__item_attributes[f.__name__] = f
+        return f
+
+    def get_item_attribute(self, item, name):
+        """
+        Method called by item when an attribute is not found.
+        """
+        if name in self.__item_attributes:
+            return self.__item_attributes[name](item)
+        elif self.section:
+            return self.section.get_item_attribute(item, name)
+        else:
+            raise AttributeError(name)
 
 
 class PathProxy(object):

@@ -1,3 +1,5 @@
+import pytest
+
 from configmanager import Item, ItemAttribute, Config
 from configmanager.utils import not_set
 
@@ -99,3 +101,25 @@ def test_extending_item_class(monkeypatch):
     assert config.joy_enabled.get() is not_set
     monkeypatch.setenv('JOY_ENABLED', 'yes')
     assert config.joy_enabled.get() is True
+
+
+def test_dynamic_item_attribute_all_caps_name():
+    config = Config({
+        'uploads': {
+            'tmp_dir': '/tmp',
+        },
+        'greeting': 'Hello',
+    })
+
+    with pytest.raises(AttributeError):
+        _ = config.greeting.all_caps_name
+
+    with pytest.raises(AttributeError):
+        _ = config.uploads.tmp_dir.all_caps_name
+
+    @config.item_attribute
+    def all_caps_name(item):
+        return '_'.join(item.get_path()).upper()
+
+    assert config.greeting.all_caps_name == 'GREETING'
+    assert config.uploads.tmp_dir.all_caps_name == 'UPLOADS_TMP_DIR'
