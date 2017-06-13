@@ -114,3 +114,20 @@ def test_items_and_sections_with_python_keywords_as_names_can_be_accessed_with_s
     paths1 = list(config.iter_paths(path='for_', recursive=True))
     paths2 = list(config.iter_paths(path='for', recursive=True))
     assert paths1 == paths2
+
+
+def test_section_and_item_get_path():
+    config = Section({
+        'for': {
+            'if': {
+                'assert': 'assert',
+                'True': 'True',
+            },
+        },
+        'enabled': True,
+    })
+
+    assert config.get_path() == ()
+    assert config.enabled.get_path() == ('enabled',)
+    assert config.for_.if_.get_path() == ('for', 'if')
+    assert config.for_.if_.assert_.get_path() == ('for', 'if', 'assert')

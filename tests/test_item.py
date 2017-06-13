@@ -393,3 +393,8 @@ def test_item_type_can_be_specified_as_a_string():
 
     f = Item(type='float', default='0.23')
     assert f.default == 0.23
+
+
+def test_path_of_unattached_item_is_a_tuple_of_its_name():
+    name = Item(name='x')
+    assert name.get_path() == ('x',)

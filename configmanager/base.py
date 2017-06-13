@@ -21,12 +21,6 @@ class BaseSection(object):
     is_section = True
     is_config = False
 
-    def add_item(self, alias, item):
-        raise NotImplementedError()
-
-    def add_section(self, alias, section):
-        raise NotImplementedError()
-
 
 def is_config_section(obj):
     return isinstance(obj, BaseSection)

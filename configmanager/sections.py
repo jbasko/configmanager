@@ -624,6 +624,25 @@ class Section(BaseSection):
         """
         parse_config_schema(schema, root=self)
 
+    def get_path(self):
+        """
+        Calculate section's path in configuration tree.
+        Use this sparingly -- path is calculated by going up the configuration tree.
+        For a large number of sections, it is more efficient to use iterators that return paths
+        as keys.
+
+        Path value is stable only once the configuration tree is completely initialised.
+        """
+
+        if not self.alias:
+            assert not self.section
+            return ()
+
+        if self.section:
+            return self.section.get_path() + (self.alias,)
+        else:
+            return self.alias,
+
 
 class PathProxy(object):
     def __init__(self, config, path):

@@ -217,3 +217,17 @@ class Item(BaseItem):
         it hasn't been added to a section yet.
         """
         return self._section
+
+    def get_path(self):
+        """
+        Calculate item's path in configuration tree.
+        Use this sparingly -- path is calculated by going up the configuration tree.
+        For a large number of items, it is more efficient to use iterators that return paths
+        as keys.
+
+        Path value is stable only once the configuration tree is completely initialised.
+        """
+        if self.section:
+            return self.section.get_path() + (self.name,)
+        else:
+            return self.name,
