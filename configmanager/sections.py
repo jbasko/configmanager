@@ -638,7 +638,6 @@ class Section(BaseSection):
         """
 
         if not self.alias:
-            assert not self.section
             return ()
 
         if self.section:
@@ -650,6 +649,8 @@ class Section(BaseSection):
         """
         Register a dynamic item attribute provider.
         """
+        if f.__name__.startswith('_'):
+            raise RuntimeError('Invalid dynamic item attribute name -- should not start with an underscore')
         self.__item_attributes[f.__name__] = f
         return f
 
