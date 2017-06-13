@@ -114,11 +114,10 @@ How do I get all configuration values?
     >>> config.dump_values()
     {'greeting': 'Hello, world!'}
 
-Where is all the power?
------------------------
+Where is all the richness?
+--------------------------
 
-Don't look for power in the configuration values because the power lies in configuration items
-which in *configmanager* are rich objects:
+The richness lies in configuration items:
 
 .. code-block:: python
 
@@ -164,6 +163,7 @@ or by using dictionary notation with meta keys:
     # Option 2
     config.add_schema({'enabled': {'@required': True}})
 
+
 How to provide a fallback value for an item with no default value?
 ------------------------------------------------------------------
 
@@ -175,4 +175,108 @@ Once you have a reference to the item, you can call its ``.get(fallback)`` metho
     >>> config.enabled.value
     # .. stack-trace skipped ..
     configmanager.exceptions.RequiredValueMissing: enabled
+
+How to add a dynamic attribute to all items?
+--------------------------------------------
+
+.. code-block:: python
+
+    config = Config({'greeting': 'Hello, world!'})
+
+    @config.item_attribute
+    def all_caps_value(item=None, **kwargs):
+        return item.value.upper()
+
+    assert config.greeting.all_caps_value == 'HELLO, WORLD!'
+
+How to do something with all configuration items?
+-------------------------------------------------
+
+If you need to work with items after the configuration tree has been fully constructed,
+you can iterate over all items with ``config.iter_items()`` which can be customised in many
+different ways.
+
+.. code-block:: python
+
+    for path, item in config.iter_items(recursive=True):
+        print(path, item.is_default)
+
+If you need to process item objects during configuration schema parsing, you can register
+an ``item_added_to_section`` hook before adding schemas:
+
+.. code-block:: python
+
+    config = Config()
+
+    @config.hooks.item_added_to_section
+    def item_added_to_section(subject=None, section=None, **kwargs):
+        print('Item {} was added to a section').format(subject.name)
+
+    # Add schemas afterwards
+    config.add_schema({'greeting': 'Hello, world!'})
+
+How to allow item value override through an environment variable?
+-----------------------------------------------------------------
+
+If you have meaningful section names and you don't mind *configmanager*'s default naming
+schema, then you can just declare the particular items with ``envvar=True``:
+
+.. code-block:: python
+    :emphasize-lines: 5,13
+
+    # dictionary notation
+    config = Config({
+        'greeting': {
+            '@default': 'Hello, world!',
+            '@envvar': True,
+        },
+    })
+
+    # same thing with object notation
+    config = Config({
+        'greeting': Item(
+            default='Hello, world!',
+            envvar=True,
+        ),
+    })
+
+Now, to set a value override, your application user would have to set environment variable ``GREETING``.
+Had the ``greeting`` item been declared under a section called ``hello_world``, you would have
+to override it by setting ``HELLO_WORLD_GREETING``.
+
+If this is not up to your taste, you can specify a custom environment variable name by
+replacing ``envvar=True`` with something more likeable:
+
+.. code-block:: python
+    :emphasize-lines: 4
+
+    config = Config({
+        'greeting': Item(
+            default='Hello, world!',
+            envvar='MY_APP_GREETING',
+        ),
+    })
+
+If you want to generate a custom environment variable name dynamically based on item for which
+the environment variable name is requested, you can do so by overriding ``envvar_name`` attribute:
+
+.. code-block:: python
+    :emphasize-lines: 4,8-10
+
+    config = Config({
+        'greeting': {
+            '@default': 'Hello, world',
+            '@envvar': True,
+        }
+    })
+
+    @config.item_attribute
+    def envvar_name(item=None, **kwargs):
+        return 'GGG_{}'.format('_'.join(item.get_path()).upper())
+
+    assert config.greeting.envvar_name == 'GGG_GREETING'
+
+Note that when calculating item value, ``config.greeting.envvar_name`` is only consulted if
+``config.greeting.envvar`` is set to ``True``. If it is set to a string, that will be used instead.
+Or, if it is set to a falsy value, environment variables won't be consulted at all.
 

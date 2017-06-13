@@ -1,5 +1,6 @@
-import copy
 from builtins import str
+import copy
+import os
 
 import six
 
@@ -47,6 +48,16 @@ class Item(BaseItem):
     #: ``True`` if config item requires a value.
     #: Note that if an item has a default value, marking it as ``required`` will have no effect.
     required = ItemAttribute('required', default=False)
+
+    #: If set to a string, will use that as the name of the environment variable and will not consult envvar_name.
+    #: If set to True, will use value of envvar_name as the name of environment variable to check for value override.
+    #: If set to True and envvar_name is not set, will use auto-generated name based on item's path
+    #: in the configuration tree: SECTION1_SECTION2_ITEMNAME.
+    envvar = ItemAttribute('envvar', default=None)
+
+    #: See envvar.
+    #: Note that you can override this so you don't have to specify name for each enabled envvar individually.
+    envvar_name = ItemAttribute('envvar_name', default=None, allow_dynamic_override=True)
 
     def _get_kwarg(self, name, kwargs):
         """
@@ -175,6 +186,17 @@ class Item(BaseItem):
         See Also:
             :meth:`.set` and :attr:`.value`
         """
+        if self.envvar:
+            if self.envvar is True:
+                envvar_name = self.envvar_name
+                if envvar_name is None:
+                    envvar_name = '_'.join(self.get_path()).upper()
+                if envvar_name in os.environ:
+                    return self.type.deserialize(os.environ[envvar_name])
+            else:
+                if self.envvar in os.environ:
+                    return self.type.deserialize(os.environ[self.envvar])
+
         if self.has_value:
             if self._value is not not_set:
                 return self._value
