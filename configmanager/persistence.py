@@ -12,7 +12,7 @@ class ConfigReaderWriter(object):
         pass
 
     def store_exists(self, store):
-        return os.path.exists(store)
+        return os.path.exists(os.path.expanduser(store))
 
     def dump_config_to_file(self, config, file_obj, with_defaults=False, **kwargs):
         raise NotImplementedError()
@@ -42,6 +42,7 @@ class ConfigPersistenceAdapter(object):
 
         """
         if isinstance(source, six.string_types):
+            source = os.path.expanduser(source)
             with open(source, encoding='utf-8') as f:
                 self._rw.load_config_from_file(self._config, f, as_defaults=as_defaults)
 
