@@ -6,9 +6,13 @@ configmanager
 - `Source Code and Issue Tracker on github.com <https://github.com/jbasko/configmanager>`_
 - `Build Status on travis-ci.org <https://travis-ci.org/jbasko/configmanager>`_
 
+
 =====================
 Questions and Answers
 =====================
+
+.. contents::
+    :local:
 
 
 What is it?
