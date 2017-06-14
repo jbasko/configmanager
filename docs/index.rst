@@ -110,13 +110,39 @@ To load configuration from a specific file at a later point in manager's lifetim
     config.yaml.load('~/.config/helloworld/config.yaml')
     config.json.load('~/.config/helloworld/config.json')
 
-How do I get all configuration values?
+How do I write configuration to files?
 --------------------------------------
+
+Similarly to reading, you find the appropriate persistence adapter, and use the dump method on it:
+
+.. code-block:: python
+
+    config.json.dump('~/.config/helloworld/config.json', with_defaults=True)
+
+Unless you also pass ``with_defaults=True``, ::dump:: will not include items who don't have a custom value set.
+
+How do I export all configuration values to a dictionary?
+---------------------------------------------------------
+
+You can export effective values with :meth:`.Section.dump_values` method:
 
 .. code-block:: python
 
     >>> config.dump_values()
     {'greeting': 'Hello, world!'}
+
+By default, :meth:`.Section.dump_values` includes values for all items which have a custom value or a default value.
+You can also dump just custom values with ``with_defaults=False`` which may result in an empty dictionary
+if none of your configuration items have custom values.
+
+How do I read configuration values from a dictionary?
+-----------------------------------------------------
+
+.. code-block:: python
+
+    config.load_values({
+        'greeting': 'Hey!',
+    })
 
 Where is all the richness?
 --------------------------
@@ -284,3 +310,18 @@ Note that when calculating item value, ``config.greeting.envvar_name`` is only c
 ``config.greeting.envvar`` is set to ``True``. If it is set to a string, that will be used instead.
 Or, if it is set to a falsy value, environment variables won't be consulted at all.
 
+How to handle non-existent configuration items?
+-----------------------------------------------
+
+If you request a non-existent configuration item, a :class:`.NotFound` exception is raised.
+You could catch these as any other Python exception, or you could register a callback function
+to be called when this exception is raised:
+
+.. code-block:: python
+
+    @config.hooks.not_found
+    def not_found(name=None, section=None, **kwargs):
+        print('A section or item called {} was requested, but it does not exist'.format(name))
+
+
+If this function returns anything other than ``None``, the exception will not be raised.
