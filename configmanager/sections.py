@@ -4,9 +4,9 @@ import functools
 import keyword
 
 import six
+from hookery import HookRegistry
 
 from .schema_parser import parse_config_schema
-from .hooks import Hooks
 from .meta import ConfigManagerSettings
 from .exceptions import NotFound
 from .utils import not_set
@@ -44,7 +44,15 @@ class Section(BaseSection):
         self._section_alias = None
 
         #: Hooks registry
-        self._hooks = Hooks(self)
+        self._hooks = HookRegistry(self)
+        self._hooks.not_found = self._hooks.register_event('not_found')
+        self._hooks.item_added_to_section = self._hooks.register_event('item_added_to_section')
+        self._hooks.section_added_to_section = self._hooks.register_event('section_added_to_section')
+        self._hooks.item_value_changed = self._hooks.register_event('item_value_changed')
+
+        # Listen for hook registration so we can enable per-section hooks only when they
+        # are actually used.
+        self._hooks.hook_registered(self._hook_registered)
 
         #: Dynamic item attributes registry
         self.__item_attributes = {}
@@ -192,7 +200,7 @@ class Section(BaseSection):
                 resolution = self._tree[key]
             else:
                 if handle_not_found:
-                    result = self.hooks.handle(Hooks.NOT_FOUND, name=key, section=self)
+                    result = self._handle_event(self.hooks.not_found, name=key, section=self)
                     if result is not None:
                         resolution = result
                     else:
@@ -297,7 +305,7 @@ class Section(BaseSection):
 
         item._section = self
 
-        self.hooks.handle(Hooks.ITEM_ADDED_TO_SECTION, alias=alias, section=self, subject=item)
+        self._handle_event(self.hooks.item_added_to_section, alias=alias, section=self, subject=item)
 
     def add_section(self, alias, section):
         """
@@ -317,7 +325,7 @@ class Section(BaseSection):
         section._section = self
         section._section_alias = alias
 
-        self.hooks.handle(Hooks.SECTION_ADDED_TO_SECTION, alias=alias, section=self, subject=section)
+        self._handle_event(self.hooks.section_added_to_section, alias=alias, section=self, subject=section)
 
     def _get_str_path_separator(self, override=None):
         if override is None or override is not_set:
@@ -664,6 +672,33 @@ class Section(BaseSection):
             return self.section.get_item_attribute(item, name)
         else:
             raise AttributeError(name)
+
+    def _hook_registered(self):
+        if self.settings.hooks_enabled is None:
+            self.settings.hooks_enabled = True
+
+    def _handle_event(self, event_, **kwargs):
+        """
+        Notes:
+            If hooks are disabled in a high-in-the-tree Config, and enabled
+            in one of its descendant Configs, events will still be handled in
+            the lower Config.
+
+        """
+
+        if self.settings.hooks_enabled:
+            result = self.hooks.handle(event_, **kwargs)
+            if result is not None:
+                return result
+
+            # Must also call hooks in parent section
+            if self.section:
+                return self.section._handle_event(event_, **kwargs)
+
+        elif self.is_config and self.section:
+            # Settings only apply to within one Config instance in the tree.
+            # Hooks still may need to be called in parent Configs.
+            self.section._handle_event(event_, **kwargs)
 
 
 class PathProxy(object):

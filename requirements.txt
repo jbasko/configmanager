@@ -3,6 +3,7 @@
 #
 six
 future
+hookery
 
 #
 # Potentially optional dependencies

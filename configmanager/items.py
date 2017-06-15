@@ -6,7 +6,6 @@ import six
 
 from .base import ItemAttribute, BaseItem
 from .exceptions import RequiredValueMissing
-from .hooks import Hooks
 from .item_types import Types
 from .utils import not_set
 
@@ -216,7 +215,7 @@ class Item(BaseItem):
         self.type.set_item_value(self, value)
         new_value = self._value
         if self.section:
-            self.section.hooks.handle(Hooks.ITEM_VALUE_CHANGED, item=self, old_value=old_value, new_value=new_value)
+            self.section._handle_event(self.section.hooks.item_value_changed, item=self, old_value=old_value, new_value=new_value)
 
     def reset(self):
         """

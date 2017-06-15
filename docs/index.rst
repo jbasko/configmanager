@@ -320,7 +320,7 @@ to be called when this exception is raised:
 .. code-block:: python
 
     @config.hooks.not_found
-    def not_found(name=None, section=None, **kwargs):
+    def not_found(name, section):
         print('A section or item called {} was requested, but it does not exist'.format(name))
 
 

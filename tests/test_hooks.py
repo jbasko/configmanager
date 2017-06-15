@@ -1,11 +1,10 @@
 import pytest
 
 from configmanager import Config, NotFound, Section
-from configmanager.hooks import Hooks
 from configmanager.utils import not_set
 
 
-def test_hooks_is_a_config_root_attribute():
+def test_hooks_available_on_all_sections():
     config = Config({
         'uploads': {
             'db': {
@@ -14,9 +13,9 @@ def test_hooks_is_a_config_root_attribute():
         }
     })
 
-    assert isinstance(config.uploads.hooks, Hooks)
-    assert isinstance(config.hooks, Hooks)
-    assert isinstance(config.uploads.db.hooks, Hooks)
+    assert config.uploads.hooks
+    assert config.hooks
+    assert config.uploads.db.hooks
 
     with pytest.raises(AttributeError):
         _ = config.uploads.db.user.hooks
