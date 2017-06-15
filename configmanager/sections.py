@@ -200,7 +200,7 @@ class Section(BaseSection):
                 resolution = self._tree[key]
             else:
                 if handle_not_found:
-                    result = self._handle_event(self.hooks.not_found, name=key, section=self)
+                    result = self._trigger_event(self.hooks.not_found, name=key, section=self)
                     if result is not None:
                         resolution = result
                     else:
@@ -305,7 +305,7 @@ class Section(BaseSection):
 
         item._section = self
 
-        self._handle_event(self.hooks.item_added_to_section, alias=alias, section=self, subject=item)
+        self._trigger_event(self.hooks.item_added_to_section, alias=alias, section=self, subject=item)
 
     def add_section(self, alias, section):
         """
@@ -325,7 +325,7 @@ class Section(BaseSection):
         section._section = self
         section._section_alias = alias
 
-        self._handle_event(self.hooks.section_added_to_section, alias=alias, section=self, subject=section)
+        self._trigger_event(self.hooks.section_added_to_section, alias=alias, section=self, subject=section)
 
     def _get_str_path_separator(self, override=None):
         if override is None or override is not_set:
@@ -677,7 +677,7 @@ class Section(BaseSection):
         if self.settings.hooks_enabled is None:
             self.settings.hooks_enabled = True
 
-    def _handle_event(self, event_, **kwargs):
+    def _trigger_event(self, event_, **kwargs):
         """
         Notes:
             If hooks are disabled in a high-in-the-tree Config, and enabled
@@ -693,12 +693,12 @@ class Section(BaseSection):
 
             # Must also call hooks in parent section
             if self.section:
-                return self.section._handle_event(event_, **kwargs)
+                return self.section._trigger_event(event_, **kwargs)
 
         elif self.is_config and self.section:
             # Settings only apply to within one Config instance in the tree.
             # Hooks still may need to be called in parent Configs.
-            self.section._handle_event(event_, **kwargs)
+            self.section._trigger_event(event_, **kwargs)
 
 
 class PathProxy(object):

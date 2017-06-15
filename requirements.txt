@@ -1,14 +1,14 @@
 #
 # Real dependencies
 #
-six
-future
-hookery
+six==1.10.0
+future==0.16.0
+hookery<0.4.0
 
 #
 # Potentially optional dependencies
 #
-configparser
+configparser==3.5.0
 
 #
 # Optional dependencies

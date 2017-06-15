@@ -215,7 +215,7 @@ class Item(BaseItem):
         self.type.set_item_value(self, value)
         new_value = self._value
         if self.section:
-            self.section._handle_event(self.section.hooks.item_value_changed, item=self, old_value=old_value, new_value=new_value)
+            self.section._trigger_event(self.section.hooks.item_value_changed, item=self, old_value=old_value, new_value=new_value)
 
     def reset(self):
         """

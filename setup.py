@@ -3,7 +3,7 @@
 
 import os
 import codecs
-from setuptools import setup, find_packages
+from setuptools import setup
 
 
 def read(fname):
@@ -26,7 +26,7 @@ setup(
     description='Extensible, object-oriented manager of configuration items and configuration trees of arbitrary depth',
     long_description=read('README.rst'),
     packages=['configmanager'],
-    install_requires=['six', 'future', 'configparser', 'hookery'],
+    install_requires=['six==1.10.0', 'future==0.16.0', 'configparser==3.5.0', 'hookery<0.4.0'],
     extras_require={
         'yaml': ['PyYAML'],
         'click': ['click'],
