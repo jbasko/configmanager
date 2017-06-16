@@ -1,3 +1,5 @@
+import collections
+
 from .utils import _get_persistence_adapter_for
 from .schema_parser import parse_config_schema
 from .meta import ConfigManagerSettings
@@ -9,7 +11,7 @@ class _TrackingContext(object):
     def __init__(self, config):
         self.config = config
         self.hook = None
-        self.changes = {}
+        self._changes = collections.defaultdict(list)
 
     def __enter__(self):
         return self.push()
@@ -19,7 +21,7 @@ class _TrackingContext(object):
 
     def _value_changed(self, item, old_value, new_value):
         if old_value != new_value:
-            self.changes[item] = new_value
+            self._changes[item].append((old_value, new_value))
 
     def push(self):
         assert self.hook is None
@@ -32,7 +34,28 @@ class _TrackingContext(object):
         assert popped is self
         self.config.hooks.unregister_hook(self.config.hooks.item_value_changed, self._value_changed)
         self.hook = None
-        return self.changes
+
+    @property
+    def changes(self):
+        values = {}
+        for k, k_changes in self._changes.items():
+            if len(k_changes) == 1:
+                values[k] = k_changes[0][1]
+            elif k_changes[0][0] != k_changes[-1][1]:
+                values[k] = k_changes[-1][1]
+        return values
+
+    def reset_changes(self, item=None):
+
+        for k, k_changes in self._changes.items():
+            if item is None or k is item:
+                # TODO This doesn't reset raw_str_value properly ...
+                k._value = k_changes[0][0]
+
+        if item is None:
+            self._changes.clear()
+        else:
+            del self._changes[item]
 
 
 class Config(Section):
