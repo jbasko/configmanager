@@ -144,9 +144,6 @@ class Item(BaseItem):
     def __str__(self):
         return repr(self)
 
-    def __eq__(self, other):
-        return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
-
     @property
     def str_value(self):
         if self.raw_str_value is not not_set:
