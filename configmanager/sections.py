@@ -653,14 +653,23 @@ class Section(BaseSection):
         else:
             return self.alias,
 
-    def item_attribute(self, f):
+    def item_attribute(self, f=None, name=None):
         """
-        Register a dynamic item attribute provider.
+        A decorator to register a dynamic item attribute provider.
+
+        By default, uses function name for attribute name. Override that with ``name=``.
         """
-        if f.__name__.startswith('_'):
-            raise RuntimeError('Invalid dynamic item attribute name -- should not start with an underscore')
-        self.__item_attributes[f.__name__] = f
-        return f
+        def decorator(func):
+            attr_name = name or func.__name__
+            if attr_name.startswith('_'):
+                raise RuntimeError('Invalid dynamic item attribute name -- should not start with an underscore')
+            self.__item_attributes[attr_name] = func
+            return func
+
+        if f is None:
+            return decorator
+        else:
+            return decorator(f)
 
     def get_item_attribute(self, item, name):
         """

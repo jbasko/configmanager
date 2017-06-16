@@ -123,3 +123,20 @@ def test_dynamic_item_attribute_all_caps_name():
 
     assert config.greeting.all_caps_name == 'GREETING'
     assert config.uploads.tmp_dir.all_caps_name == 'UPLOADS_TMP_DIR'
+
+
+def test_dynamic_item_attribute_with_custom_name():
+    config = Config({'greeting': 'Hello', 'age': 23})
+
+    @config.item_attribute(name='times_five')
+    def x(item):
+        return item.value * 5
+
+    assert config.greeting.times_five == 'HelloHelloHelloHelloHello'
+    assert config.age.times_five == 115
+
+    with pytest.raises(AttributeError):
+        _ = config.greeting.x
+
+    with pytest.raises(AttributeError):
+        _ = config.age.x
