@@ -26,7 +26,7 @@ setup(
     description='Extensible, object-oriented manager of configuration items and configuration trees of arbitrary depth',
     long_description=read('README.rst'),
     packages=['configmanager'],
-    install_requires=['six==1.10.0', 'future==0.16.0', 'configparser==3.5.0', 'hookery<0.4.0'],
+    install_requires=['six==1.10.0', 'future==0.16.0', 'configparser==3.5.0', 'hookery==0.3.2'],
     extras_require={
         'yaml': ['PyYAML'],
         'click': ['click'],
