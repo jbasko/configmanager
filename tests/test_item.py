@@ -185,13 +185,25 @@ def test_can_set_int_value_to_none():
     assert c.value is None
 
 
-def test_equality():
+def test_different_items_are_unequal_even_when_state_matches():
+    # This is so that we can have items hashable.
+    # There is no need to compare two items. Compare values or other attributes, but the whole
+    # thing is just an illusion.
+
     c = Item('a', type=str, value=None)
     cc = Item('a', type=str, value=None)
-    assert c == cc
+    assert c != cc
 
     d = Item('a', type=int, value=None)
     assert c != d
+
+
+def test_items_are_hashable():
+    c = Item('a', type=str, value=None)
+    d = Item('a', type=str, value=None)
+
+    e = {c: 1, d: 2}
+    assert e == {c:1, d:2}
 
 
 def test_item_is_equal_to_itself():

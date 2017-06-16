@@ -5,6 +5,36 @@ from .persistence import ConfigPersistenceAdapter, YamlReaderWriter, JsonReaderW
 from .sections import Section
 
 
+class _TrackingContext(object):
+    def __init__(self, config):
+        self.config = config
+        self.hook = None
+        self.changes = {}
+
+    def __enter__(self):
+        return self.push()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.pop()
+
+    def _value_changed(self, item, old_value, new_value):
+        if old_value != new_value:
+            self.changes[item] = new_value
+
+    def push(self):
+        assert self.hook is None
+        self.hook = self.config.hooks.register_hook(self.config.hooks.item_value_changed, self._value_changed)
+        self.config._tracking_contexts.append(self)
+        return self
+
+    def pop(self):
+        popped = self.config._tracking_contexts.pop()
+        assert popped is self
+        self.config.hooks.unregister_hook(self.config.hooks.item_value_changed, self._value_changed)
+        self.hook = None
+        return self.changes
+
+
 class Config(Section):
     """
     Represents a configuration tree.
@@ -104,6 +134,8 @@ class Config(Section):
 
         super(Config, self).__init__()
 
+        self._tracking_contexts = []
+
         self._configparser_adapter = None
         self._json_adapter = None
         self._yaml_adapter = None
@@ -121,6 +153,9 @@ class Config(Section):
     @property
     def settings(self):
         return self._settings
+
+    def tracking_context(self):
+        return _TrackingContext(self)
 
     @property
     def configparser(self):
