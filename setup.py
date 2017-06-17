@@ -26,7 +26,7 @@ setup(
     description='Forget about configparser, YAML, or JSON parsers. Focus on configuration.',
     long_description=read('README.rst'),
     packages=['configmanager'],
-    install_requires=['six==1.10.0', 'future==0.16.0', 'configparser==3.5.0', 'hookery==0.3.2'],
+    install_requires=['six==1.10.0', 'future==0.16.0', 'configparser==3.5.0', 'hookery >=1.1.1, <=2.0.0'],
     extras_require={
         'yaml': ['PyYAML'],
         'click': ['click'],

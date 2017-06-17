@@ -205,7 +205,7 @@ class Section(BaseSection):
                 resolution = self._tree[key]
             else:
                 if handle_not_found:
-                    result = self._trigger_event(self.hooks.not_found, name=key, section=self)
+                    result = self.dispatch_event(self.hooks.not_found, name=key, section=self)
                     if result is not None:
                         resolution = result
                     else:
@@ -314,7 +314,7 @@ class Section(BaseSection):
 
         item._section = self
 
-        self._trigger_event(self.hooks.item_added_to_section, alias=alias, section=self, subject=item)
+        self.dispatch_event(self.hooks.item_added_to_section, alias=alias, section=self, subject=item)
 
     def add_section(self, alias, section):
         """
@@ -334,7 +334,7 @@ class Section(BaseSection):
         section._section = self
         section._section_alias = alias
 
-        self._trigger_event(self.hooks.section_added_to_section, alias=alias, section=self, subject=section)
+        self.dispatch_event(self.hooks.section_added_to_section, alias=alias, section=self, subject=section)
 
     def _get_str_path_separator(self, override=None):
         if override is None or override is not_set:
@@ -695,28 +695,32 @@ class Section(BaseSection):
         if self.settings.hooks_enabled is None:
             self.settings.hooks_enabled = True
 
-    def _trigger_event(self, event_, **kwargs):
+    def dispatch_event(self, event_, **kwargs):
         """
+        Dispatch section event.
+
         Notes:
-            If hooks are disabled in a high-in-the-tree Config, and enabled
-            in one of its descendant Configs, events will still be handled in
-            the lower Config.
+            You MUST NOT call event.trigger() directly because
+            it will circumvent the section settings as well
+            as ignore the section tree.
 
+            If hooks are disabled somewhere up in the tree, and enabled
+            down below, events will still be dispatched down below because
+            that's where they originate.
         """
-
         if self.settings.hooks_enabled:
-            result = self.hooks.handle(event_, **kwargs)
+            result = self.hooks.dispatch_event(event_, **kwargs)
             if result is not None:
                 return result
 
-            # Must also call hooks in parent section
+            # Must also dispatch the event in parent section
             if self.section:
-                return self.section._trigger_event(event_, **kwargs)
+                return self.section.dispatch_event(event_, **kwargs)
 
         elif self.section:
-            # Settings only apply to one section, so must still let
-            # parent sections trigger the event
-            self.section._trigger_event(event_, **kwargs)
+            # Settings only apply to one section, so must still
+            # dispatch the event in parent sections recursively.
+            self.section.dispatch_event(event_, **kwargs)
 
 
 class PathProxy(object):

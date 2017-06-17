@@ -229,7 +229,7 @@ class Item(BaseItem):
             return
 
         if self.section:
-            self.section._trigger_event(
+            self.section.dispatch_event(
                 self.section.hooks.item_value_changed,
                 item=self,
                 old_value=old_value,
@@ -255,7 +255,7 @@ class Item(BaseItem):
             return
 
         if self.section:
-            self.section._trigger_event(
+            self.section.dispatch_event(
                 self.section.hooks.item_value_changed,
                 item=self,
                 old_value=old_value,
