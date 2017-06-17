@@ -713,9 +713,9 @@ class Section(BaseSection):
             if self.section:
                 return self.section._trigger_event(event_, **kwargs)
 
-        elif self.is_config and self.section:
-            # Settings only apply to within one Config instance in the tree.
-            # Hooks still may need to be called in parent Configs.
+        elif self.section:
+            # Settings only apply to one section, so must still let
+            # parent sections trigger the event
             self.section._trigger_event(event_, **kwargs)
 
 

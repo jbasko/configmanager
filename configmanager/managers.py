@@ -25,7 +25,7 @@ class _TrackingContext(object):
 
     def push(self):
         assert self.hook is None
-        self.hook = self.config.hooks.register_hook(self.config.hooks.item_value_changed, self._value_changed)
+        self.hook = self.config.hooks.item_value_changed.register_hook(self._value_changed)
         self.config._tracking_contexts.append(self)
         return self
 

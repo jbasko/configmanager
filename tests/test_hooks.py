@@ -352,35 +352,56 @@ def test_hooks_arent_handled_if_hooks_enabled_setting_is_set_to_falsey_value():
 
 
 def test_hooks_work_across_nested_configs():
+    config = Config({
+        'a': Config({
+            'aa': Config({
+                'aaa': 'aaa-default',
+            }),
+            'ab': {
+               'aba': 'aba-default',
+            },
+            'ac': 'ac-default',
+        }),
+        'b': {
+            'ba': Config({
+                'baa': 'baa-default',
+            }),
+            'bb': {
+                'bba': 'bba-default',
+            },
+            'bc': 'bc-default',
+        },
+        'c': 'c-default',
+    })
+
     calls = []
 
-    uploads_config = Config({
-        'db': Config({
-            'user': 'root',
-        })
-    })
+    @config.hooks.item_value_changed
+    def item_value_changed(item):
+        calls.append(('root', '.'.join(item.get_path())))
 
-    @uploads_config.hooks.item_value_changed
-    def value_changed(**kwargs):
-        calls.append(('uploads', kwargs))
-
-    config = Config({
-        'uploads': uploads_config,
-        'greeting': 'Hello',
-    })
-
-    config.greeting.value = 'Hey!'
     assert len(calls) == 0
 
-    config.uploads.db.user.value = 'admin'
+    config.c.value = 'c-1'
     assert len(calls) == 1
 
-    @config.hooks.item_value_changed
-    def value_changed(**kwargs):
-        calls.append(('main', kwargs))
+    config.a.ac.value = 'ac-1'
+    assert len(calls) == 2
 
-    uploads_config.db.user.value = 'Administrator'
+    config.a.aa.aaa.value = 'aaa-1'
     assert len(calls) == 3
+
+    config.a.ab.aba.value = 'aba-1'
+    assert len(calls) == 4
+
+    config.b.bc.value = 'bc-1'
+    assert len(calls) == 5
+
+    config.b.ba.baa.value = 'baa-1'
+    assert len(calls) == 6
+
+    config.b.bb.bba.value = 'bba-1'
+    assert len(calls) == 7
 
 
 def test_not_found_hook_not_handled_if_contains_raises_not_found(simple_config):

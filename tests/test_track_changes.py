@@ -232,3 +232,37 @@ def test_resets_single_item_changes():
 
         assert config.a.value == 'aaa'
         assert config.b.value == 'BBB'
+
+
+def test_config_of_configs():
+    config = Config({
+        'uploads': Config({
+            'a': 1,
+            'b': True,
+            'c': 'ccc',
+        }),
+        'downloads': Config({
+            'd': {
+                'e': 'eee',
+            },
+            'f': 'fff',
+        }),
+    })
+
+    with config.tracking_context() as ctx:
+        config.uploads.a.value = 2
+        config.downloads.d.e.value = 'EEE'
+        config.downloads.f.value = 'FFF'
+
+    assert len(ctx.changes) == 3
+    assert ctx.changes[config.uploads.a] == 2
+    assert ctx.changes[config.downloads.d.e] == 'EEE'
+    assert ctx.changes[config.downloads.f] == 'FFF'
+
+    assert not config.is_default
+    assert config.uploads.a.value == 2
+    assert config.downloads.d.e.value == 'EEE'
+    assert config.downloads.f.value == 'FFF'
+
+    ctx.reset_changes()
+    assert config.is_default
