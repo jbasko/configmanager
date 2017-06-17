@@ -1,61 +1,9 @@
-import collections
-
-from .utils import _get_persistence_adapter_for
-from .schema_parser import parse_config_schema
+from .changesets import _ChangesetContext
 from .meta import ConfigManagerSettings
 from .persistence import ConfigPersistenceAdapter, YamlReaderWriter, JsonReaderWriter, ConfigParserReaderWriter
+from .schema_parser import parse_config_schema
 from .sections import Section
-
-
-class _TrackingContext(object):
-    def __init__(self, config):
-        self.config = config
-        self.hook = None
-        self._changes = collections.defaultdict(list)
-
-    def __enter__(self):
-        return self.push()
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.pop()
-
-    def _value_changed(self, item, old_value, new_value):
-        if old_value != new_value:
-            self._changes[item].append((old_value, new_value))
-
-    def push(self):
-        assert self.hook is None
-        self.hook = self.config.hooks.item_value_changed.register_hook(self._value_changed)
-        self.config._tracking_contexts.append(self)
-        return self
-
-    def pop(self):
-        popped = self.config._tracking_contexts.pop()
-        assert popped is self
-        self.config.hooks.unregister_hook(self.config.hooks.item_value_changed, self._value_changed)
-        self.hook = None
-
-    @property
-    def changes(self):
-        values = {}
-        for k, k_changes in self._changes.items():
-            if len(k_changes) == 1:
-                values[k] = k_changes[0][1]
-            elif k_changes[0][0] != k_changes[-1][1]:
-                values[k] = k_changes[-1][1]
-        return values
-
-    def reset_changes(self, item=None):
-
-        for k, k_changes in self._changes.items():
-            if item is None or k is item:
-                # TODO This doesn't reset raw_str_value properly ...
-                k._value = k_changes[0][0]
-
-        if item is None:
-            self._changes.clear()
-        else:
-            del self._changes[item]
+from .utils import _get_persistence_adapter_for
 
 
 class Config(Section):
@@ -157,7 +105,7 @@ class Config(Section):
 
         super(Config, self).__init__()
 
-        self._tracking_contexts = []
+        self._changeset_contexts = []
 
         self._configparser_adapter = None
         self._json_adapter = None
@@ -177,12 +125,12 @@ class Config(Section):
     def settings(self):
         return self._settings
 
-    def tracking_context(self):
+    def changeset_context(self):
         """
         Returns:
-            _TrackingContext
+            configmanager.changesets._ChangesetContext
         """
-        return _TrackingContext(self)
+        return _ChangesetContext(self)
 
     @property
     def configparser(self):

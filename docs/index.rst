@@ -332,22 +332,24 @@ How do I manage changesets of config values?
 .. code-block:: python
     :emphasize-lines: 4,7,10,13,14
 
-    >>> config.greeting.value
+    >>> config.greeting.get()
     'Hello, world!'
 
-    >>> with config.tracking_context() as ctx:
-    ...     config.greeting.value = 'Hey, what is up!'
+    >>> with config.changeset_context() as ctx:
+    ...     config.greeting.set('Hey, what is up!')
 
-    >>> len(ctx.changes)
+    >>> len(ctx)
     1
 
-    >>> ctx.changes[config.greeting]
+    >>> ctx.values[config.greeting]
     'Hey, what is up!'
 
-    >>> ctx.reset_changes()
+    >>> ctx.changes[config.greeting]
+    Change(old_value=<NotSet>, new_value='Hey, what is up!', old_raw_str_value=<NotSet>, new_raw_str_value='Hey, what is up!')
+
+    >>> ctx.reset()
     >>> ctx.changes
     {}
 
-    >>> config.greeting.value
+    >>> config.greeting.get()
     'Hello, world!'
-

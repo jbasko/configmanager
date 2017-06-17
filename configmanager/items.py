@@ -218,6 +218,7 @@ class Item(BaseItem):
         Sets config value.
         """
         old_value = self._value
+        old_raw_str_value = self.raw_str_value
 
         self.type.set_item_value(self, value)
 
@@ -233,6 +234,8 @@ class Item(BaseItem):
                 item=self,
                 old_value=old_value,
                 new_value=new_value,
+                old_raw_str_value=old_raw_str_value,
+                new_raw_str_value=self.raw_str_value
             )
 
     def reset(self):
@@ -240,6 +243,7 @@ class Item(BaseItem):
         Resets the value of config item to its default value.
         """
         old_value = self._value
+        old_raw_str_value = self.raw_str_value
 
         self._value = not_set
         self.raw_str_value = not_set
@@ -256,9 +260,9 @@ class Item(BaseItem):
                 item=self,
                 old_value=old_value,
                 new_value=new_value,
+                old_raw_str_value=old_raw_str_value,
+                new_raw_str_value=self.raw_str_value,
             )
-
-
 
     @property
     def is_default(self):

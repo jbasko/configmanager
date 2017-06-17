@@ -23,7 +23,7 @@ setup(
     maintainer_email='jazeps.basko@gmail.com',
     license='MIT',
     url='https://github.com/jbasko/configmanager',
-    description='Extensible, object-oriented manager of configuration items and configuration trees of arbitrary depth',
+    description='Forget about configparser, YAML, or JSON parsers. Focus on configuration.',
     long_description=read('README.rst'),
     packages=['configmanager'],
     install_requires=['six==1.10.0', 'future==0.16.0', 'configparser==3.5.0', 'hookery==0.3.2'],
