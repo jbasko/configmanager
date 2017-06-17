@@ -22,6 +22,15 @@ _iter_emitters = {
 }
 
 
+class _SectionHooks(HookRegistry):
+    def __init__(self, section):
+        super(_SectionHooks, self).__init__(section)
+        self.not_found = self.register_event('not_found')
+        self.item_added_to_section = self.register_event('item_added_to_section')
+        self.section_added_to_section = self.register_event('section_added_to_section')
+        self.item_value_changed = self.register_event('item_value_changed')
+
+
 class Section(BaseSection):
     """
     Represents a section consisting of items (instances of :class:`.Item`) and other sections
@@ -43,12 +52,8 @@ class Section(BaseSection):
         #: Alias of this section with which it was added to its parent section
         self._section_alias = None
 
-        #: Hooks registry
-        self._hooks = HookRegistry(self)
-        self._hooks.not_found = self._hooks.register_event('not_found')
-        self._hooks.item_added_to_section = self._hooks.register_event('item_added_to_section')
-        self._hooks.section_added_to_section = self._hooks.register_event('section_added_to_section')
-        self._hooks.item_value_changed = self._hooks.register_event('item_value_changed')
+        # Hooks registry
+        self._hooks = _SectionHooks(self)
 
         # Listen for hook registration so we can enable per-section hooks only when they
         # are actually used.
@@ -257,7 +262,7 @@ class Section(BaseSection):
     def hooks(self):
         """
         Returns:
-            HookRegistry
+            _SectionHooks
         """
         return self._hooks
 

@@ -178,6 +178,10 @@ class Config(Section):
         return self._settings
 
     def tracking_context(self):
+        """
+        Returns:
+            _TrackingContext
+        """
         return _TrackingContext(self)
 
     @property
@@ -187,7 +191,7 @@ class Config(Section):
         ``ConfigParser`` (or the backported configparser module in Python 2).
         
         Returns:
-            :class:`.ConfigPersistenceAdapter`
+            ConfigPersistenceAdapter
         """
         if self._configparser_adapter is None:
             self._configparser_adapter = ConfigPersistenceAdapter(
@@ -204,7 +208,7 @@ class Config(Section):
         Adapter to dump/load JSON format strings and files.
         
         Returns:
-            :class:`.ConfigPersistenceAdapter`
+            ConfigPersistenceAdapter
         """
         if self._json_adapter is None:
             self._json_adapter = ConfigPersistenceAdapter(
@@ -219,7 +223,7 @@ class Config(Section):
         Adapter to dump/load YAML format strings and files.
         
         Returns:
-            :class:`.ConfigPersistenceAdapter`
+            ConfigPersistenceAdapter
         """
         if self._yaml_adapter is None:
             self._yaml_adapter = ConfigPersistenceAdapter(
@@ -232,6 +236,9 @@ class Config(Section):
     def click(self):
         """
         click extension
+
+        Returns:
+            ClickExtension
         """
         if self._click_extension is None:
             from .click_ext import ClickExtension
