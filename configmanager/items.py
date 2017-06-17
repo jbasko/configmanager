@@ -204,22 +204,61 @@ class Item(BaseItem):
             raise RequiredValueMissing(name=self.name, item=self)
         return fallback
 
+    """
+    Design comment:
+    
+    It is by design that we report not_set as old_value when value is set for the first time,
+    and not_set as new_value when item is reset.
+    This is because reporting effective value would cause inconsistency in what is reported.
+    Listeners of item_value_changed can always look into item.default or item.value.
+    """
+
     def set(self, value):
         """
         Sets config value.
         """
         old_value = self._value
+
         self.type.set_item_value(self, value)
+
         new_value = self._value
+
+        if old_value is not_set and new_value is not_set:
+            # Nothing to report
+            return
+
         if self.section:
-            self.section._trigger_event(self.section.hooks.item_value_changed, item=self, old_value=old_value, new_value=new_value)
+            self.section._trigger_event(
+                self.section.hooks.item_value_changed,
+                item=self,
+                old_value=old_value,
+                new_value=new_value,
+            )
 
     def reset(self):
         """
         Resets the value of config item to its default value.
         """
+        old_value = self._value
+
         self._value = not_set
         self.raw_str_value = not_set
+
+        new_value = self._value
+
+        if old_value is not_set:
+            # Nothing to report
+            return
+
+        if self.section:
+            self.section._trigger_event(
+                self.section.hooks.item_value_changed,
+                item=self,
+                old_value=old_value,
+                new_value=new_value,
+            )
+
+
 
     @property
     def is_default(self):

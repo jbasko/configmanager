@@ -325,3 +325,17 @@ to be called when this exception is raised:
 
 
 If this function returns anything other than ``None``, the exception will not be raised.
+
+How can I track changes of config values?
+-----------------------------------------
+
+.. code-block:: python
+
+    >>> with config.tracking_context() as ctx:
+    ...     config.greeting.value = 'Hey, what is up!'
+
+    >>> len(ctx.changes)
+    1
+
+    >>> ctx.changes[config.greeting]
+    'Hey, what is up!'

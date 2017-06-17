@@ -1,6 +1,6 @@
 import pytest
 
-from configmanager import Config, NotFound, Section
+from configmanager import Config, NotFound, Section, Item
 from configmanager.utils import not_set
 
 
@@ -253,6 +253,68 @@ def test_item_value_changed_hook():
     config.load_values({'uploads': {'db': {'user': 'NEW VALUE'}}})
     assert len(calls) == 3
     assert calls[-1] == (config.uploads.db.user, 'Administrator', 'NEW VALUE')
+
+
+def test_item_value_changed_reports_not_set_as_old_value_if_there_was_no_value_before():
+    config = Config({'a': 'aaa'})
+    calls = []
+
+    def first(old_value, new_value):
+        assert old_value is not_set
+        assert new_value == 'bbb'
+        calls.append(1)
+
+    def second(old_value, new_value):
+        assert old_value == 'bbb'
+        assert new_value == 'aaa'
+        calls.append(2)
+
+    config.hooks.register_hook('item_value_changed', first)
+    config.a.value = 'bbb'
+    config.hooks.unregister_hook('item_value_changed', first)
+
+    config.hooks.register_hook('item_value_changed', second)
+    config.a.value = 'aaa'
+    config.hooks.unregister_hook('item_value_changed', second)
+
+    assert calls == [1, 2]
+
+
+def test_item_value_changed_hook_called_on_item_reset():
+    config = Config({'a': 'aaa', 'b': 'bbb', 'c': Item()})
+    calls = []
+
+    @config.hooks.item_value_changed
+    def item_value_changed(item, old_value, new_value):
+        calls.append(item.name)
+
+    assert len(calls) == 0
+
+    config.reset()
+    assert len(calls) == 0
+
+    # Setting same value as default value triggers the event
+    config.a.value = 'aaa'
+    assert calls == ['a']
+
+    # Setting same value as the custom value before triggers the event
+    config.a.value = 'aaa'
+    assert calls == ['a', 'a']
+
+    # Actual reset
+    config.reset()
+    assert calls == ['a', 'a', 'a']
+
+
+def test_item_value_changed_hook_not_called_when_resetting_a_not_set():
+    config = Config({'a': Item()})
+
+    @config.hooks.item_value_changed
+    def item_value_changed(item, old_value, new_value):
+        raise AssertionError('This should not have been called')
+
+    config.reset()
+    config.a.value = not_set
 
 
 def test_hooks_arent_handled_if_hooks_enabled_setting_is_set_to_falsey_value():

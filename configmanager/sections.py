@@ -255,6 +255,10 @@ class Section(BaseSection):
 
     @property
     def hooks(self):
+        """
+        Returns:
+            HookRegistry
+        """
         return self._hooks
 
     @property

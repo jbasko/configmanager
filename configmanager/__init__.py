@@ -1,4 +1,4 @@
-__version__ = '1.28.0'
+__version__ = '1.29.0'
 
 from .managers import Config
 from .items import Item
