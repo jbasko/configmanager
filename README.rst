@@ -27,3 +27,45 @@ Source Code and Issue Tracking
 ------------------------------
 
 https://github.com/jbasko/configmanager
+
+Quick Start
+-----------
+
+Install from Python Package index with ``pip install configmanager``.
+
+Declare your configuration, the sources, and off you go.
+Remember, every configuration item is an object, not just a plain
+configuration value.
+If you don't need the rich features of configuration items,
+use :class:`.configmanager.PlainConfig` instead.
+
+.. code-block:: python
+
+    import warnings
+    from configmanager import Config
+
+    config = Config({
+        'uploads': {
+            'threads': 1,
+            'enabled': False,
+            'db': {
+                'user': 'root',
+                'password': {
+                    '@default': 'root',
+                    '@envvar': 'MY_UPLOADER_DB_PASSWORD',
+                },
+            }
+        }
+    }, load_sources=[
+        '/etc/my-uploader/config.ini',
+        '~/.config/my-uploader/config.json',
+    ], auto_load=True)
+
+    if config.uploads.db.user.is_default:
+        warnings.warn('Using default db user!')
+
+    if config.uploads.enabled.get():
+        connect_to_database(
+            user=config.uploads.db.user.get(),
+            password=config.uploads.db.password.get(),
+        )
