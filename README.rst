@@ -37,7 +37,7 @@ Declare your configuration, the sources, and off you go.
 Remember, every configuration item is an object, not just a plain
 configuration value.
 If you don't need the rich features of configuration items,
-use :class:`.configmanager.PlainConfig` instead.
+use ``configmanager.PlainConfig`` instead.
 
 .. code-block:: python
 
