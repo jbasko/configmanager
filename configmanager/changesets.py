@@ -7,16 +7,19 @@ _Change = collections.namedtuple('Change', field_names=(
 
 
 class _ChangesetContext(object):
-    def __init__(self, config):
+    def __init__(self, config, auto_reset=False, **unsupported_options):
         self.config = config
         self.hook = None
         self._changes = collections.defaultdict(list)
+        self._auto_reset = auto_reset
 
     def __enter__(self):
         return self.push()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.pop()
+        if self._auto_reset:
+            self.reset()
 
     def _value_changed(self, item, old_value, new_value, old_raw_str_value, new_raw_str_value):
         if old_value != new_value or old_raw_str_value != new_raw_str_value:

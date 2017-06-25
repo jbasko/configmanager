@@ -326,8 +326,44 @@ to be called when this exception is raised:
 
 If this function returns anything other than ``None``, the exception will not be raised.
 
+How to set temporary configuration?
+-----------------------------------
+
+When writing unit tests, or in other scenarios when you need to change configuration briefly just to
+execute some particular part of your code, you can create an auto-resetting configuration context by
+calling your ``Config`` instance as a function.
+
+.. code-block:: python
+
+    with config():
+        config.greeting.value = 'Bon jour!'
+
+        # do some French things here
+        pass
+
+    # French settings have been reset:
+    assert config.greeting.get() == 'Hello, world!'
+
+If you prefer to set the temporary configuration on initialisation of the context, you can do so
+by passing a values dictionary:
+
+.. code-block:: python
+
+    with config({'greeting': 'Bon jour!'}):
+        # do some French things here
+        pass
+
+Note that you cannot pass keyword arguments there, just a dictionary.
+
+
 How do I manage changesets of config values?
 --------------------------------------------
+
+The previous example used a special case of what we call a *changeset context*.
+You can explicitly create one with :meth:`.Config.changeset_context`.
+
+Unlike the special context demonstrated above, a default changeset context does not
+reset changes made while program control was inside it.
 
 .. code-block:: python
     :emphasize-lines: 4,7,10,13,14
@@ -353,3 +389,6 @@ How do I manage changesets of config values?
 
     >>> config.greeting.get()
     'Hello, world!'
+
+A changeset context comes handy when you want to create a sub-context of changes which you want to be able
+to export or persist separately from the rest of configuration changes.

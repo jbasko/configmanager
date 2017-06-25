@@ -121,16 +121,32 @@ class Config(Section):
     def __repr__(self):
         return '<{cls} {alias} at {id}>'.format(cls=self.__class__.__name__, alias=self.alias, id=id(self))
 
+    def __call__(self, values=None):
+        """
+        Returns a changeset context which auto-resets itself on exit.
+        This allows creation of temporary changes of configuration.
+
+        Do not use this in combination with non-resetting changeset contexts:
+        the behaviour under such conditions is undefined.
+
+        If ``values`` dictionary is supplied, the specified configuration values will be set
+        for the duration of the changeset context.
+        """
+        context = self.changeset_context(auto_reset=True)
+        if values is not None:
+            self.load_values(values)
+        return context
+
     @property
     def settings(self):
         return self._settings
 
-    def changeset_context(self):
+    def changeset_context(self, **options):
         """
         Returns:
             configmanager.changesets._ChangesetContext
         """
-        return _ChangesetContext(self)
+        return _ChangesetContext(self, **options)
 
     @property
     def configparser(self):

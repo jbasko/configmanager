@@ -362,3 +362,28 @@ def test_length_of_changeset_is_the_number_of_changes_and_truth_value_respects_i
         config.a.set('off')
         assert len(ctx) == 2
         assert ctx
+
+
+def test_calling_config_returns_changeset_context_which_resets_itself_on_exit():
+    from configmanager import Config
+
+    config = Config({
+        'uploads': {
+            'threads': 1,
+            'enabled': True,
+            'db': {
+                'user': 'root',
+                'password': 'secret',
+            }
+        }
+    })
+
+    with config():
+        config.uploads.threads.value = 2
+        config.uploads.db.user.value = 'admin'
+
+        assert config.uploads.threads.value == 2
+        assert config.uploads.db.user.value == 'admin'
+
+    assert config.uploads.threads.value == 1
+    assert config.uploads.db.user.value == 'root'
