@@ -175,6 +175,27 @@ class Item(BaseItem):
             return
         self._default = self.type.deserialize(value)
 
+    def _get_envvar_value(self):
+        """
+        Internal helper to get item value from an environment variable
+        if item is controlled by one, and if the variable is set.
+
+        Returns not_set otherwise.
+        """
+        envvar_name = None
+
+        if self.envvar is True:
+            envvar_name = self.envvar_name
+            if envvar_name is None:
+                envvar_name = '_'.join(self.get_path()).upper()
+        elif self.envvar:
+            envvar_name = self.envvar
+
+        if envvar_name and envvar_name in os.environ:
+            return self.type.deserialize(os.environ[envvar_name])
+        else:
+            return not_set
+
     def get(self, fallback=not_set):
         """
         Returns config value.
@@ -182,16 +203,10 @@ class Item(BaseItem):
         See Also:
             :meth:`.set` and :attr:`.value`
         """
-        if self.envvar:
-            if self.envvar is True:
-                envvar_name = self.envvar_name
-                if envvar_name is None:
-                    envvar_name = '_'.join(self.get_path()).upper()
-                if envvar_name in os.environ:
-                    return self.type.deserialize(os.environ[envvar_name])
-            else:
-                if self.envvar in os.environ:
-                    return self.type.deserialize(os.environ[self.envvar])
+
+        envvar_value = self._get_envvar_value()
+        if envvar_value is not not_set:
+            return envvar_value
 
         if self.has_value:
             if self._value is not not_set:
@@ -268,15 +283,26 @@ class Item(BaseItem):
     def is_default(self):
         """
         ``True`` if the item's value is its default value or if no value and no default value are set.
+
+        If the item is backed by an environment variable, this will be ``True`` only
+        if the environment variable is set and is different to the
+        default value of the item.
         """
-        return self._value is not_set or self._value == self.default
+        envvar_value = self._get_envvar_value()
+        if envvar_value is not not_set:
+            return envvar_value == self.default
+        else:
+            return self._value is not_set or self._value == self.default
 
     @property
     def has_value(self):
         """
         ``True`` if item has a default value or custom value set.
         """
-        return self.default is not not_set or self._value is not not_set
+        if self._get_envvar_value() is not not_set:
+            return True
+        else:
+            return self.default is not not_set or self._value is not not_set
 
     @property
     def section(self):

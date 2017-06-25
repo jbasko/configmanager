@@ -119,7 +119,7 @@ Similarly to reading, you find the appropriate persistence adapter, and use the 
 
     config.json.dump('~/.config/helloworld/config.json', with_defaults=True)
 
-Unless you also pass ``with_defaults=True``, ::dump:: will not include items who don't have a custom value set.
+Unless you also pass ``with_defaults=True``, ``dump`` will exclude values for items who have no custom value set.
 
 How do I export all configuration values to a dictionary?
 ---------------------------------------------------------

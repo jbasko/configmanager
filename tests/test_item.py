@@ -254,6 +254,17 @@ def test_is_default():
     assert e.is_default
 
 
+def test_is_default_respects_envvar(monkeypatch):
+    a = Item('a', default=5, envvar=True)
+    assert a.is_default
+
+    monkeypatch.setenv('A', '5')
+    assert a.is_default
+
+    monkeypatch.setenv('A', '6')
+    assert not a.is_default
+
+
 def test_has_value_returns_true_if_value_or_default_is_set():
     c = Item()
     assert not c.has_value
@@ -275,6 +286,14 @@ def test_has_value_returns_true_if_value_or_default_is_set():
     assert e.has_value
     e.reset()
     assert not e.has_value
+
+
+def test_has_value_respects_envvar(monkeypatch):
+    a = Item('a', envvar=True, type=int)
+    assert not a.has_value
+
+    monkeypatch.setenv('A', '5')
+    assert a.has_value
 
 
 def test_type_is_guessed_either_from_default_or_value():
