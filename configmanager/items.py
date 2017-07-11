@@ -325,3 +325,10 @@ class Item(BaseItem):
             return self.section.get_path() + (self.name,)
         else:
             return self.name,
+
+    def validate(self):
+        """
+        Validate item.
+        """
+        if self.required and not self.has_value:
+            raise RequiredValueMissing(name=self.name, item=self)

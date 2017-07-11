@@ -226,3 +226,7 @@ class Config(Section):
             adapter = getattr(self, _get_persistence_adapter_for(source))
             if adapter.store_exists(source):
                 adapter.load(source)
+
+    def validate(self):
+        for item in self.iter_items(recursive=True, key=None):
+            item.validate()
