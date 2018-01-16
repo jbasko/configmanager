@@ -15,7 +15,6 @@ Main Features
 * Any depth of sections allowed
 * INI (ConfigParser), JSON, YAML formats
 * click framework integration
-* Designed for humans
 
 
 Documentation

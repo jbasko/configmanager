@@ -4,6 +4,14 @@ from configmanager import Config, NotFound, Section, Item
 from configmanager.utils import not_set
 
 
+def sub_dict(dct, keys):
+    """
+    Helper for tests that creates a dictionary from the given dictionary
+    with just the listed keys included.
+    """
+    return {k: dct[k] for k in keys if k in dct}
+
+
 def test_hooks_available_on_all_sections():
     config = Config({
         'uploads': {
@@ -30,11 +38,11 @@ def test_not_found_hook():
 
     @config.hooks.not_found
     def first_hook(*args, **kwargs):
-        calls.append(('first', args, kwargs))
+        calls.append(('first', args, sub_dict(kwargs, ('section', 'name'))))
 
     @config.hooks.not_found
     def second_hook(*args, **kwargs):
-        calls.append(('second', args, kwargs))
+        calls.append(('second', args, sub_dict(kwargs, ('section', 'name'))))
 
     assert len(calls) == 0
 
@@ -56,7 +64,7 @@ def test_not_found_hook():
     # the hook handlers again, including any subsequent hook handlers as part of current event.
     @config.hooks.not_found
     def third_hook(*args, **kwargs):
-        calls.append(('third', args, kwargs))
+        calls.append(('third', args, sub_dict(kwargs, ('section', 'name'))))
 
         assert kwargs['section']
         assert kwargs['name']
@@ -68,7 +76,7 @@ def test_not_found_hook():
     # Fourth hook will never be called because the third hook already resolves the missing name
     @config.hooks.not_found
     def fourth_hook(*args, **kwargs):
-        calls.append(('fourth', args, kwargs))
+        calls.append(('fourth', args, sub_dict(kwargs, ('section', 'name'))))
 
     assert len(calls) == 4
 
@@ -98,11 +106,11 @@ def test_item_added_to_section_hook():
 
     @config.hooks.item_added_to_section
     def item_added_to_section(*args, **kwargs):
-        calls.append(('first', args, kwargs))
+        calls.append(('first', args, sub_dict(kwargs, ('section', 'subject', 'alias'))))
 
     @config.hooks.item_added_to_section
     def item_added_to_section2(*args, **kwargs):
-        calls.append(('second', args, kwargs))
+        calls.append(('second', args, sub_dict(kwargs, ('section', 'subject', 'alias'))))
 
     assert calls == []
 
@@ -191,11 +199,11 @@ def test_section_added_to_section_hook():
 
     @config.hooks.section_added_to_section
     def section_added_to_section1(*args, **kwargs):
-        calls.append(('on_root', args, kwargs))
+        calls.append(('on_root', args, sub_dict(kwargs, ('section', 'subject', 'alias'))))
 
     @config.uploads.hooks.section_added_to_section
     def section_added_to_section2(*args, **kwargs):
-        calls.append(('on_uploads', args, kwargs))
+        calls.append(('on_uploads', args, sub_dict(kwargs, ('section', 'subject', 'alias'))))
 
     assert calls == []
 
