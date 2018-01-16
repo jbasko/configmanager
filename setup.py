@@ -26,7 +26,7 @@ setup(
     description='Forget about configparser, YAML, or JSON parsers. Focus on configuration.',
     long_description=read('README.rst'),
     packages=['configmanager'],
-    install_requires=['six==1.10.0', 'future==0.16.0', 'configparser==3.5.0', 'hookery == 1.4.0'],
+    install_requires=['six==1.10.0', 'future==0.16.0', 'hookery >= 2.2.0, < 3.0.0'],
     extras_require={
         'yaml': ['PyYAML'],
         'click': ['click'],
@@ -35,8 +35,6 @@ setup(
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.5',
         'License :: OSI Approved :: MIT License',

@@ -4,7 +4,7 @@ import functools
 import keyword
 
 import six
-from hookery import HookRegistry
+from hookery.v1 import HookRegistry
 
 from .schema_parser import parse_config_schema
 from .meta import ConfigManagerSettings
