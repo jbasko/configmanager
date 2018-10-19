@@ -9,7 +9,7 @@ def yaml_path1(tmpdir):
     return tmpdir.join('path1.yml').strpath
 
 
-def test_config_written_to_and_read_from_yaml_file(yaml_path1, simple_config):
+def test_config_written_to_and_read_from_yaml_file(yaml_path1):
     config = Config({
         'uploads': {
             'enabled': True,
