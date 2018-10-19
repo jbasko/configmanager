@@ -574,14 +574,17 @@ class Section(BaseSection):
                         self[name] = self.create_item(name, default=value)
                 else:
                     # Skip unknown names if not interpreting dictionary as defaults
-                    continue
-            elif is_config_item(self[name]):
+                    pass
+                continue
+
+            resolution = self._get_item_or_section(name, handle_not_found=False)
+            if is_config_item(resolution):
                 if as_defaults:
-                    self[name].default = value
+                    resolution.default = value
                 else:
-                    self[name].value = value
+                    resolution.value = value
             else:
-                self[name].load_values(value, as_defaults=as_defaults)
+                resolution.load_values(value, as_defaults=as_defaults)
 
     def create_item(self, *args, **kwargs):
         """

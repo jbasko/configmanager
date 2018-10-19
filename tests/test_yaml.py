@@ -1,7 +1,7 @@
 import pytest
 import six
 
-from configmanager import Config
+from configmanager import Config, PlainConfig
 
 
 @pytest.fixture
@@ -29,6 +29,15 @@ def test_config_written_to_and_read_from_yaml_file(yaml_path1):
     config2 = Config()
     config2.yaml.load(yaml_path1, as_defaults=True)
     assert config2.dump_values() == original_values
+
+
+def test_plain_config_loaded_from_yaml_file(yaml_path1):
+    with open(yaml_path1, "w") as f:
+        f.write("name: bar\n")
+
+    config = PlainConfig(schema={"name": "foo"})
+    config.yaml.load(yaml_path1)
+    assert config["name"] == "bar"
 
 
 def test_config_written_to_and_read_from_yaml_string():
