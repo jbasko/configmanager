@@ -31,11 +31,11 @@ class PlainConfig(Config):
         self.settings.key_setter = self.__key_setter
         self.settings.key_getter = self.__key_getter
 
-    def __key_setter(self, subject=None, value=None, default_key_setter=None, **kwargs):
+    def __key_setter(self, key, subject=None, value=None, default_key_setter=None, **kwargs):
         if subject.is_item:
             subject.value = value
         else:
-            default_key_setter()
+            default_key_setter(key, value)
 
     def __key_getter(self, parent=None, subject=None, **kwargs):
         if subject.is_item:

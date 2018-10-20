@@ -170,7 +170,9 @@ class Section(BaseSection):
         if self.settings.key_setter is None:
             self._default_key_setter(key, value)
         else:
-            self.settings.key_setter(subject=self._tree[key], value=value, default_key_setter=self._default_key_setter)
+            self.settings.key_setter(
+                key=key, subject=self._tree[key], value=value, default_key_setter=self._default_key_setter,
+            )
 
     def _get_by_key(self, key, handle_not_found=True):
         """

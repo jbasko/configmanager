@@ -25,6 +25,7 @@ class ConfigManagerSettings(object):
             'key_setter': None,
             'auto_load': False,
             'load_sources': [],
+            'read_only': False,
         }
         self._factories = {
             'configparser_factory': self.create_configparser_factory,
@@ -77,3 +78,15 @@ class ConfigManagerSettings(object):
         if 'user_app_config' in self._settings:
             return self._settings['user_app_config']
         return os.path.join(self.user_config_root, self.app_name, 'config.json')
+
+    @property
+    def key_setter(self):
+        if self.read_only:
+            def read_only(key=None, **kwargs):
+                raise RuntimeError('{} is read-only'.format(key))
+            return read_only
+        return self._settings['key_setter']
+
+    @key_setter.setter
+    def key_setter(self, value):
+        self._settings['key_setter'] = value
