@@ -188,10 +188,10 @@ class YamlReaderWriter(ConfigReaderWriter):
         )
 
     def load_config_from_file(self, config, file_obj, as_defaults=False, **kwargs):
-        config.load_values(self.yaml.load(file_obj, **kwargs), as_defaults=as_defaults)
+        config.load_values(self.yaml.safe_load(file_obj, **kwargs), as_defaults=as_defaults)
 
     def load_config_from_string(self, config, string, as_defaults=False, **kwargs):
-        config.load_values(self.yaml.load(string, **kwargs), as_defaults=as_defaults)
+        config.load_values(self.yaml.safe_load(string, **kwargs), as_defaults=as_defaults)
 
 
 class ConfigParserReaderWriter(ConfigReaderWriter):

@@ -1,6 +1,8 @@
 configmanager
 =============
 
+**Update on 2019-05-13**: Version 1.35 and above require Python 3.6+.
+
 **Update on 2018-10-20**: I no longer use this library. It tries to do too many things. It was written in
 Python 2.7 and made work with Python 3. With type hints, dataclasses, and many other cool features in Python 3.6+
 you can express the same things in a much nicer way than this.
