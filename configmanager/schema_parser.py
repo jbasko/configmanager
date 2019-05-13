@@ -1,4 +1,4 @@
-import collections
+import collections.abc
 import inspect
 
 import six
@@ -14,13 +14,13 @@ def parse_config_schema(schema, parent_section=None, root=None):
             inspect.ismodule(schema)
             or
             (
-                isinstance(schema, collections.Sequence)
+                isinstance(schema, collections.abc.Sequence)
                 and len(schema) > 0
                 and isinstance(schema[0], tuple)
             )
             or
             (
-                isinstance(schema, collections.Mapping)
+                isinstance(schema, collections.abc.Mapping)
                 and len(schema) > 0
             )
         )
@@ -37,7 +37,7 @@ def parse_config_schema(schema, parent_section=None, root=None):
     elif inspect.ismodule(schema):
         return parse_config_schema(schema.__dict__, parent_section=parent_section, root=root)
 
-    elif isinstance(schema, collections.Mapping):
+    elif isinstance(schema, collections.abc.Mapping):
 
         if len(schema) == 0:
             # Empty dictionary means an empty item
@@ -46,7 +46,7 @@ def parse_config_schema(schema, parent_section=None, root=None):
         # Create a list of tuples so we can use the standard schema parser below
         return parse_config_schema([x for x in schema.items()], parent_section=parent_section, root=root)
 
-    if isinstance(schema, collections.Sequence) and not isinstance(schema, six.string_types):
+    if isinstance(schema, collections.abc.Sequence) and not isinstance(schema, six.string_types):
 
         if len(schema) == 0 or not isinstance(schema[0], tuple):
             # Declaration of an item
