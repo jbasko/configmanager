@@ -1,0 +1,1137 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>configmanager &#8212; configmanager 1.35.1 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="configmanager">
+<h1><a class="toc-backref" href="#id4"><em>configmanager</em></a><a class="headerlink" href="#configmanager" title="Permalink to this headline">¶</a></h1>
+<p><em>configmanager</em> on github: <a class="reference external" href="https://github.com/jbasko/configmanager">https://github.com/jbasko/configmanager</a></p>
+<div class="contents topic" id="contents">
+<p class="topic-title first">Contents</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#configmanager" id="id4"><em>configmanager</em></a></p>
+<ul>
+<li><p><a class="reference internal" href="#introduction" id="id5">Introduction</a></p>
+<ul>
+<li><p><a class="reference internal" href="#objectives" id="id6">Objectives</a></p>
+<ul>
+<li><p><a class="reference internal" href="#why-not-just-use-configparser" id="id7">Why not just use <code class="docutils literal notranslate"><span class="pre">ConfigParser</span></code>?</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#key-terms-and-principles" id="id8">Key Terms and Principles</a></p>
+<ul>
+<li><p><a class="reference internal" href="#configuration-item" id="id9">Configuration Item</a></p></li>
+<li><p><a class="reference internal" href="#configuration-section" id="id10">Configuration Section</a></p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#quick-start" id="id11">Quick Start</a></p></li>
+<li><p><a class="reference internal" href="#user-guide" id="id12">User Guide</a></p>
+<ul>
+<li><p><a class="reference internal" href="#schemas" id="id13">Schemas</a></p></li>
+<li><p><a class="reference internal" href="#names-aliases-and-paths" id="id14">Names, Aliases, and Paths</a></p></li>
+<li><p><a class="reference internal" href="#iterators" id="id15">Iterators</a></p>
+<ul>
+<li><p><a class="reference internal" href="#iterable-sections" id="id16">Iterable Sections</a></p></li>
+<li><p><a class="reference internal" href="#iter-all-and-iter-paths" id="id17"><code class="docutils literal notranslate"><span class="pre">iter_all</span></code> and <code class="docutils literal notranslate"><span class="pre">iter_paths</span></code></a></p>
+<ul>
+<li><p><a class="reference internal" href="#is-section-and-is-item-helpers" id="id18"><code class="docutils literal notranslate"><span class="pre">.is_section</span></code> and <code class="docutils literal notranslate"><span class="pre">.is_item</span></code> helpers</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#iter-items-and-iter-sections" id="id19"><code class="docutils literal notranslate"><span class="pre">iter_items</span></code> and <code class="docutils literal notranslate"><span class="pre">iter_sections</span></code></a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#exceptions" id="id20">Exceptions</a></p>
+<ul>
+<li><p><a class="reference internal" href="#notfound" id="id21"><code class="docutils literal notranslate"><span class="pre">NotFound</span></code></a></p></li>
+<li><p><a class="reference internal" href="#requiredvaluemissing" id="id22"><code class="docutils literal notranslate"><span class="pre">RequiredValueMissing</span></code></a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#hooks" id="id23">Hooks</a></p>
+<ul>
+<li><p><a class="reference internal" href="#config-hooks-not-found" id="id24"><code class="docutils literal notranslate"><span class="pre">Config.hooks.not_found</span></code></a></p></li>
+<li><p><a class="reference internal" href="#config-hooks-item-added-to-section" id="id25"><code class="docutils literal notranslate"><span class="pre">Config.hooks.item_added_to_section</span></code></a></p></li>
+<li><p><a class="reference internal" href="#config-hooks-section-added-to-section" id="id26"><code class="docutils literal notranslate"><span class="pre">Config.hooks.section_added_to_section</span></code></a></p></li>
+<li><p><a class="reference internal" href="#config-hooks-item-value-changed" id="id27"><code class="docutils literal notranslate"><span class="pre">Config.hooks.item_value_changed</span></code></a></p></li>
+<li><p><a class="reference internal" href="#how-to-disable-hooks" id="id28">How to disable hooks?</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#click-integration" id="id29">click Integration</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#module-configmanager" id="id30">API Reference</a></p>
+<ul>
+<li><p><a class="reference internal" href="#public-interface" id="id31">Public Interface</a></p>
+<ul>
+<li><p><a class="reference internal" href="#config" id="id32"><code class="docutils literal notranslate"><span class="pre">Config</span></code></a></p></li>
+<li><p><a class="reference internal" href="#item" id="id33"><code class="docutils literal notranslate"><span class="pre">Item</span></code></a></p></li>
+<li><p><a class="reference internal" href="#configpersistenceadapter" id="id34"><code class="docutils literal notranslate"><span class="pre">ConfigPersistenceAdapter</span></code></a></p></li>
+<li><p><a class="reference internal" href="#id1" id="id35">Exceptions</a></p>
+<ul>
+<li><p><a class="reference internal" href="#configerror" id="id36"><code class="docutils literal notranslate"><span class="pre">ConfigError</span></code></a></p></li>
+<li><p><a class="reference internal" href="#id2" id="id37"><code class="docutils literal notranslate"><span class="pre">NotFound</span></code></a></p></li>
+<li><p><a class="reference internal" href="#id3" id="id38"><code class="docutils literal notranslate"><span class="pre">RequiredValueMissing</span></code></a></p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#design" id="id39">Design</a></p>
+<ul>
+<li><p><a class="reference internal" href="#key-section-item-and-item-value-access" id="id40">Key, Section, Item, and Item Value Access</a></p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="introduction">
+<h2><a class="toc-backref" href="#id5">Introduction</a><a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="objectives">
+<h3><a class="toc-backref" href="#id6">Objectives</a><a class="headerlink" href="#objectives" title="Permalink to this headline">¶</a></h3>
+<p>Provide a clean, object-oriented interface to:</p>
+<ol class="arabic simple">
+<li><p>declare configuration items; organise them into a configuration tree of arbitrary depth</p></li>
+<li><p>parse various configuration sources and initialise configuration items accordingly</p></li>
+<li><p>read values of configuration items</p></li>
+<li><p>change values of configuration items</p></li>
+<li><p>write configuration to various destinations</p></li>
+<li><p>enrich configuration items with additional meta information and more advanced methods of calculating values at run-time.</p></li>
+<li><p>inspect meta information of configuration items</p></li>
+</ol>
+<div class="section" id="why-not-just-use-configparser">
+<h4><a class="toc-backref" href="#id7">Why not just use <code class="docutils literal notranslate"><span class="pre">ConfigParser</span></code>?</a><a class="headerlink" href="#why-not-just-use-configparser" title="Permalink to this headline">¶</a></h4>
+<p><code class="docutils literal notranslate"><span class="pre">ConfigParser</span></code> does what its name suggests – it parses configuration files (of one certain
+format).</p>
+<p>It only starts to appear quite limited if you misuse it as a configuration manager.
+By configuration manager we mean a party responsible for things like
+managing a list of allowed configuration items and their defaults, loading custom configuration values from
+different sources (files, command-line arguments, environment variables etc.), casting values to their right types,
+providing interface to retrieve these values consistently.
+Just because an instance of <code class="docutils literal notranslate"><span class="pre">ConfigParser</span></code> holds the data it has parsed doesn’t mean it
+should be used in application code to look up configuration values.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">ConfigParser</span></code> is used as a configuration manager some of its limitations are:</p>
+<ul class="simple">
+<li><p>a configuration value is just a string which is cast to the right type only if you specifically ask to
+every time when you are looking it up.</p></li>
+<li><p>a configuration item (called option in <code class="docutils literal notranslate"><span class="pre">ConfigParser</span></code>) must belong to a section.</p></li>
+<li><p>you can’t have configuration trees deeper than one section + one option.</p></li>
+<li><p>it only supports INI-format files.</p></li>
+</ul>
+</div>
+</div>
+<div class="section" id="key-terms-and-principles">
+<h3><a class="toc-backref" href="#id8">Key Terms and Principles</a><a class="headerlink" href="#key-terms-and-principles" title="Permalink to this headline">¶</a></h3>
+<p>Configuration of a system is a hierarchical tree of arbitrary depth in which leaf nodes are configuration items,
+and non-leaf nodes are configuration sections.</p>
+<p>Each sub-tree (section) of the tree can be regarded as a configuration of a sub-system.</p>
+<p>Configuration can also be seen as a collection of key-value pairs in which value is a configuration item (including its
+name and state), and key is the path of the item in the tree.</p>
+<p>All referenced configuration sections and items have to be declared before they are used to stop user from referring to
+non-existent, mistyped configuration paths.</p>
+<div class="section" id="configuration-item">
+<h4><a class="toc-backref" href="#id9">Configuration Item</a><a class="headerlink" href="#configuration-item" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li><p>has a <em>name</em></p></li>
+<li><p>has a <em>type</em></p></li>
+<li><p>has a <em>value</em> which is determined dynamically when requested</p></li>
+<li><p>may have a <em>default value</em> which is returned as its value when no custom value is set</p></li>
+<li><p>may have a <em>custom value</em> which overrides the default value</p></li>
+<li><p>may be marked as <em>required</em> in which case either a custom value or default value has to be available when item’s value
+is requested.</p></li>
+<li><p>may have its value requested using <a class="reference internal" href="#configmanager.Item.get" title="configmanager.Item.get"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Item.get()</span></code></a> which accepts a <em>fallback</em> which is used when neither
+a default value, nor a custom value is available.</p></li>
+<li><p>does NOT know its path in a configuration tree</p></li>
+<li><p>knows the section it has been added to</p></li>
+<li><p>can be extended with other attributes and to consult other sources to calculate its value</p></li>
+</ul>
+</div>
+<div class="section" id="configuration-section">
+<h4><a class="toc-backref" href="#id10">Configuration Section</a><a class="headerlink" href="#configuration-section" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li><p>is an ordered collection of named items and named sections</p></li>
+<li><p>has a <em>name</em> which is assigned to it when it is added to a parent section. Root section does not have a name</p></li>
+</ul>
+</div>
+</div>
+</div>
+<div class="section" id="quick-start">
+<h2><a class="toc-backref" href="#id11">Quick Start</a><a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic">
+<li><p>Install the latest version from pypi.python.org</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">configmanager</span>
+</pre></div>
+</div>
+</li>
+<li><p>Import <a class="reference internal" href="#configmanager.Config" title="configmanager.Config"><code class="xref py py-class docutils literal notranslate"><span class="pre">Config</span></code></a>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">configmanager</span> <span class="kn">import</span> <span class="n">Config</span>
+</pre></div>
+</div>
+</li>
+<li><p>Create your main config section and declare defaults.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">([</span>
+    <span class="p">(</span><span class="s1">&#39;greeting&#39;</span><span class="p">,</span> <span class="s1">&#39;Hello, world!&#39;</span><span class="p">),</span>
+<span class="p">])</span>
+</pre></div>
+</div>
+</li>
+<li><p>Inspect config values.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="o">.</span><span class="n">greeting</span><span class="o">.</span><span class="n">value</span>
+<span class="go">&#39;Hello, world!&#39;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="o">.</span><span class="n">dump_values</span><span class="p">()</span>
+<span class="go">{&#39;greeting&#39;: &#39;Hello, world!&#39;}</span>
+</pre></div>
+</div>
+</li>
+<li><p>Change config values.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="o">.</span><span class="n">greeting</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="s1">&#39;Hey!&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="o">.</span><span class="n">greeting</span><span class="o">.</span><span class="n">value</span>
+<span class="go">&#39;Hey!&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="o">.</span><span class="n">greeting</span><span class="o">.</span><span class="n">default</span>
+<span class="go">&#39;Hello, world!&#39;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="o">.</span><span class="n">load_values</span><span class="p">({</span><span class="s1">&#39;greeting&#39;</span><span class="p">:</span> <span class="s1">&#39;Good evening!&#39;</span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="o">.</span><span class="n">greeting</span><span class="o">.</span><span class="n">value</span>
+<span class="go">&#39;Good evening!&#39;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="o">.</span><span class="n">dump_values</span><span class="p">()</span>
+<span class="go">{&#39;greeting&#39;: &#39;Good evening!&#39;}</span>
+</pre></div>
+</div>
+</li>
+<li><p>Persist the configuration.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">config</span><span class="o">.</span><span class="n">configparser</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="s1">&#39;config.ini&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</div>
+<div class="section" id="user-guide">
+<h2><a class="toc-backref" href="#id12">User Guide</a><a class="headerlink" href="#user-guide" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="schemas">
+<h3><a class="toc-backref" href="#id13">Schemas</a><a class="headerlink" href="#schemas" title="Permalink to this headline">¶</a></h3>
+<p>By default, <em>configmanager</em> requires user to declare all configuration items that their application code depends on
+in schemas. Our view is that if the set of available configuration items varies then it’s not
+really a configuration anymore.</p>
+<p>A schema is basically a listing of what sections and items are there. The simplest way to declare a section
+is to pass a dictionary to <a class="reference internal" href="#configmanager.Config" title="configmanager.Config"><code class="xref py py-class docutils literal notranslate"><span class="pre">Config</span></code></a> initialiser:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">configmanager</span> <span class="kn">import</span> <span class="n">Config</span>
+
+<span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">({</span>
+    <span class="s1">&#39;user&#39;</span><span class="p">:</span> <span class="s1">&#39;admin&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;password&#39;</span><span class="p">:</span> <span class="s1">&#39;secret&#39;</span><span class="p">,</span>
+<span class="p">})</span>
+</pre></div>
+</div>
+<p>The code above creates a configuration section that will manage two configuration items, <code class="docutils literal notranslate"><span class="pre">user</span></code> and <code class="docutils literal notranslate"><span class="pre">password</span></code>, with
+default values set to <code class="docutils literal notranslate"><span class="pre">admin</span></code> and <code class="docutils literal notranslate"><span class="pre">secret</span></code> respectively, and both declared as having type <code class="docutils literal notranslate"><span class="pre">string</span></code> (guessed
+from the default value provided).</p>
+<p>If all your configuration values are strings with no default values (an anti-pattern in our view), you can declare
+them by passing a list of strings:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># anti-pattern: lots of configuration items with no defaults</span>
+<span class="n">db_config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">([</span><span class="s1">&#39;host&#39;</span><span class="p">,</span> <span class="s1">&#39;user&#39;</span><span class="p">,</span> <span class="s1">&#39;password&#39;</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>The first example was better by providing some sensible defaults, but it is not how you want to declare your
+configuration. We believe that the order of items and sections in configuration matters, so a better schema
+would either pass an <code class="docutils literal notranslate"><span class="pre">OrderedDict</span></code>, or a list of <code class="docutils literal notranslate"><span class="pre">(name,</span> <span class="pre">default_value)</span></code> pairs:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">([</span>
+    <span class="p">(</span><span class="s1">&#39;user&#39;</span><span class="p">,</span> <span class="s1">&#39;admin&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;password&#39;</span><span class="p">,</span> <span class="s1">&#39;secret&#39;</span><span class="p">),</span>
+<span class="p">])</span>
+</pre></div>
+</div>
+<p>Default value is not the only thing that can be specified in schema. If we pass a list of <code class="xref py py-class docutils literal notranslate"><span class="pre">Item</span></code> instances
+then we allow ourselves to be more specific:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">configmanager</span> <span class="kn">import</span> <span class="n">Config</span><span class="p">,</span> <span class="n">Item</span>
+
+<span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">([</span>
+    <span class="p">(</span><span class="s1">&#39;hostname&#39;</span><span class="p">,</span> <span class="s1">&#39;localhost&#39;</span><span class="p">),</span>  <span class="c1"># it&#39;s ok</span>
+    <span class="p">(</span><span class="s1">&#39;port&#39;</span><span class="p">,</span> <span class="n">Item</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="bp">True</span><span class="p">)),</span>  <span class="c1"># better</span>
+    <span class="n">Item</span><span class="p">(</span><span class="s1">&#39;enabled&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">False</span><span class="p">),</span>  <span class="c1"># name can be set directly on Item</span>
+<span class="p">])</span>
+</pre></div>
+</div>
+<p>Sections can also contain other sections. In the example below, we use dictionary notation just for clarity –
+you are advised to use the list of tuples notation to preserve order of sections and items.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">logging_config</span>  <span class="c1"># module in which you configure logging</span>
+
+<span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">({</span>
+    <span class="s1">&#39;uploads&#39;</span><span class="p">:</span> <span class="p">{</span>  <span class="c1"># this will become a Config too</span>
+        <span class="s1">&#39;enabled&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="s1">&#39;tmp_dir&#39;</span><span class="p">:</span> <span class="s1">&#39;/tmp&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;db&#39;</span><span class="p">:</span> <span class="p">{</span>  <span class="c1"># and this will become a Config</span>
+            <span class="s1">&#39;user&#39;</span><span class="p">:</span> <span class="s1">&#39;root&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;password&#39;</span><span class="p">:</span> <span class="s1">&#39;secret&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;host&#39;</span><span class="p">:</span> <span class="s1">&#39;localhost&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;exampledb&#39;</span><span class="p">,</span>
+        <span class="p">},</span>
+    <span class="p">},</span>
+    <span class="s1">&#39;logging&#39;</span><span class="p">:</span> <span class="n">logging_config</span><span class="p">,</span>  <span class="c1"># a Python module is also a valid part of schema</span>
+<span class="p">})</span>
+</pre></div>
+</div>
+<p>This allows to maintain multiple <code class="docutils literal notranslate"><span class="pre">Config</span></code> instances, one for each component of your code, which are then combined
+into a containing instance only when you have a component that relies on configuration of multiple components.</p>
+</div>
+<div class="section" id="names-aliases-and-paths">
+<h3><a class="toc-backref" href="#id14">Names, Aliases, and Paths</a><a class="headerlink" href="#names-aliases-and-paths" title="Permalink to this headline">¶</a></h3>
+<p>The examples that follow will rely on this instance of <a class="reference internal" href="#configmanager.Config" title="configmanager.Config"><code class="xref py py-class docutils literal notranslate"><span class="pre">Config</span></code></a>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">([</span>
+    <span class="p">(</span><span class="s1">&#39;uploads&#39;</span><span class="p">,</span> <span class="n">Config</span><span class="p">([</span>
+        <span class="p">(</span><span class="s1">&#39;enabled&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+    <span class="p">])),</span>
+    <span class="p">(</span><span class="s1">&#39;greeting&#39;</span><span class="p">,</span> <span class="s1">&#39;Hello&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;tmp_dir&#39;</span><span class="p">,</span> <span class="s1">&#39;/tmp&#39;</span><span class="p">),</span>
+<span class="p">])</span>
+</pre></div>
+</div>
+<p><em>Name</em> of a configuration item or <em>alias</em> of a configuration section is a string which has to be unique in the section
+to which the item or the section is added. In the example above, <code class="docutils literal notranslate"><span class="pre">'uploads'</span></code> is an alias for a section, <code class="docutils literal notranslate"><span class="pre">'enabled'</span></code>
+is a name, and so are <code class="docutils literal notranslate"><span class="pre">'greeting'</span></code>, and <code class="docutils literal notranslate"><span class="pre">'tmp_dir'</span></code>.
+Note that the root section – the configuration tree – does not have an alias.</p>
+<p><em>Path</em> of an item or section is a tuple of names and aliases describing the item’s or section’s place in a
+configuration tree. In the example above, <code class="docutils literal notranslate"><span class="pre">('uploads',)</span></code>, <code class="docutils literal notranslate"><span class="pre">('uploads',</span> <span class="pre">'enabled')</span></code>, <code class="docutils literal notranslate"><span class="pre">('greeting',)</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">('tmp_dir',)</span></code> are all the existing paths.</p>
+<p>Note that the path of an item is relative to where you observe it from. If you were iterating over all paths of
+<code class="docutils literal notranslate"><span class="pre">'uploads'</span></code> section, the path of its only item would be <code class="docutils literal notranslate"><span class="pre">('enabled',)</span></code>, not <code class="docutils literal notranslate"><span class="pre">('uploads',</span> <span class="pre">'enabled')</span></code>.</p>
+<p>Names of items and aliases of sections have no meaning when traversing the configuration tree recursively, so iterators
+that do that yield paths instead.</p>
+<p>If you have a name of an item or an alias of a section, for example, <code class="docutils literal notranslate"><span class="pre">greeting</span></code>, you can retrieve it from its
+parent section in two ways:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="o">.</span><span class="n">greeting</span>
+<span class="go">&lt;Item greeting &#39;Hello&#39;&gt;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;greeting&#39;</span><span class="p">]</span>
+<span class="go">&lt;Item greeting &#39;Hello&#39;&gt;</span>
+</pre></div>
+</div>
+<p>To retrieve a section or an item using its path, you have to know the root section relative to which the path
+was generated and use the <code class="docutils literal notranslate"><span class="pre">[]</span></code> notation:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="p">[(</span><span class="s1">&#39;greeting&#39;</span><span class="p">,)]</span>
+<span class="go">&lt;Item greeting &#39;Hello&#39;&gt;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="p">[(</span><span class="s1">&#39;uploads&#39;</span><span class="p">,)]</span>
+<span class="go">&lt;Config uploads at 4436269600&gt;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="p">[(</span><span class="s1">&#39;uploads&#39;</span><span class="p">,</span> <span class="s1">&#39;enabled&#39;</span><span class="p">)]</span>
+<span class="go">&lt;Item enabled True&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="iterators">
+<h3><a class="toc-backref" href="#id15">Iterators</a><a class="headerlink" href="#iterators" title="Permalink to this headline">¶</a></h3>
+<p><em>configmanager</em> provides several handy iterators to walk through items and sections of a configuration tree (which
+itself is a section).</p>
+<p>The examples that follow will rely on this instance of <a class="reference internal" href="#configmanager.Config" title="configmanager.Config"><code class="xref py py-class docutils literal notranslate"><span class="pre">Config</span></code></a>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">([</span>
+    <span class="p">(</span><span class="s1">&#39;uploads&#39;</span><span class="p">,</span> <span class="n">Config</span><span class="p">([</span>
+        <span class="p">(</span><span class="s1">&#39;enabled&#39;</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span>
+    <span class="p">])),</span>
+    <span class="p">(</span><span class="s1">&#39;greeting&#39;</span><span class="p">,</span> <span class="s1">&#39;Hello&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;tmp_dir&#39;</span><span class="p">,</span> <span class="s1">&#39;/tmp&#39;</span><span class="p">),</span>
+<span class="p">])</span>
+</pre></div>
+</div>
+<div class="section" id="iterable-sections">
+<h4><a class="toc-backref" href="#id16">Iterable Sections</a><a class="headerlink" href="#iterable-sections" title="Permalink to this headline">¶</a></h4>
+<p>An instance of <a class="reference internal" href="#configmanager.Config" title="configmanager.Config"><code class="xref py py-class docutils literal notranslate"><span class="pre">Config</span></code></a> (which is used to represent both sections and the whole configuration tree) is an
+iterable, and iterating over it will yield names of sections and items contained directly in it.
+Note that sub-sections aren’t inspected.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">print</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+<span class="gp">...</span>
+<span class="go">uploads</span>
+<span class="go">greeting</span>
+<span class="go">tmp_dir</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">uploads</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">print</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+<span class="go">enabled</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">len()</span></code> of a section will return number of items and sections it contains.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+<span class="go">3</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">uploads</span><span class="p">)</span>
+<span class="go">1</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="iter-all-and-iter-paths">
+<h4><a class="toc-backref" href="#id17"><code class="docutils literal notranslate"><span class="pre">iter_all</span></code> and <code class="docutils literal notranslate"><span class="pre">iter_paths</span></code></a><a class="headerlink" href="#iter-all-and-iter-paths" title="Permalink to this headline">¶</a></h4>
+<p><a class="reference internal" href="#configmanager.Config.iter_all" title="configmanager.Config.iter_all"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Config.iter_all()</span></code></a> is the main iterator that is used by all others. It yields key-value pairs where keys
+are paths and values are sections or items. It accepts an optional <code class="docutils literal notranslate"><span class="pre">recursive=</span></code> kwarg which if set to <code class="docutils literal notranslate"><span class="pre">True</span></code>
+will make the iterator yield contents of sub-sections too.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">iter_all</span><span class="p">(</span><span class="n">recursive</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">print</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
+<span class="gp">...</span>
+<span class="go">(&#39;uploads&#39;,) &lt;Config uploads at 4436269600&gt;</span>
+<span class="go">(&#39;uploads&#39;, &#39;enabled&#39;) &lt;Item enabled True&gt;</span>
+<span class="go">(&#39;greeting&#39;,) &lt;Item greeting &#39;Hello&#39;&gt;</span>
+<span class="go">(&#39;tmp_dir&#39;,) &lt;Item tmp_dir &#39;/tmp&#39;&gt;</span>
+</pre></div>
+</div>
+<p>If you wish to just iterate over all available paths, you can do so with <a class="reference internal" href="#configmanager.Config.iter_paths" title="configmanager.Config.iter_paths"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Config.iter_paths()</span></code></a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">list</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">iter_paths</span><span class="p">(</span><span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+<span class="go">[(&#39;uploads&#39;,), (&#39;uploads&#39;, &#39;enabled&#39;), (&#39;greeting&#39;,), (&#39;tmp_dir&#39;,)]</span>
+</pre></div>
+</div>
+<div class="section" id="is-section-and-is-item-helpers">
+<h5><a class="toc-backref" href="#id18"><code class="docutils literal notranslate"><span class="pre">.is_section</span></code> and <code class="docutils literal notranslate"><span class="pre">.is_item</span></code> helpers</a><a class="headerlink" href="#is-section-and-is-item-helpers" title="Permalink to this headline">¶</a></h5>
+<p>When traversing a configuration tree with <a class="reference internal" href="#configmanager.Config.iter_all" title="configmanager.Config.iter_all"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Config.iter_all()</span></code></a>, you may want to easily detect whether you are
+looking at a section or an item. You can do that by inspecting <code class="docutils literal notranslate"><span class="pre">.is_section</span></code> and <code class="docutils literal notranslate"><span class="pre">.is_item</span></code> which are defined
+on <a class="reference internal" href="#configmanager.Config" title="configmanager.Config"><code class="xref py py-class docutils literal notranslate"><span class="pre">Config</span></code></a> as well as on <a class="reference internal" href="#configmanager.Item" title="configmanager.Item"><code class="xref py py-class docutils literal notranslate"><span class="pre">Item</span></code></a>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="o">.</span><span class="n">is_section</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="o">.</span><span class="n">is_item</span>
+<span class="go">False</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="o">.</span><span class="n">greeting</span><span class="o">.</span><span class="n">is_section</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="o">.</span><span class="n">greeting</span><span class="o">.</span><span class="n">is_item</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="iter-items-and-iter-sections">
+<h4><a class="toc-backref" href="#id19"><code class="docutils literal notranslate"><span class="pre">iter_items</span></code> and <code class="docutils literal notranslate"><span class="pre">iter_sections</span></code></a><a class="headerlink" href="#iter-items-and-iter-sections" title="Permalink to this headline">¶</a></h4>
+<p>If you know that you only care about items or only about sections, you can use
+<a class="reference internal" href="#configmanager.Config.iter_items" title="configmanager.Config.iter_items"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Config.iter_items()</span></code></a> and <a class="reference internal" href="#configmanager.Config.iter_sections" title="configmanager.Config.iter_sections"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Config.iter_sections()</span></code></a> which accept not only <code class="docutils literal notranslate"><span class="pre">recursive=</span></code> kwarg,
+but also <code class="docutils literal notranslate"><span class="pre">key=</span></code> which determines what is returned as key in key-value pairs.</p>
+<p>By default, path of the returned item or section is used as the key:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">iter_items</span><span class="p">(</span><span class="n">recursive</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+<span class="gp">... </span> <span class="k">print</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+<span class="gp">...</span>
+<span class="go">(&#39;uploads&#39;, &#39;enabled&#39;) &lt;Item enabled True&gt;</span>
+<span class="go">(&#39;greeting&#39;,) &lt;Item greeting &#39;Hello&#39;&gt;</span>
+<span class="go">(&#39;tmp_dir&#39;,) &lt;Item tmp_dir &#39;/tmp&#39;&gt;</span>
+</pre></div>
+</div>
+<p>To get item names or section aliases (plain strings) as keys, use <code class="docutils literal notranslate"><span class="pre">key='alias'</span></code> for sections and <code class="docutils literal notranslate"><span class="pre">key='name'</span></code>
+for items.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">iter_items</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s1">&#39;name&#39;</span><span class="p">):</span>
+<span class="gp">... </span> <span class="nb">print</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+<span class="gp">...</span>
+<span class="go">greeting &lt;Item greeting &#39;Hello&#39;&gt;</span>
+<span class="go">tmp_dir &lt;Item tmp_dir &#39;/tmp&#39;&gt;</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">alias</span><span class="p">,</span> <span class="n">section</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">iter_sections</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="s1">&#39;alias&#39;</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="n">alias</span><span class="p">,</span> <span class="n">section</span><span class="p">)</span>
+<span class="gp">...</span>
+<span class="go">uploads &lt;Config uploads at 4436269600&gt;</span>
+</pre></div>
+</div>
+<p>Note that using <code class="docutils literal notranslate"><span class="pre">alias</span></code> or <code class="docutils literal notranslate"><span class="pre">name</span></code> as key doesn’t make much sense in recursive context
+(<code class="docutils literal notranslate"><span class="pre">recursive=True</span></code>) as keys yielded from one section may clash with those from another.
+For example, <code class="docutils literal notranslate"><span class="pre">('uploads',</span> <span class="pre">'tmp_dir')</span></code> would have the same key as <code class="docutils literal notranslate"><span class="pre">('downloads',</span> <span class="pre">'tmp_dir')</span></code>.</p>
+</div>
+</div>
+<div class="section" id="exceptions">
+<h3><a class="toc-backref" href="#id20">Exceptions</a><a class="headerlink" href="#exceptions" title="Permalink to this headline">¶</a></h3>
+<p>All exception types raised by <em>configmanager</em> that program can recover from inherit <a class="reference internal" href="#configmanager.ConfigError" title="configmanager.ConfigError"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigError</span></code></a>.</p>
+<div class="section" id="notfound">
+<h4><a class="toc-backref" href="#id21"><code class="docutils literal notranslate"><span class="pre">NotFound</span></code></a><a class="headerlink" href="#notfound" title="Permalink to this headline">¶</a></h4>
+<p>When an unknown configuration item or section is requested, a <a class="reference internal" href="#configmanager.NotFound" title="configmanager.NotFound"><code class="xref py py-class docutils literal notranslate"><span class="pre">NotFound</span></code></a> exception is raised.</p>
+</div>
+<div class="section" id="requiredvaluemissing">
+<h4><a class="toc-backref" href="#id22"><code class="docutils literal notranslate"><span class="pre">RequiredValueMissing</span></code></a><a class="headerlink" href="#requiredvaluemissing" title="Permalink to this headline">¶</a></h4>
+<p>When an item with no default value and no custom value set is marked required and has its value requested,
+a <a class="reference internal" href="#configmanager.RequiredValueMissing" title="configmanager.RequiredValueMissing"><code class="xref py py-class docutils literal notranslate"><span class="pre">RequiredValueMissing</span></code></a> exception is raised.</p>
+</div>
+</div>
+<div class="section" id="hooks">
+<h3><a class="toc-backref" href="#id23">Hooks</a><a class="headerlink" href="#hooks" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="config-hooks-not-found">
+<h4><a class="toc-backref" href="#id24"><code class="docutils literal notranslate"><span class="pre">Config.hooks.not_found</span></code></a><a class="headerlink" href="#config-hooks-not-found" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code>, the name that was requested and was not found</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">section</span></code>, the section in which the name was requested</p></li>
+</ul>
+</div>
+<div class="section" id="config-hooks-item-added-to-section">
+<h4><a class="toc-backref" href="#id25"><code class="docutils literal notranslate"><span class="pre">Config.hooks.item_added_to_section</span></code></a><a class="headerlink" href="#config-hooks-item-added-to-section" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">subject</span></code> - item which was added</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">section</span></code> - section to which the <code class="docutils literal notranslate"><span class="pre">subject</span></code> item was added</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">alias</span></code> - name under which the <code class="docutils literal notranslate"><span class="pre">subject</span></code> item was added</p></li>
+</ul>
+</div>
+<div class="section" id="config-hooks-section-added-to-section">
+<h4><a class="toc-backref" href="#id26"><code class="docutils literal notranslate"><span class="pre">Config.hooks.section_added_to_section</span></code></a><a class="headerlink" href="#config-hooks-section-added-to-section" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">subject</span></code> - subject which was added</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">section</span></code> - parent section to which the <code class="docutils literal notranslate"><span class="pre">subject</span></code> section was added</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">alias</span></code> - name under which the <code class="docutils literal notranslate"><span class="pre">subject</span></code> section was added</p></li>
+</ul>
+</div>
+<div class="section" id="config-hooks-item-value-changed">
+<h4><a class="toc-backref" href="#id27"><code class="docutils literal notranslate"><span class="pre">Config.hooks.item_value_changed</span></code></a><a class="headerlink" href="#config-hooks-item-value-changed" title="Permalink to this headline">¶</a></h4>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">item</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">old_value</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">new_value</span></code></p></li>
+</ul>
+</div>
+<div class="section" id="how-to-disable-hooks">
+<h4><a class="toc-backref" href="#id28">How to disable hooks?</a><a class="headerlink" href="#how-to-disable-hooks" title="Permalink to this headline">¶</a></h4>
+<p>Hooks are enabled by default whenever a first hook is registered, but can be manually disabled
+by passing <code class="docutils literal notranslate"><span class="pre">hooks_enabled=False</span></code> when initialising <a class="reference internal" href="#configmanager.Config" title="configmanager.Config"><code class="xref py py-class docutils literal notranslate"><span class="pre">Config</span></code></a>.</p>
+</div>
+</div>
+<div class="section" id="click-integration">
+<h3><a class="toc-backref" href="#id29">click Integration</a><a class="headerlink" href="#click-integration" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference external" href="http://click.pocoo.org/6/">click</a> is the best framework out there to create usable command-line interfaces with readable code.
+If you are a <em>click</em> user, you will find it easy to make your options and arguments fall back to
+configuration items when user does not specify values for them in the command line.</p>
+<p><em>configmanager</em> dependencies don’t include <em>click</em> package as it is an optional feature. To install <em>configmanger</em>
+with <em>click</em>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">configmanager</span><span class="p">[</span><span class="n">click</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>In your <em>click</em> command definition, instead of using <code class="docutils literal notranslate"><span class="pre">click.option</span></code> and <code class="docutils literal notranslate"><span class="pre">click.argument</span></code>,
+use <code class="docutils literal notranslate"><span class="pre">&lt;config&gt;.click.option</span></code> and <code class="docutils literal notranslate"><span class="pre">&lt;config&gt;.click.argument</span></code> where <code class="docutils literal notranslate"><span class="pre">&lt;config&gt;</span></code> is your instance of
+<a class="reference internal" href="#configmanager.Config" title="configmanager.Config"><code class="xref py py-class docutils literal notranslate"><span class="pre">Config</span></code></a>.</p>
+<p>To specify which configuration item is to be used as a fallback, pass it as the last positional argument to
+<code class="docutils literal notranslate"><span class="pre">&lt;config&gt;.click.option</span></code> or <code class="docutils literal notranslate"><span class="pre">&lt;config&gt;.click.argument</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">click</span>
+<span class="kn">from</span> <span class="nn">configmanager</span> <span class="kn">import</span> <span class="n">Config</span>
+
+
+<span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">({</span>
+    <span class="s1">&#39;greeting&#39;</span><span class="p">:</span> <span class="s1">&#39;Hello!&#39;</span><span class="p">,</span>
+<span class="p">})</span>
+
+
+<span class="nd">@click.command</span><span class="p">()</span>
+<span class="nd">@config.click.option</span><span class="p">(</span><span class="s1">&#39;--greeting&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">greeting</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">say_hello</span><span class="p">(</span><span class="n">greeting</span><span class="p">):</span>
+    <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="n">greeting</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">say_hello</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Note that if you are using <code class="xref py py-class docutils literal notranslate"><span class="pre">PlainConfig</span></code>, you will have to pass <code class="docutils literal notranslate"><span class="pre">config.get_item('greeting')</span></code> to
+<code class="docutils literal notranslate"><span class="pre">&#64;config.click.option</span></code> because <code class="docutils literal notranslate"><span class="pre">config.greeting</span></code> would be just the primitive value.</p>
+<p>If you now run this simple program it will say <code class="docutils literal notranslate"><span class="pre">Hello!</span></code> by default and whatever you supply with <code class="docutils literal notranslate"><span class="pre">--greeting</span></code>
+otherwise.</p>
+<p>Note that in <em>click</em>, arguments are not meant to be optional (but they can if they are marked with
+<code class="docutils literal notranslate"><span class="pre">required=False</span></code>). Since a fallback makes sense only for optional input, you will have to mark your arguments
+with <code class="docutils literal notranslate"><span class="pre">required=False</span></code> if you want them to fall back to configuration items:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@click.command</span><span class="p">()</span>
+<span class="nd">@config.click.argument</span><span class="p">(</span><span class="s1">&#39;greeting&#39;</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">greeting</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">say_hello</span><span class="p">(</span><span class="n">greeting</span><span class="p">):</span>
+    <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="n">greeting</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="module-configmanager">
+<span id="api-reference"></span><h2><a class="toc-backref" href="#id30">API Reference</a><a class="headerlink" href="#module-configmanager" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="public-interface">
+<h3><a class="toc-backref" href="#id31">Public Interface</a><a class="headerlink" href="#public-interface" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="config">
+<h4><a class="toc-backref" href="#id32"><code class="docutils literal notranslate"><span class="pre">Config</span></code></a><a class="headerlink" href="#config" title="Permalink to this headline">¶</a></h4>
+<dl class="class">
+<dt id="configmanager.Config">
+<em class="property">class </em><code class="descclassname">configmanager.</code><code class="descname">Config</code><span class="sig-paren">(</span><em>schema=None</em>, <em>**configmanager_settings</em><span class="sig-paren">)</span><a class="headerlink" href="#configmanager.Config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represents a configuration tree.</p>
+<dl class="attribute">
+<dt id="configmanager.Config.Config">
+<code class="descname">Config</code><span class="sig-paren">(</span><em>schema=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#configmanager.Config.Config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a configuration tree from a schema.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">schema</span></code>: can be a dictionary, a list, a simple class, a module, another <a class="reference internal" href="#configmanager.Config" title="configmanager.Config"><code class="xref py py-class docutils literal notranslate"><span class="pre">Config</span></code></a>
+instance, and a combination of these.</p>
+</dd>
+</dl>
+<p>Keyword Args:</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">config_parser_factory</span></code>:</p>
+</div></blockquote>
+<p>Examples:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">([</span>
+    <span class="p">(</span><span class="s1">&#39;greeting&#39;</span><span class="p">,</span> <span class="s1">&#39;Hello!&#39;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s1">&#39;uploads&#39;</span><span class="p">,</span> <span class="n">Config</span><span class="p">({</span>
+        <span class="s1">&#39;enabled&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+        <span class="s1">&#39;tmp_dir&#39;</span><span class="p">:</span> <span class="s1">&#39;/tmp&#39;</span><span class="p">,</span>
+    <span class="p">})),</span>
+    <span class="p">(</span><span class="s1">&#39;db&#39;</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s1">&#39;host&#39;</span><span class="p">:</span> <span class="s1">&#39;localhost&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;user&#39;</span><span class="p">:</span> <span class="s1">&#39;root&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;password&#39;</span><span class="p">:</span> <span class="s1">&#39;secret&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;test&#39;</span><span class="p">,</span>
+    <span class="p">}),</span>
+    <span class="p">(</span><span class="s1">&#39;api&#39;</span><span class="p">,</span> <span class="n">Config</span><span class="p">([</span>
+        <span class="s1">&#39;host&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;port&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;default_user&#39;</span><span class="p">,</span>
+        <span class="p">(</span><span class="s1">&#39;enabled&#39;</span><span class="p">,</span> <span class="n">Item</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="nb">bool</span><span class="p">)),</span>
+    <span class="p">])),</span>
+<span class="p">])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">&lt;config&gt;[&lt;name_or_path&gt;]</code></dt>
+<dd><p>Access item by its name, section by its alias, or either by its path.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">name</span></code> (str): name of an item or alias of a section</p>
+</dd>
+<dt>Args:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">path</span></code> (tuple): path of an item or a section</p>
+</dd>
+<dt>Returns:</dt><dd><p><a class="reference internal" href="#configmanager.Item" title="configmanager.Item"><code class="xref py py-class docutils literal notranslate"><span class="pre">Item</span></code></a> or <a class="reference internal" href="#configmanager.Config" title="configmanager.Config"><code class="xref py py-class docutils literal notranslate"><span class="pre">Config</span></code></a></p>
+</dd>
+</dl>
+<p>Examples:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;greeting&#39;</span><span class="p">]</span>
+<span class="go">&lt;Item greeting &#39;Hello!&#39;&gt;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;uploads&#39;</span><span class="p">]</span>
+<span class="go">&lt;Config uploads at 4436269600&gt;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;uploads&#39;</span><span class="p">,</span> <span class="s1">&#39;enabled&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">&lt;config&gt;.&lt;name&gt;</code></dt>
+<dd><p>Access an item by its name or a section by its alias.</p>
+<p>For names and aliases that break Python grammar rules, use <code class="docutils literal notranslate"><span class="pre">config[name]</span></code> notation instead.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p><a class="reference internal" href="#configmanager.Item" title="configmanager.Item"><code class="xref py py-class docutils literal notranslate"><span class="pre">Item</span></code></a> or <a class="reference internal" href="#configmanager.Config" title="configmanager.Config"><code class="xref py py-class docutils literal notranslate"><span class="pre">Config</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">&lt;name_or_path&gt; in &lt;Config&gt;</code></dt>
+<dd><p>Returns <code class="docutils literal notranslate"><span class="pre">True</span></code> if an item or section with the specified name or path is to be found in this section.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="configmanager.Config.len">
+<code class="descname">len</code><span class="sig-paren">(</span><em>&lt;Config&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#configmanager.Config.len" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the number of items and sections in this section (does not include sections and items in
+sub-sections).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="configmanager.Config.__iter__">
+<code class="descname">__iter__</code><a class="headerlink" href="#configmanager.Config.__iter__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an iterator over all item names and section aliases in this section.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="configmanager.Config.configparser">
+<code class="descname">configparser</code><a class="headerlink" href="#configmanager.Config.configparser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adapter to dump/load INI format strings and files using standard library’s
+<code class="docutils literal notranslate"><span class="pre">ConfigParser</span></code> (or the backported configparser module in Python 2).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>ConfigPersistenceAdapter</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="configmanager.Config.json">
+<code class="descname">json</code><a class="headerlink" href="#configmanager.Config.json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adapter to dump/load JSON format strings and files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>ConfigPersistenceAdapter</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="configmanager.Config.yaml">
+<code class="descname">yaml</code><a class="headerlink" href="#configmanager.Config.yaml" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adapter to dump/load YAML format strings and files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>ConfigPersistenceAdapter</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="configmanager.Config.alias">
+<code class="descname">alias</code><a class="headerlink" href="#configmanager.Config.alias" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns alias with which this section was added to another or <code class="docutils literal notranslate"><span class="pre">None</span></code> if it hasn’t been added
+to any.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>(str)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="configmanager.Config.dump_values">
+<code class="descname">dump_values</code><span class="sig-paren">(</span><em>with_defaults=True</em>, <em>dict_cls=&lt;class 'dict'&gt;</em>, <em>flat=False</em><span class="sig-paren">)</span><a class="headerlink" href="#configmanager.Config.dump_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Export values of all items contained in this section to a dictionary.</p>
+<p>Items with no values set (and no defaults set if <code class="docutils literal notranslate"><span class="pre">with_defaults=True</span></code>) will be excluded.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A dictionary of key-value pairs, where for sections values are dictionaries
+of their contents.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="configmanager.Config.is_default">
+<code class="descname">is_default</code><a class="headerlink" href="#configmanager.Config.is_default" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">True</span></code> if values of all config items in this section and its subsections
+have their values equal to defaults or have no value set.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="configmanager.Config.iter_all">
+<code class="descname">iter_all</code><span class="sig-paren">(</span><em>recursive=False</em>, <em>path=None</em>, <em>key='path'</em><span class="sig-paren">)</span><a class="headerlink" href="#configmanager.Config.iter_all" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>recursive</strong> – if <code class="docutils literal notranslate"><span class="pre">True</span></code>, recurse into sub-sections</p></li>
+<li><p><strong>path</strong> (<em>tuple</em><em> or </em><em>string</em>) – optional path to limit iteration over.</p></li>
+<li><p><strong>key</strong> – <code class="docutils literal notranslate"><span class="pre">path</span></code> (default), <code class="docutils literal notranslate"><span class="pre">str_path</span></code>, <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">None</span></code>, or a function to calculate the key from
+<code class="docutils literal notranslate"><span class="pre">(k,</span> <span class="pre">v)</span></code> tuple.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>iterator over <code class="docutils literal notranslate"><span class="pre">(path,</span> <span class="pre">obj)</span></code> pairs of all items and
+sections contained in this section.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>iterator</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="configmanager.Config.iter_items">
+<code class="descname">iter_items</code><span class="sig-paren">(</span><em>recursive=False</em>, <em>path=None</em>, <em>key='path'</em><span class="sig-paren">)</span><a class="headerlink" href="#configmanager.Config.iter_items" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="#configmanager.Config.iter_all" title="configmanager.Config.iter_all"><code class="xref py py-meth docutils literal notranslate"><span class="pre">iter_all()</span></code></a> for standard iterator argument descriptions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><dl class="simple">
+<dt>iterator over <code class="docutils literal notranslate"><span class="pre">(key,</span> <span class="pre">item)</span></code> pairs of all items</dt><dd><p>in this section (and sub-sections if <code class="docutils literal notranslate"><span class="pre">recursive=True</span></code>).</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>iterator</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="configmanager.Config.iter_paths">
+<code class="descname">iter_paths</code><span class="sig-paren">(</span><em>recursive=False</em>, <em>path=None</em>, <em>key='path'</em><span class="sig-paren">)</span><a class="headerlink" href="#configmanager.Config.iter_paths" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="#configmanager.Config.iter_all" title="configmanager.Config.iter_all"><code class="xref py py-meth docutils literal notranslate"><span class="pre">iter_all()</span></code></a> for standard iterator argument descriptions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>iterator over paths of all items and sections
+contained in this section.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>iterator</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="configmanager.Config.iter_sections">
+<code class="descname">iter_sections</code><span class="sig-paren">(</span><em>recursive=False</em>, <em>path=None</em>, <em>key='path'</em><span class="sig-paren">)</span><a class="headerlink" href="#configmanager.Config.iter_sections" title="Permalink to this definition">¶</a></dt>
+<dd><p>See <a class="reference internal" href="#configmanager.Config.iter_all" title="configmanager.Config.iter_all"><code class="xref py py-meth docutils literal notranslate"><span class="pre">iter_all()</span></code></a> for standard iterator argument descriptions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><dl class="simple">
+<dt>iterator over <code class="docutils literal notranslate"><span class="pre">(key,</span> <span class="pre">section)</span></code> pairs of all sections</dt><dd><p>in this section (and sub-sections if <code class="docutils literal notranslate"><span class="pre">recursive=True</span></code>).</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>iterator</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="configmanager.Config.load_values">
+<code class="descname">load_values</code><span class="sig-paren">(</span><em>dictionary</em>, <em>as_defaults=False</em>, <em>flat=False</em><span class="sig-paren">)</span><a class="headerlink" href="#configmanager.Config.load_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Import config values from a dictionary.</p>
+<p>When <code class="docutils literal notranslate"><span class="pre">as_defaults</span></code> is set to <code class="docutils literal notranslate"><span class="pre">True</span></code>, the values
+imported will be set as defaults. This can be used to
+declare the sections and items of configuration.
+Values of sections and items in <code class="docutils literal notranslate"><span class="pre">dictionary</span></code> can be
+dictionaries as well as instances of <a class="reference internal" href="#configmanager.Item" title="configmanager.Item"><code class="xref py py-class docutils literal notranslate"><span class="pre">Item</span></code></a> and
+<a class="reference internal" href="#configmanager.Config" title="configmanager.Config"><code class="xref py py-class docutils literal notranslate"><span class="pre">Config</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dictionary</strong> – </p></li>
+<li><p><strong>as_defaults</strong> – if <code class="docutils literal notranslate"><span class="pre">True</span></code>, the imported values will be set as defaults.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="configmanager.Config.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#configmanager.Config.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recursively resets values of all items contained in this section
+and its subsections to their default values.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="configmanager.Config.section">
+<code class="descname">section</code><a class="headerlink" href="#configmanager.Config.section" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns:
+(<a class="reference internal" href="#configmanager.Config" title="configmanager.Config"><code class="xref py py-class docutils literal notranslate"><span class="pre">Config</span></code></a>): section to which this section belongs or <code class="docutils literal notranslate"><span class="pre">None</span></code> if this
+hasn’t been added to any section.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="item">
+<h4><a class="toc-backref" href="#id33"><code class="docutils literal notranslate"><span class="pre">Item</span></code></a><a class="headerlink" href="#item" title="Permalink to this headline">¶</a></h4>
+<dl class="class">
+<dt id="configmanager.Item">
+<em class="property">class </em><code class="descclassname">configmanager.</code><code class="descname">Item</code><span class="sig-paren">(</span><em>name=&lt;NotSet&gt;</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#configmanager.Item" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represents a configuration item – something that has a name, a type, a default value,
+a user- or environment-specific (custom) value, and other attributes.</p>
+<p>Item attribute name should start with a letter.</p>
+<p>When instantiating an item, you can pass <em>any</em> attributes, even ones not declared
+in <em>configmanager</em> code:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">threads</span> <span class="o">=</span> <span class="n">Item</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s1">&#39;I was here&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">threads</span><span class="o">.</span><span class="n">comment</span>
+<span class="go">&#39;I was here&#39;</span>
+</pre></div>
+</div>
+<p>If you pass attributes as <em>kwargs</em>, names prefixed with <code class="docutils literal notranslate"><span class="pre">&#64;</span></code> symbol will have
+<code class="docutils literal notranslate"><span class="pre">&#64;</span></code> removed and will be treated like normal attributes:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">Item</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="s1">&#39;@name&#39;</span><span class="p">:</span> <span class="s1">&#39;threads&#39;</span><span class="p">,</span> <span class="s1">&#39;@default&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">name</span>
+<span class="go">&#39;threads&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">default</span>
+<span class="go">5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">type</span>
+<span class="go">int</span>
+</pre></div>
+</div>
+<dl class="attribute">
+<dt id="configmanager.Item.required">
+<code class="descname">required</code><em class="property"> = False</em><a class="headerlink" href="#configmanager.Item.required" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">True</span></code> if config item requires a value.
+Note that if an item has a default value, marking it as <code class="docutils literal notranslate"><span class="pre">required</span></code> will have no effect.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="configmanager.Item.envvar">
+<code class="descname">envvar</code><em class="property"> = None</em><a class="headerlink" href="#configmanager.Item.envvar" title="Permalink to this definition">¶</a></dt>
+<dd><p>If set to a string, will use that as the name of the environment variable and will not consult envvar_name.
+If set to True, will use value of envvar_name as the name of environment variable to check for value override.
+If set to True and envvar_name is not set, will use auto-generated name based on item’s path
+in the configuration tree: SECTION1_SECTION2_ITEMNAME.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="configmanager.Item.envvar_name">
+<code class="descname">envvar_name</code><a class="headerlink" href="#configmanager.Item.envvar_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>See envvar.
+Note that you can override this so you don’t have to specify name for each enabled envvar individually.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="configmanager.Item.name">
+<code class="descname">name</code><em class="property"> = &lt;NotSet&gt;</em><a class="headerlink" href="#configmanager.Item.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name of the config item.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="configmanager.Item.type">
+<code class="descname">type</code><em class="property"> = &lt;_StrType ('str', 'string', 'unicode')&gt;</em><a class="headerlink" href="#configmanager.Item.type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Type of the config item’s value, a callable. Defaults to string.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="configmanager.Item.value">
+<code class="descname">value</code><a class="headerlink" href="#configmanager.Item.value" title="Permalink to this definition">¶</a></dt>
+<dd><p>The property through which to read and set value of config item.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="configmanager.Item.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>fallback=&lt;NotSet&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#configmanager.Item.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns config value.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#configmanager.Item.set" title="configmanager.Item.set"><code class="xref py py-meth docutils literal notranslate"><span class="pre">set()</span></code></a> and <a class="reference internal" href="#configmanager.Item.value" title="configmanager.Item.value"><code class="xref py py-attr docutils literal notranslate"><span class="pre">value</span></code></a></p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="configmanager.Item.set">
+<code class="descname">set</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#configmanager.Item.set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets config value.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="configmanager.Item.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#configmanager.Item.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resets the value of config item to its default value.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="configmanager.Item.is_default">
+<code class="descname">is_default</code><a class="headerlink" href="#configmanager.Item.is_default" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">True</span></code> if the item’s value is its default value or if no value and no default value are set.</p>
+<p>If the item is backed by an environment variable, this will be <code class="docutils literal notranslate"><span class="pre">True</span></code> only
+if the environment variable is set and is different to the
+default value of the item.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="configmanager.Item.has_value">
+<code class="descname">has_value</code><a class="headerlink" href="#configmanager.Item.has_value" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">True</span></code> if item has a default value or custom value set.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="configmanager.Item.section">
+<code class="descname">section</code><a class="headerlink" href="#configmanager.Item.section" title="Permalink to this definition">¶</a></dt>
+<dd><p>Config section (an instance of <a class="reference internal" href="#configmanager.Config" title="configmanager.Config"><code class="xref py py-class docutils literal notranslate"><span class="pre">Config</span></code></a>) to which the item has been added or <code class="docutils literal notranslate"><span class="pre">None</span></code> if
+it hasn’t been added to a section yet.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="configmanager.Item.get_path">
+<code class="descname">get_path</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#configmanager.Item.get_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate item’s path in configuration tree.
+Use this sparingly – path is calculated by going up the configuration tree.
+For a large number of items, it is more efficient to use iterators that return paths
+as keys.</p>
+<p>Path value is stable only once the configuration tree is completely initialised.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="configmanager.Item.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#configmanager.Item.validate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate item.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="configpersistenceadapter">
+<h4><a class="toc-backref" href="#id34"><code class="docutils literal notranslate"><span class="pre">ConfigPersistenceAdapter</span></code></a><a class="headerlink" href="#configpersistenceadapter" title="Permalink to this headline">¶</a></h4>
+<dl class="class">
+<dt id="configmanager.ConfigPersistenceAdapter">
+<em class="property">class </em><code class="descclassname">configmanager.</code><code class="descname">ConfigPersistenceAdapter</code><span class="sig-paren">(</span><em>config</em>, <em>reader_writer</em><span class="sig-paren">)</span><a class="headerlink" href="#configmanager.ConfigPersistenceAdapter" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="configmanager.ConfigPersistenceAdapter.load">
+<code class="descname">load</code><span class="sig-paren">(</span><em>source</em>, <em>as_defaults=False</em><span class="sig-paren">)</span><a class="headerlink" href="#configmanager.ConfigPersistenceAdapter.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load configuration values from the specified source.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>source</strong> – </p></li>
+<li><p><strong>as_defaults</strong> (<em>bool</em>) – if <code class="docutils literal notranslate"><span class="pre">True</span></code>, contents of <code class="docutils literal notranslate"><span class="pre">source</span></code> will be treated as schema of configuration items.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="configmanager.ConfigPersistenceAdapter.loads">
+<code class="descname">loads</code><span class="sig-paren">(</span><em>config_str</em>, <em>as_defaults=False</em><span class="sig-paren">)</span><a class="headerlink" href="#configmanager.ConfigPersistenceAdapter.loads" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load configuration values from the specified source string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config_str</strong> – </p></li>
+<li><p><strong>as_defaults</strong> (<em>bool</em>) – if <code class="docutils literal notranslate"><span class="pre">True</span></code>, contents of <code class="docutils literal notranslate"><span class="pre">source</span></code> will be treated as schema of configuration items.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="configmanager.ConfigPersistenceAdapter.dump">
+<code class="descname">dump</code><span class="sig-paren">(</span><em>destination</em>, <em>with_defaults=False</em><span class="sig-paren">)</span><a class="headerlink" href="#configmanager.ConfigPersistenceAdapter.dump" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write configuration values to the specified destination.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>destination</strong> – </p></li>
+<li><p><strong>with_defaults</strong> (<em>bool</em>) – if <code class="docutils literal notranslate"><span class="pre">True</span></code>, values of items with no custom values will be included in the output
+if they have a default value set.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="configmanager.ConfigPersistenceAdapter.dumps">
+<code class="descname">dumps</code><span class="sig-paren">(</span><em>with_defaults=False</em><span class="sig-paren">)</span><a class="headerlink" href="#configmanager.ConfigPersistenceAdapter.dumps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a string representing all the configuration values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>with_defaults</strong> (<em>bool</em>) – if <code class="docutils literal notranslate"><span class="pre">True</span></code>, values of items with no custom values will be included in the output
+if they have a default value set.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="configmanager.ConfigPersistenceAdapter.store_exists">
+<code class="descname">store_exists</code><span class="sig-paren">(</span><em>store</em><span class="sig-paren">)</span><a class="headerlink" href="#configmanager.ConfigPersistenceAdapter.store_exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <code class="docutils literal notranslate"><span class="pre">True</span></code> if configuration can be loaded from the store.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="id1">
+<h4><a class="toc-backref" href="#id35">Exceptions</a><a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="configerror">
+<h5><a class="toc-backref" href="#id36"><code class="docutils literal notranslate"><span class="pre">ConfigError</span></code></a><a class="headerlink" href="#configerror" title="Permalink to this headline">¶</a></h5>
+<dl class="class">
+<dt id="configmanager.ConfigError">
+<em class="property">class </em><code class="descclassname">configmanager.</code><code class="descname">ConfigError</code><a class="headerlink" href="#configmanager.ConfigError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class for all exceptions raised by <em>configmanager</em> that user may be able to recover from.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="id2">
+<h5><a class="toc-backref" href="#id37"><code class="docutils literal notranslate"><span class="pre">NotFound</span></code></a><a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h5>
+<dl class="class">
+<dt id="configmanager.NotFound">
+<em class="property">class </em><code class="descclassname">configmanager.</code><code class="descname">NotFound</code><span class="sig-paren">(</span><em>name</em>, <em>section=None</em><span class="sig-paren">)</span><a class="headerlink" href="#configmanager.NotFound" title="Permalink to this definition">¶</a></dt>
+<dd><p>Section or item with the requested name or path is not found
+in the section it is being requested from.</p>
+<dl class="attribute">
+<dt id="configmanager.NotFound.name">
+<code class="descname">name</code><a class="headerlink" href="#configmanager.NotFound.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name of the section or item which was not found</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="configmanager.NotFound.section">
+<code class="descname">section</code><a class="headerlink" href="#configmanager.NotFound.section" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="#configmanager.Config" title="configmanager.Config"><code class="xref py py-class docutils literal notranslate"><span class="pre">Config</span></code></a> instance which does not contain the sought name</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="id3">
+<h5><a class="toc-backref" href="#id38"><code class="docutils literal notranslate"><span class="pre">RequiredValueMissing</span></code></a><a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h5>
+<dl class="class">
+<dt id="configmanager.RequiredValueMissing">
+<em class="property">class </em><code class="descclassname">configmanager.</code><code class="descname">RequiredValueMissing</code><span class="sig-paren">(</span><em>name</em>, <em>item=None</em><span class="sig-paren">)</span><a class="headerlink" href="#configmanager.RequiredValueMissing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Value was requested from an item which requires a value, but had no
+default or custom value set.</p>
+<dl class="attribute">
+<dt id="configmanager.RequiredValueMissing.name">
+<code class="descname">name</code><a class="headerlink" href="#configmanager.RequiredValueMissing.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name of the item</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="configmanager.RequiredValueMissing.item">
+<code class="descname">item</code><a class="headerlink" href="#configmanager.RequiredValueMissing.item" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="#configmanager.Item" title="configmanager.Item"><code class="xref py py-class docutils literal notranslate"><span class="pre">Item</span></code></a> instance</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="design">
+<h2><a class="toc-backref" href="#id39">Design</a><a class="headerlink" href="#design" title="Permalink to this headline">¶</a></h2>
+<p>These are internals. Do not use in your application code.</p>
+<div class="section" id="key-section-item-and-item-value-access">
+<h3><a class="toc-backref" href="#id40">Key, Section, Item, and Item Value Access</a><a class="headerlink" href="#key-section-item-and-item-value-access" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>get an item or a section: <code class="docutils literal notranslate"><span class="pre">config._get_item(*key)</span></code>, <code class="docutils literal notranslate"><span class="pre">config._get_section(*key)</span></code>, or <code class="docutils literal notranslate"><span class="pre">config._get_item_or_section(key)</span></code>.</p></li>
+<li><p>get a key (the meaning of this depends on user settings): <code class="docutils literal notranslate"><span class="pre">config._get_by_key(key)</span></code>.</p></li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Jazeps Basko.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/v1/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,403 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>configmanager &#8212; configmanager 1.35.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="configmanager">
+<h1>configmanager<a class="headerlink" href="#configmanager" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p><a class="reference external" href="https://jbasko.github.io/configmanager/">Documentation</a></p></li>
+<li><p><a class="reference external" href="https://github.com/jbasko/configmanager">Source Code and Issue Tracker on github.com</a></p></li>
+<li><p><a class="reference external" href="https://travis-ci.org/jbasko/configmanager">Build Status on travis-ci.org</a></p></li>
+</ul>
+<div class="section" id="questions-and-answers">
+<h2>Questions and Answers<a class="headerlink" href="#questions-and-answers" title="Permalink to this headline">¶</a></h2>
+<div class="contents local topic" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#what-is-it" id="id1">What is it?</a></p></li>
+<li><p><a class="reference internal" href="#how-is-it-different-from-others" id="id2">How is it different from others?</a></p></li>
+<li><p><a class="reference internal" href="#how-do-i-install-it" id="id3">How do I install it?</a></p></li>
+<li><p><a class="reference internal" href="#how-do-i-use-it" id="id4">How do I use it?</a></p></li>
+<li><p><a class="reference internal" href="#how-do-i-read-configuration-from-files" id="id5">How do I read configuration from files?</a></p></li>
+<li><p><a class="reference internal" href="#how-do-i-write-configuration-to-files" id="id6">How do I write configuration to files?</a></p></li>
+<li><p><a class="reference internal" href="#how-do-i-export-all-configuration-values-to-a-dictionary" id="id7">How do I export all configuration values to a dictionary?</a></p></li>
+<li><p><a class="reference internal" href="#how-do-i-read-configuration-values-from-a-dictionary" id="id8">How do I read configuration values from a dictionary?</a></p></li>
+<li><p><a class="reference internal" href="#where-is-all-the-richness" id="id9">Where is all the richness?</a></p></li>
+<li><p><a class="reference internal" href="#how-to-create-an-item-with-no-default-value" id="id10">How to create an item with no default value?</a></p></li>
+<li><p><a class="reference internal" href="#how-to-provide-a-fallback-value-for-an-item-with-no-default-value" id="id11">How to provide a fallback value for an item with no default value?</a></p></li>
+<li><p><a class="reference internal" href="#how-to-add-a-dynamic-attribute-to-all-items" id="id12">How to add a dynamic attribute to all items?</a></p></li>
+<li><p><a class="reference internal" href="#how-to-do-something-with-all-configuration-items" id="id13">How to do something with all configuration items?</a></p></li>
+<li><p><a class="reference internal" href="#how-to-allow-item-value-override-through-an-environment-variable" id="id14">How to allow item value override through an environment variable?</a></p></li>
+<li><p><a class="reference internal" href="#how-to-handle-non-existent-configuration-items" id="id15">How to handle non-existent configuration items?</a></p></li>
+<li><p><a class="reference internal" href="#how-to-set-temporary-configuration" id="id16">How to set temporary configuration?</a></p></li>
+<li><p><a class="reference internal" href="#how-do-i-manage-changesets-of-config-values" id="id17">How do I manage changesets of config values?</a></p></li>
+</ul>
+</div>
+<div class="section" id="what-is-it">
+<h3><a class="toc-backref" href="#id1">What is it?</a><a class="headerlink" href="#what-is-it" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>If you come from the world of Django, it is the <code class="docutils literal notranslate"><span class="pre">settings</span></code> object you import from <code class="docutils literal notranslate"><span class="pre">django.conf</span></code>.</p></li>
+<li><p>If you have built one before, you probably built it around standard library’s <code class="docutils literal notranslate"><span class="pre">ConfigParser</span></code>,
+or perhaps just a plain dictionary.</p></li>
+<li><p>It is the party responsible for loading the configuration from different sources and for making it accessible
+to the rest of your application through uniform interface.</p></li>
+</ul>
+</div>
+<div class="section" id="how-is-it-different-from-others">
+<h3><a class="toc-backref" href="#id2">How is it different from others?</a><a class="headerlink" href="#how-is-it-different-from-others" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>It requires you to declare your configuration schema beforehand.</p></li>
+<li><p>Every configuration item is a rich object with a type, a name, a default value, a custom value,
+and other attributes. All these and other, easy-to-add attributes can be used to calculate configuration item’s
+effective value when application requests it.</p></li>
+<li><p>It allows you to choose how you will access values of configuration items: through dictionary-like access,
+through attributes, or through method calls.</p></li>
+<li><p>It does not limit you to a specific configuration file format, or to a specific limit of configuration tree depth.</p></li>
+<li><p>It can be easily composed of other configuration managers.</p></li>
+<li><p>It does not support value interpolation.</p></li>
+</ul>
+</div>
+<div class="section" id="how-do-i-install-it">
+<h3><a class="toc-backref" href="#id3">How do I install it?</a><a class="headerlink" href="#how-do-i-install-it" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip install configmanager
+</pre></div>
+</div>
+</div>
+<div class="section" id="how-do-i-use-it">
+<h3><a class="toc-backref" href="#id4">How do I use it?</a><a class="headerlink" href="#how-do-i-use-it" title="Permalink to this headline">¶</a></h3>
+<p>It depends on what you are after. If you are just looking for something to parse different files and put the
+values in one object, then you want to use <code class="docutils literal notranslate"><span class="pre">PlainConfig</span></code> interface:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">configmanager</span> <span class="kn">import</span> <span class="n">PlainConfig</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="n">PlainConfig</span><span class="p">(</span><span class="n">schema</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;greeting&#39;</span><span class="p">:</span> <span class="s1">&#39;Hello, world!&#39;</span><span class="p">})</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="o">.</span><span class="n">greeting</span>
+<span class="go">&#39;Hello, world!&#39;</span>
+</pre></div>
+</div>
+<p>If you are after the rich configuration item functionality which <em>configmanager</em> was designed for, then you
+want to use <code class="docutils literal notranslate"><span class="pre">Config</span></code> interface:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">configmanager</span> <span class="kn">import</span> <span class="n">Config</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">(</span><span class="n">schema</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;greeting&#39;</span><span class="p">:</span> <span class="s1">&#39;Hello, world!&#39;</span><span class="p">})</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="o">.</span><span class="n">greeting</span><span class="o">.</span><span class="n">value</span>
+<span class="go">&#39;Hello, world!&#39;</span>
+</pre></div>
+</div>
+<p>Further answers will assume that you are using the rich <code class="docutils literal notranslate"><span class="pre">Config</span></code> interface.</p>
+</div>
+<div class="section" id="how-do-i-read-configuration-from-files">
+<h3><a class="toc-backref" href="#id5">How do I read configuration from files?</a><a class="headerlink" href="#how-do-i-read-configuration-from-files" title="Permalink to this headline">¶</a></h3>
+<p>If there is a list of locations that you want to always inspect when initialising the configuration manager, you
+can pass them using the <code class="docutils literal notranslate"><span class="pre">load_sources=</span></code> setting of <em>configmanager</em>. Make sure you also enable auto-loading:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">(</span>
+    <span class="n">schema</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;greeting&#39;</span><span class="p">:</span> <span class="s1">&#39;Hello, world&#39;</span><span class="p">},</span>
+<span class="hll">    <span class="n">load_sources</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;/etc/helloworld/config.ini&#39;</span><span class="p">,</span> <span class="s1">&#39;~/.config/helloworld/config.json&#39;</span><span class="p">],</span>
+</span><span class="hll">    <span class="n">auto_load</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If you want to reload these same sources later, or load them for the first time because you didn’t specify
+<code class="docutils literal notranslate"><span class="pre">auto_load=True</span></code>, you can do so with <code class="docutils literal notranslate"><span class="pre">config.load()</span></code>.</p>
+<p>To load configuration from a specific file at a later point in manager’s lifetime, you can use
+<code class="docutils literal notranslate"><span class="pre">load(source)</span></code> method on the appropriate persistence adapter:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">config</span><span class="o">.</span><span class="n">configparser</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;/etc/helloworld/config.ini&#39;</span><span class="p">)</span>
+<span class="n">config</span><span class="o">.</span><span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;~/.config/helloworld/config.yaml&#39;</span><span class="p">)</span>
+<span class="n">config</span><span class="o">.</span><span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;~/.config/helloworld/config.json&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="how-do-i-write-configuration-to-files">
+<h3><a class="toc-backref" href="#id6">How do I write configuration to files?</a><a class="headerlink" href="#how-do-i-write-configuration-to-files" title="Permalink to this headline">¶</a></h3>
+<p>Similarly to reading, you find the appropriate persistence adapter, and use the dump method on it:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">config</span><span class="o">.</span><span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="s1">&#39;~/.config/helloworld/config.json&#39;</span><span class="p">,</span> <span class="n">with_defaults</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Unless you also pass <code class="docutils literal notranslate"><span class="pre">with_defaults=True</span></code>, <code class="docutils literal notranslate"><span class="pre">dump</span></code> will exclude values for items who have no custom value set.</p>
+</div>
+<div class="section" id="how-do-i-export-all-configuration-values-to-a-dictionary">
+<h3><a class="toc-backref" href="#id7">How do I export all configuration values to a dictionary?</a><a class="headerlink" href="#how-do-i-export-all-configuration-values-to-a-dictionary" title="Permalink to this headline">¶</a></h3>
+<p>You can export effective values with <code class="xref py py-meth docutils literal notranslate"><span class="pre">Section.dump_values()</span></code> method:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="o">.</span><span class="n">dump_values</span><span class="p">()</span>
+<span class="go">{&#39;greeting&#39;: &#39;Hello, world!&#39;}</span>
+</pre></div>
+</div>
+<p>By default, <code class="xref py py-meth docutils literal notranslate"><span class="pre">Section.dump_values()</span></code> includes values for all items which have a custom value or a default value.
+You can also dump just custom values with <code class="docutils literal notranslate"><span class="pre">with_defaults=False</span></code> which may result in an empty dictionary
+if none of your configuration items have custom values.</p>
+</div>
+<div class="section" id="how-do-i-read-configuration-values-from-a-dictionary">
+<h3><a class="toc-backref" href="#id8">How do I read configuration values from a dictionary?</a><a class="headerlink" href="#how-do-i-read-configuration-values-from-a-dictionary" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">config</span><span class="o">.</span><span class="n">load_values</span><span class="p">({</span>
+    <span class="s1">&#39;greeting&#39;</span><span class="p">:</span> <span class="s1">&#39;Hey!&#39;</span><span class="p">,</span>
+<span class="p">})</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="where-is-all-the-richness">
+<h3><a class="toc-backref" href="#id9">Where is all the richness?</a><a class="headerlink" href="#where-is-all-the-richness" title="Permalink to this headline">¶</a></h3>
+<p>The richness lies in configuration items:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">greeting</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">greeting</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">greeting</span>
+<span class="go">&lt;Item greeting &#39;Hello, world!&#39;&gt;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">greeting</span><span class="o">.</span><span class="n">has_value</span>
+<span class="go">True</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">greeting</span><span class="o">.</span><span class="n">default</span>
+<span class="go">&#39;Hello, world!&#39;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">greeting</span><span class="o">.</span><span class="n">is_default</span>
+<span class="go">True</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">greeting</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="s1">&#39;Hey!&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">greeting</span><span class="o">.</span><span class="n">value</span>
+<span class="go">&#39;Hey!&#39;</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">greeting</span><span class="o">.</span><span class="n">is_default</span>
+<span class="go">False</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">greeting</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">greeting</span><span class="o">.</span><span class="n">value</span>
+<span class="go">&#39;Hello, world!&#39;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="how-to-create-an-item-with-no-default-value">
+<h3><a class="toc-backref" href="#id10">How to create an item with no default value?</a><a class="headerlink" href="#how-to-create-an-item-with-no-default-value" title="Permalink to this headline">¶</a></h3>
+<p>In normal circumstances, we consider a configuration item with no default value an anti-pattern.
+However, if you want to force your application user to provide a value for an item for which no default value would
+be acceptable, for example, it can be done either by using an explicit <code class="docutils literal notranslate"><span class="pre">Item</span></code> instance in configuration schema,
+or by using dictionary notation with meta keys:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Option 1</span>
+<span class="kn">from</span> <span class="nn">configmanager</span> <span class="kn">import</span> <span class="n">Item</span>
+<span class="n">config</span><span class="o">.</span><span class="n">add_schema</span><span class="p">({</span><span class="s1">&#39;enabled&#39;</span><span class="p">:</span> <span class="n">Item</span><span class="p">(</span><span class="n">required</span><span class="o">=</span><span class="bp">True</span><span class="p">)})</span>
+
+<span class="c1"># Option 2</span>
+<span class="n">config</span><span class="o">.</span><span class="n">add_schema</span><span class="p">({</span><span class="s1">&#39;enabled&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;@required&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">}})</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="how-to-provide-a-fallback-value-for-an-item-with-no-default-value">
+<h3><a class="toc-backref" href="#id11">How to provide a fallback value for an item with no default value?</a><a class="headerlink" href="#how-to-provide-a-fallback-value-for-an-item-with-no-default-value" title="Permalink to this headline">¶</a></h3>
+<p>Once you have a reference to the item, you can call its <code class="docutils literal notranslate"><span class="pre">.get(fallback)</span></code> method:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="o">.</span><span class="n">enabled</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="o">.</span><span class="n">enabled</span><span class="o">.</span><span class="n">value</span>
+<span class="go"># .. stack-trace skipped ..</span>
+<span class="go">configmanager.exceptions.RequiredValueMissing: enabled</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="how-to-add-a-dynamic-attribute-to-all-items">
+<h3><a class="toc-backref" href="#id12">How to add a dynamic attribute to all items?</a><a class="headerlink" href="#how-to-add-a-dynamic-attribute-to-all-items" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">({</span><span class="s1">&#39;greeting&#39;</span><span class="p">:</span> <span class="s1">&#39;Hello, world!&#39;</span><span class="p">})</span>
+
+<span class="nd">@config.item_attribute</span>
+<span class="k">def</span> <span class="nf">all_caps_value</span><span class="p">(</span><span class="n">item</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">item</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+
+<span class="k">assert</span> <span class="n">config</span><span class="o">.</span><span class="n">greeting</span><span class="o">.</span><span class="n">all_caps_value</span> <span class="o">==</span> <span class="s1">&#39;HELLO, WORLD!&#39;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="how-to-do-something-with-all-configuration-items">
+<h3><a class="toc-backref" href="#id13">How to do something with all configuration items?</a><a class="headerlink" href="#how-to-do-something-with-all-configuration-items" title="Permalink to this headline">¶</a></h3>
+<p>If you need to work with items after the configuration tree has been fully constructed,
+you can iterate over all items with <code class="docutils literal notranslate"><span class="pre">config.iter_items()</span></code> which can be customised in many
+different ways.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">iter_items</span><span class="p">(</span><span class="n">recursive</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">is_default</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If you need to process item objects during configuration schema parsing, you can register
+an <code class="docutils literal notranslate"><span class="pre">item_added_to_section</span></code> hook before adding schemas:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span>
+
+<span class="nd">@config.hooks.item_added_to_section</span>
+<span class="k">def</span> <span class="nf">item_added_to_section</span><span class="p">(</span><span class="n">subject</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">section</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Item {} was added to a section&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">subject</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+<span class="c1"># Add schemas afterwards</span>
+<span class="n">config</span><span class="o">.</span><span class="n">add_schema</span><span class="p">({</span><span class="s1">&#39;greeting&#39;</span><span class="p">:</span> <span class="s1">&#39;Hello, world!&#39;</span><span class="p">})</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="how-to-allow-item-value-override-through-an-environment-variable">
+<h3><a class="toc-backref" href="#id14">How to allow item value override through an environment variable?</a><a class="headerlink" href="#how-to-allow-item-value-override-through-an-environment-variable" title="Permalink to this headline">¶</a></h3>
+<p>If you have meaningful section names and you don’t mind <em>configmanager</em>’s default naming
+schema, then you can just declare the particular items with <code class="docutils literal notranslate"><span class="pre">envvar=True</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># dictionary notation</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">({</span>
+    <span class="s1">&#39;greeting&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;@default&#39;</span><span class="p">:</span> <span class="s1">&#39;Hello, world!&#39;</span><span class="p">,</span>
+<span class="hll">        <span class="s1">&#39;@envvar&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+</span>    <span class="p">},</span>
+<span class="p">})</span>
+
+<span class="c1"># same thing with object notation</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">({</span>
+    <span class="s1">&#39;greeting&#39;</span><span class="p">:</span> <span class="n">Item</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;Hello, world!&#39;</span><span class="p">,</span>
+<span class="hll">        <span class="n">envvar</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+</span>    <span class="p">),</span>
+<span class="p">})</span>
+</pre></div>
+</div>
+<p>Now, to set a value override, your application user would have to set environment variable <code class="docutils literal notranslate"><span class="pre">GREETING</span></code>.
+Had the <code class="docutils literal notranslate"><span class="pre">greeting</span></code> item been declared under a section called <code class="docutils literal notranslate"><span class="pre">hello_world</span></code>, you would have
+to override it by setting <code class="docutils literal notranslate"><span class="pre">HELLO_WORLD_GREETING</span></code>.</p>
+<p>If this is not up to your taste, you can specify a custom environment variable name by
+replacing <code class="docutils literal notranslate"><span class="pre">envvar=True</span></code> with something more likeable:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">({</span>
+    <span class="s1">&#39;greeting&#39;</span><span class="p">:</span> <span class="n">Item</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;Hello, world!&#39;</span><span class="p">,</span>
+<span class="hll">        <span class="n">envvar</span><span class="o">=</span><span class="s1">&#39;MY_APP_GREETING&#39;</span><span class="p">,</span>
+</span>    <span class="p">),</span>
+<span class="p">})</span>
+</pre></div>
+</div>
+<p>If you want to generate a custom environment variable name dynamically based on item for which
+the environment variable name is requested, you can do so by overriding <code class="docutils literal notranslate"><span class="pre">envvar_name</span></code> attribute:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">config</span> <span class="o">=</span> <span class="n">Config</span><span class="p">({</span>
+    <span class="s1">&#39;greeting&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;@default&#39;</span><span class="p">:</span> <span class="s1">&#39;Hello, world&#39;</span><span class="p">,</span>
+<span class="hll">        <span class="s1">&#39;@envvar&#39;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
+</span>    <span class="p">}</span>
+<span class="p">})</span>
+
+<span class="hll"><span class="nd">@config.item_attribute</span>
+</span><span class="hll"><span class="k">def</span> <span class="nf">envvar_name</span><span class="p">(</span><span class="n">item</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+</span><span class="hll">    <span class="k">return</span> <span class="s1">&#39;GGG_{}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">get_path</span><span class="p">())</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
+</span>
+<span class="k">assert</span> <span class="n">config</span><span class="o">.</span><span class="n">greeting</span><span class="o">.</span><span class="n">envvar_name</span> <span class="o">==</span> <span class="s1">&#39;GGG_GREETING&#39;</span>
+</pre></div>
+</div>
+<p>Note that when calculating item value, <code class="docutils literal notranslate"><span class="pre">config.greeting.envvar_name</span></code> is only consulted if
+<code class="docutils literal notranslate"><span class="pre">config.greeting.envvar</span></code> is set to <code class="docutils literal notranslate"><span class="pre">True</span></code>. If it is set to a string, that will be used instead.
+Or, if it is set to a falsy value, environment variables won’t be consulted at all.</p>
+</div>
+<div class="section" id="how-to-handle-non-existent-configuration-items">
+<h3><a class="toc-backref" href="#id15">How to handle non-existent configuration items?</a><a class="headerlink" href="#how-to-handle-non-existent-configuration-items" title="Permalink to this headline">¶</a></h3>
+<p>If you request a non-existent configuration item, a <a class="reference internal" href="v1/index.html#configmanager.NotFound" title="configmanager.NotFound"><code class="xref py py-class docutils literal notranslate"><span class="pre">NotFound</span></code></a> exception is raised.
+You could catch these as any other Python exception, or you could register a callback function
+to be called when this exception is raised:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@config.hooks.not_found</span>
+<span class="k">def</span> <span class="nf">not_found</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">section</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s1">&#39;A section or item called {} was requested, but it does not exist&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>If this function returns anything other than <code class="docutils literal notranslate"><span class="pre">None</span></code>, the exception will not be raised.</p>
+</div>
+<div class="section" id="how-to-set-temporary-configuration">
+<h3><a class="toc-backref" href="#id16">How to set temporary configuration?</a><a class="headerlink" href="#how-to-set-temporary-configuration" title="Permalink to this headline">¶</a></h3>
+<p>When writing unit tests, or in other scenarios when you need to change configuration briefly just to
+execute some particular part of your code, you can create an auto-resetting configuration context by
+calling your <code class="docutils literal notranslate"><span class="pre">Config</span></code> instance as a function.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">config</span><span class="p">():</span>
+    <span class="n">config</span><span class="o">.</span><span class="n">greeting</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="s1">&#39;Bon jour!&#39;</span>
+
+    <span class="c1"># do some French things here</span>
+    <span class="k">pass</span>
+
+<span class="c1"># French settings have been reset:</span>
+<span class="k">assert</span> <span class="n">config</span><span class="o">.</span><span class="n">greeting</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;Hello, world!&#39;</span>
+</pre></div>
+</div>
+<p>If you prefer to set the temporary configuration on initialisation of the context, you can do so
+by passing a values dictionary:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">config</span><span class="p">({</span><span class="s1">&#39;greeting&#39;</span><span class="p">:</span> <span class="s1">&#39;Bon jour!&#39;</span><span class="p">}):</span>
+    <span class="c1"># do some French things here</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+<p>Note that you cannot pass keyword arguments there, just a dictionary.</p>
+</div>
+<div class="section" id="how-do-i-manage-changesets-of-config-values">
+<h3><a class="toc-backref" href="#id17">How do I manage changesets of config values?</a><a class="headerlink" href="#how-do-i-manage-changesets-of-config-values" title="Permalink to this headline">¶</a></h3>
+<p>The previous example used a special case of what we call a <em>changeset context</em>.
+You can explicitly create one with <code class="xref py py-meth docutils literal notranslate"><span class="pre">Config.changeset_context()</span></code>.</p>
+<p>Unlike the special context demonstrated above, a default changeset context does not
+reset changes made while program control was inside it.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="o">.</span><span class="n">greeting</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+<span class="go">&#39;Hello, world!&#39;</span>
+
+<span class="hll"><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">config</span><span class="o">.</span><span class="n">changeset_context</span><span class="p">()</span> <span class="k">as</span> <span class="n">ctx</span><span class="p">:</span>
+</span><span class="gp">... </span>    <span class="n">config</span><span class="o">.</span><span class="n">greeting</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;Hey, what is up!&#39;</span><span class="p">)</span>
+
+<span class="hll"><span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
+</span><span class="go">1</span>
+
+<span class="hll"><span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">config</span><span class="o">.</span><span class="n">greeting</span><span class="p">]</span>
+</span><span class="go">&#39;Hey, what is up!&#39;</span>
+
+<span class="hll"><span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">changes</span><span class="p">[</span><span class="n">config</span><span class="o">.</span><span class="n">greeting</span><span class="p">]</span>
+</span><span class="hll"><span class="go">Change(old_value=&lt;NotSet&gt;, new_value=&#39;Hey, what is up!&#39;, old_raw_str_value=&lt;NotSet&gt;, new_raw_str_value=&#39;Hey, what is up!&#39;)</span>
+</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ctx</span><span class="o">.</span><span class="n">changes</span>
+<span class="go">{}</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="o">.</span><span class="n">greeting</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+<span class="go">&#39;Hello, world!&#39;</span>
+</pre></div>
+</div>
+<p>A changeset context comes handy when you want to create a sub-context of changes which you want to be able
+to export or persist separately from the rest of configuration changes.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Jazeps Basko.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
