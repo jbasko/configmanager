@@ -25,3 +25,5 @@ pytest-random-order
 coverage
 tox
 bumpversion==0.5.3
+collective.checkdocs
+pygments
